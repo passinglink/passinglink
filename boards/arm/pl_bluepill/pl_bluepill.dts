@@ -1,0 +1,124 @@
+/dts-v1/;
+#include <st/f1/stm32f103X8.dtsi>
+
+/ {
+	model = "PassingLink BluePill";
+	compatible = "st,stm32f103c8";
+
+	chosen {
+		zephyr,console = &usart2;
+		zephyr,shell-uart = &usart2;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		status: led_1 {
+			gpios = <&gpioc 13 0>;
+			label = "Blue LED";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		button_north {
+			gpios = <&gpioc 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "North Button";
+		};
+
+		button_east {
+			gpios = <&gpiob 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "East Button";
+		};
+
+		button_south {
+			gpios = <&gpiob 14 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "South Button";
+		};
+
+		button_west {
+			gpios = <&gpiob 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "West Button";
+		};
+
+		button_l1 {
+			gpios = <&gpioc 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "L1 Button";
+		};
+
+		button_l2 {
+			gpios = <&gpiob 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "L2 Button";
+		};
+
+		button_l3 {
+			gpios = <&gpioc 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "L3 Button";
+		};
+
+		button_r1 {
+			gpios = <&gpioc 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "R1 Button";
+		};
+
+		button_r2 {
+			gpios = <&gpiob 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "R2 Button";
+		};
+
+		button_r3 {
+			gpios = <&gpiod 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "R3 Button";
+		};
+
+		button_select {
+			gpios = <&gpiob 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Select Button";
+		};
+
+		button_start {
+			gpios = <&gpioc 4 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Start Button";
+		};
+
+		button_home {
+			gpios = <&gpioc 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Home Button";
+		};
+
+		button_touchpad {
+			gpios = <&gpiob 5 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Touchpad Button";
+		};
+
+		stick_up {
+			gpios = <&gpioa 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Stick Up";
+		};
+
+		stick_down {
+			gpios = <&gpioa 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Stick Down";
+		};
+
+		stick_right {
+			gpios = <&gpioc 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Stick Right";
+		};
+
+		stick_left {
+			gpios = <&gpioa 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Stick Left";
+		};
+	};
+};
+
+&usart2 {
+	current-speed = <921600>;
+	status = "okay";
+};
+
+&usb {
+	status = "okay";
+};

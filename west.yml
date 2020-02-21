@@ -1,0 +1,15 @@
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+    - name: passinglink
+      url-base: https://github.com/passinglink
+  projects:
+    - name: mbedtls
+      remote: passinglink
+      revision: master
+      path: modules/crypto/mbedtls
+    - name: zephyr
+      remote: passinglink
+      revision: master
+      import: true

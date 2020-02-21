@@ -1,0 +1,58 @@
+mainmenu "Configuration"
+
+menu "PassingLink Configuration"
+
+config PASSINGLINK_ALLOCATOR
+	bool "Use passinglink's custom allocator"
+	default y
+	default n if NATIVE_APPLICATION
+	help
+	  Use a custom allocator with precisely-sized buckets for PS4 authentication with mbedtls.
+
+config PASSINGLINK_CHECK_MAIN_STACK_HWM
+	bool "Check the main stack's high watermark"
+	default y
+	select INIT_STACKS
+	help
+	  Calculate the main stack's high watermark.
+
+choice PASSINGLINK_INPUT
+	prompt "Input method"
+	default PASSINGLINK_INPUT_GPIO
+
+config PASSINGLINK_INPUT_NONE
+	bool "None"
+	help
+	  Disable input
+
+config PASSINGLINK_INPUT_GPIO
+	bool "GPIO pins"
+	help
+	  Enable input from GPIO pins
+
+endchoice
+
+menu "Output methods"
+
+config PASSINGLINK_OUTPUT_USB_PS4
+	bool "Enable PS4 emulation"
+	default y
+	help
+	  Output to PS4 over USB
+
+config PASSINGLINK_OUTPUT_USB_PS4_AUTH
+	bool "Enable PS4 authentication"
+	default y
+	help
+	  Enable PS4 authentication
+  depends on MBEDTLS
+
+endmenu # Output methods
+
+endmenu # Passing Link Configuration
+
+menu "Kernel configuration"
+
+source "Kconfig.zephyr"
+
+endmenu # Kernel configuration

@@ -1,0 +1,3 @@
+config BOARD_PL_BLUEPILL
+	bool "STM32 Bluepill"
+	depends on SOC_STM32F103X8

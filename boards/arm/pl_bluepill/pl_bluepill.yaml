@@ -1,0 +1,13 @@
+identifier: pl_bluepill
+name: STM32 BluePill
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 20
+supported:
+  - i2c
+  - pwm
+  - spi

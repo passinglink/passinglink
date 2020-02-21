@@ -1,0 +1,13 @@
+if BOARD_PL_STM32
+
+config BOARD
+	default "pl_stm32" if BOARD_PL_STM32
+
+if UART_CONSOLE
+
+config UART_2
+	default y
+
+endif # UART_CONSOLE
+
+endif # BOARD_PL_STM32
