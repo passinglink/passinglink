@@ -332,7 +332,7 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
 }
 
 ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> buf) {
-  LOG_DBG("PS4::GetReport(0x%02X)", report_id);
+  LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
     return -1;
