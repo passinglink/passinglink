@@ -336,11 +336,6 @@ ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id,
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
     return -1;
-  }
-
-  if (!report_type) {
-    LOG_ERR("ignoring GetReport without a report type");
-    return -1;
   } else if (*report_type == HidReportType::Feature) {
     return GetFeatureReport(report_id, buf);
   } else if (*report_type == HidReportType::Input) {
