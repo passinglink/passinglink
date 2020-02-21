@@ -115,8 +115,16 @@ static const struct hid_ops ops = {
           }
           return -1;
         },
-    .get_idle = nullptr,
-    .get_protocol = nullptr,
+    .get_idle =
+        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+          LOG_ERR("Get_Idle unimplemented");
+          return -1;
+        },
+    .get_protocol =
+        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+          LOG_ERR("Get_Protocol unimplemented");
+          return -1;
+        },
     .set_report =
         [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
           optional<HidReportType> report_type;
@@ -128,8 +136,16 @@ static const struct hid_ops ops = {
           bool result = hid->SetReport(report_type, report_id, span<u8_t>(*data, *len));
           return result ? 0 : -1;
         },
-    .set_idle = nullptr,
-    .set_protocol = nullptr,
+    .set_idle =
+        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+          LOG_ERR("Set_Idle unimplemented");
+          return -1;
+        },
+    .set_protocol =
+        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+          LOG_ERR("Set_Protocol unimplemented");
+          return -1;
+        },
     .protocol_change =
         [](u8_t protocol) {
           const char* type = "<invalid>";
