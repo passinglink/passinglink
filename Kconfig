@@ -34,6 +34,12 @@ endchoice
 
 menu "Output methods"
 
+config PASSINGLINK_OUTPUT_USB_SWITCH
+	bool "Enable Nintendo Switch emulation"
+	default y
+	help
+	  Output to Switch over USB
+
 config PASSINGLINK_OUTPUT_USB_PS4
 	bool "Enable PS4 emulation"
 	default y
