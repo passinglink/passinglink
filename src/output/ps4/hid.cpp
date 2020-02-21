@@ -353,7 +353,7 @@ ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id,
 }
 
 bool ps4::Hid::SetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> data) {
-  LOG_WRN("ps4::Hid::SetReport(0x%02X): %zu byte%s", report_id, data.size(),
+  LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(),
           data.size() == 1 ? "" : "s");
 
   if (!report_type) {
