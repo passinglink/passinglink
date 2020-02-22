@@ -1,6 +1,6 @@
 #include "output/output.h"
-#include "output/hid.h"
-#include "output/ps4/hid.h"
+#include "output/usb/hid.h"
+#include "output/usb/ps4/hid.h"
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
 ps4::Hid ps4_hid;

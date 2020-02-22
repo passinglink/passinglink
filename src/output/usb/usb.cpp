@@ -6,8 +6,8 @@
 #include <usb/class/usb_hid.h>
 #include <usb/usb_device.h>
 
-#include "output/hid.h"
 #include "output/output.h"
+#include "output/usb/hid.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(hid);

@@ -2,7 +2,7 @@
 
 #include <sys/types.h>
 
-#include "output/hid.h"
+#include "output/usb/hid.h"
 #include "types.h"
 
 namespace ps4 {

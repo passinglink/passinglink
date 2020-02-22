@@ -15,9 +15,9 @@ list(APPEND app_sources
     src/malloc.cpp
     src/input/input.cpp
     src/output/output.cpp
-    src/output/usb.cpp
-    src/output/ps4/hid.cpp
-    src/output/ps4/auth.cpp
+    src/output/usb/usb.cpp
+    src/output/usb/ps4/hid.cpp
+    src/output/usb/ps4/auth.cpp
 )
 include_directories(
     src

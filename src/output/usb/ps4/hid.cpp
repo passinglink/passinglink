@@ -1,4 +1,4 @@
-#include "output/ps4/hid.h"
+#include "output/usb/ps4/hid.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -10,8 +10,8 @@
 #include <sys/crc.h>
 
 #include "input/input.h"
-#include "output/hid.h"
-#include "output/ps4/auth.h"
+#include "output/usb/hid.h"
+#include "output/usb/ps4/auth.h"
 #include "types.h"
 
 #define LOG_LEVEL LOG_LEVEL_INF
@@ -348,8 +348,7 @@ ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id,
 }
 
 bool ps4::Hid::SetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> data) {
-  LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(),
-          data.size() == 1 ? "" : "s");
+  LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
 
   if (!report_type) {
     LOG_ERR("ignoring SetReport without a report type");

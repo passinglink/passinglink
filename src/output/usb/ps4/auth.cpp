@@ -1,4 +1,4 @@
-#include "output/ps4/auth.h"
+#include "output/usb/ps4/auth.h"
 
 #include <zephyr.h>
 
@@ -88,7 +88,6 @@ static void sign_nonce(struct k_work*) {
   dump_allocator_hwm();
 
   LOG_INF("sign_nonce: finished signing");
-
 
 #if defined(CONFIG_PASSINGLINK_CHECK_MAIN_STACK_HWM)
   const char* main_stack = reinterpret_cast<const char*>(&z_main_stack);
