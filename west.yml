@@ -5,11 +5,15 @@ manifest:
     - name: passinglink
       url-base: https://github.com/passinglink
   projects:
-    - name: mbedtls
-      remote: passinglink
-      revision: master
-      path: modules/crypto/mbedtls
     - name: zephyr
       remote: passinglink
       revision: master
       import: true
+    - name: mbedtls
+      remote: passinglink
+      revision: master
+      path: modules/crypto/mbedtls
+    - name: mbed_embed
+      remote: passinglink
+      revision: master
+      path: tools/mbed_embed
