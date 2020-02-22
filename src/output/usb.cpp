@@ -15,7 +15,9 @@ LOG_MODULE_REGISTER(hid);
 static Hid* hid;
 static struct device* usb_hid_device;
 
-static void write_report() {
+static struct k_delayed_work k_delayed_work_write_report;
+
+static void write_report(struct k_work* item = nullptr) {
   u8_t report_buf[64];
   ssize_t rc = hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
   if (rc < 0) {
@@ -42,7 +44,6 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       break;
     case USB_DC_CONFIGURED:
       LOG_INF("USB_DC_CONFIGURED");
-      write_report();
       break;
     case USB_DC_DISCONNECTED:
       LOG_INF("USB_DC_DISCONNECTED");
@@ -61,6 +62,11 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       break;
     case USB_DC_CLEAR_HALT:
       LOG_INF("USB_DC_CLEAR_HALT");
+      if (*param == 0x81) {
+        LOG_WRN("halt cleared on input descriptor, queueing write");
+        k_delayed_work_submit(&k_delayed_work_write_report, 1);
+        LOG_WRN("halt cleared on input descriptor, queued write");
+      }
       break;
     case USB_DC_SOF:
       LOG_INF("USB_DC_SOF");
@@ -168,6 +174,8 @@ static const struct hid_ops ops = {
 };
 
 int usb_hid_init(Hid* hid_impl) {
+  k_delayed_work_init(&k_delayed_work_write_report, write_report);
+
   int rc = usb_enable(usb_status_cb);
   if (rc != 0) {
     LOG_ERR("failed to initialize USB");
