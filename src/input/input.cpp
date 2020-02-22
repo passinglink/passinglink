@@ -38,7 +38,7 @@ void input_init() {
 #undef PL_STICK_GPIO
 }
 
-bool input_get_state(InputState* out) {
+bool input_get_raw_state(RawInputState* out) {
   // Assign buttons.
 #define PL_BUTTON_GPIO(name, NAME)                                                          \
   {                                                                                         \
@@ -53,7 +53,7 @@ bool input_get_state(InputState* out) {
   PL_BUTTON_GPIOS()
 #undef PL_BUTTON_GPIO
 
-  // Fetch stick.
+  // Assign stick.
 #define PL_STICK_GPIO(name, NAME)                                                          \
   bool stick_##name = false;                                                               \
   {                                                                                        \
@@ -63,25 +63,35 @@ bool input_get_state(InputState* out) {
       LOG_ERR("failed to read GPIO for stick " #name ": rc = %d", rc);                     \
       return false;                                                                        \
     }                                                                                      \
-    stick_##name = rc;                                                                     \
+    out->stick_##name = rc;                                                                \
   }
   PL_STICK_GPIOS()
 #undef PL_STICK_GPIO
+
+  return true;
+}
+
+bool input_parse(InputState* out, const RawInputState* in) {
+  // Assign buttons.
+#define PL_BUTTON_GPIO(name, NAME) out->button_##name = in->button_##name;
+  PL_BUTTON_GPIOS()
+#undef PL_BUTTON_GPIO
 
   // Assign stick.
   int stick_vertical = 0;
   int stick_horizontal = 0;
 
-  if (stick_up) {
+  // TODO: Make SOCD cleaning customizable.
+  if (in->stick_up) {
     ++stick_vertical;
   }
-  if (stick_down) {
+  if (in->stick_down) {
     --stick_vertical;
   }
-  if (stick_right) {
+  if (in->stick_right) {
     ++stick_horizontal;
   }
-  if (stick_left) {
+  if (in->stick_left) {
     --stick_horizontal;
   }
 
@@ -105,8 +115,18 @@ bool input_get_state(InputState* out) {
   } else {
     stick_state = StickState::Neutral;
   }
-  out->stick_state = static_cast<u32_t>(stick_state);
+
+  out->left_stick_x = 127;
+  out->left_stick_y = 127;
+  out->right_stick_x = 127;
+  out->right_stick_y = 127;
+  out->dpad = stick_state;
   return true;
+}
+
+bool input_get_state(InputState* out) {
+  RawInputState input;
+  return input_get_raw_state(&input) && input_parse(out, &input);
 }
 
 #endif

@@ -123,11 +123,11 @@ ssize_t nx::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
       }
 
       OutputReport output = {};
-      output.left_stick_x = 127;
-      output.left_stick_y = 127;
-      output.right_stick_x = 127;
-      output.right_stick_y = 127;
-      switch (static_cast<StickState>(input.stick_state)) {
+      output.left_stick_x = input.left_stick_x;
+      output.left_stick_y = input.left_stick_y;
+      output.right_stick_x = input.right_stick_x;
+      output.right_stick_y = input.right_stick_y;
+      switch (static_cast<StickState>(input.dpad)) {
         case StickState::North:
           output.dpad = 0;
           break;
@@ -156,7 +156,7 @@ ssize_t nx::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
           output.dpad = 8;
           break;
         default:
-          LOG_ERR("invalid stick state: %d", input.stick_state);
+          LOG_ERR("invalid stick state: %d", static_cast<int>(input.dpad));
           return -1;
       }
 

@@ -60,15 +60,33 @@ inline const char* to_string(StickState state) {
   PL_STICK_GPIO(right, RIGHT) \
   PL_STICK_GPIO(left, LEFT)
 
-struct InputState {
-  u32_t stick_state : 4;
+struct RawInputState {
+#define PL_STICK_GPIO(name, NAME) u32_t stick_##name : 1;
+  PL_STICK_GPIOS()
+#undef PL_STICK_GPIO
 #define PL_BUTTON_GPIO(name, NAME) u32_t button_##name : 1;
   PL_BUTTON_GPIOS()
 #undef PL_BUTTON_GPIO
 };
 
-static_assert(sizeof(InputState) == 4);
+struct InputState {
+  u8_t left_stick_x;
+  u8_t left_stick_y;
+  u8_t right_stick_x;
+  u8_t right_stick_y;
+  StickState dpad;
+#define PL_BUTTON_GPIO(name, NAME) u32_t button_##name : 1;
+  PL_BUTTON_GPIOS()
+#undef PL_BUTTON_GPIO
+};
 
 void input_init();
 
+// Get the raw state of the buttons, unaffected by SOCD cleaning, mode switches, etc.
+bool input_get_raw_state(RawInputState* out);
+
+// Parse a RawInputState into host-facing output.
+bool input_parse(InputState* out, const RawInputState* in);
+
+// Get the parsed button state.
 bool input_get_state(InputState* out);

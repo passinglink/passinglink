@@ -275,11 +275,11 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
 
       OutputReport output = {};
       output.report_id = 0x01;
-      output.left_stick_x = 127;
-      output.left_stick_y = 127;
-      output.right_stick_x = 127;
-      output.right_stick_y = 127;
-      switch (static_cast<StickState>(input.stick_state)) {
+      output.left_stick_x = input.left_stick_x;
+      output.left_stick_y = input.left_stick_y;
+      output.right_stick_x = input.right_stick_x;
+      output.right_stick_y = input.right_stick_y;
+      switch (static_cast<StickState>(input.dpad)) {
         case StickState::North:
           output.dpad = 0;
           break;
@@ -308,7 +308,7 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
           output.dpad = 15;
           break;
         default:
-          LOG_ERR("invalid stick state: %d", input.stick_state);
+          LOG_ERR("invalid stick state: %d", static_cast<int>(input.dpad));
           return -1;
       }
 
@@ -318,8 +318,12 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
 
       output.report_counter = last_report_counter_++;
 
+      // TODO: Move this to InputState?
       output.left_trigger = 0;
       output.right_trigger = 0;
+
+      // TODO: Make the trackpad at least in a default state.
+      //       Right now, it's something along the lines of "a single finger in the direct center".
       memcpy(buf.data(), &output, buf.size());
 
       return buf.size();
