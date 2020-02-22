@@ -1,0 +1,98 @@
+&uart0 {
+  current-speed = <921600>;
+};
+
+/ {
+  gpio_keys {
+    compatible = "gpio-keys";
+    button_north {
+      gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "North Button";
+    };
+
+    button_east {
+      gpios = <&gpio0 4 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "East Button";
+    };
+
+    button_south {
+      gpios = <&gpio0 28 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "South Button";
+    };
+
+    button_west {
+      gpios = <&gpio0 29 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "West Button";
+    };
+
+    button_l1 {
+      gpios = <&gpio0 30 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L1 Button";
+    };
+
+    button_l2 {
+      gpios = <&gpio0 31 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L2 Button";
+    };
+
+    button_l3 {
+      gpios = <&gpio0 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L3 Button";
+    };
+
+    button_r1 {
+      gpios = <&gpio0 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R1 Button";
+    };
+
+    button_r2 {
+      gpios = <&gpio0 14 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R2 Button";
+    };
+
+    button_r3 {
+      gpios = <&gpio1 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R3 Button";
+    };
+
+    button_select {
+      gpios = <&gpio1 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Select Button";
+    };
+
+    button_start {
+      gpios = <&gpio1 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Start Button";
+    };
+
+    button_home {
+      gpios = <&gpio1 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Home Button";
+    };
+
+    button_touchpad {
+      gpios = <&gpio1 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Touchpad Button";
+    };
+
+    stick_up {
+      gpios = <&gpio1 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Up";
+    };
+
+    stick_down {
+      gpios = <&gpio1 1 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Down";
+    };
+
+    stick_right {
+      gpios = <&gpio1 27 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Right";
+    };
+
+    stick_left {
+      gpios = <&gpio1 26 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Left";
+    };
+  };
+};
