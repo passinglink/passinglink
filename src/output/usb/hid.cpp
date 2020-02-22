@@ -17,20 +17,51 @@ LOG_MODULE_REGISTER(hid);
 static Hid* hid;
 static struct device* usb_hid_device;
 
-static struct k_delayed_work k_delayed_work_write_report;
+K_THREAD_STACK_DEFINE(delayed_write_stack, 512);
+static struct k_work_q delayed_write_queue;
+static struct k_delayed_work delayed_write_work;
+
+// USB transfers works on a host-polled basis: we put data into registers for
+// the hardware to send to the host. When this data gets succesfully sent, we
+// get notified to fill the bin with more data. As a result, if we immediately
+// write when able, we increase input latency by up to the polling interval.
+//
+// Attempt to reduce this latency by scheduling a write to happen after a fixed
+// interval, which reduces average latency by that amount, as long as it's short
+// enough that we actually manage to finish the write before the interval elapses.
+//
+// TODO: Instead of using work queue timing (with ~100us precision), use a timer
+//       interrupt which is far more precise?
+constexpr u32_t HID_REPORT_INTERVAL_US = 400;
+constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
 
 static void write_report(struct k_work* item = nullptr) {
   u8_t report_buf[64];
-  ssize_t rc = hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
-  if (rc < 0) {
+
+  // TODO: Optimize GetReport: it's taking >150us to create the report to send.
+  ssize_t report_size = hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
+  if (report_size < 0) {
     return;
   }
 
   size_t bytes_written = 0;
-  rc = hid_int_ep_write(usb_hid_device, report_buf, rc, &bytes_written);
+  int rc = hid_int_ep_write(usb_hid_device, report_buf, report_size, &bytes_written);
   if (rc < 0) {
     LOG_ERR("USB write failed: rc = %d", rc);
+  } else if (bytes_written != static_cast<size_t>(report_size)) {
+    LOG_WRN("wrote fewer bytes (%d) than expected (%d): buffer full?", bytes_written, report_size);
   }
+
+#if defined(INTERVAL_PROFILING)
+  static u32_t previous;
+  u32_t now = k_cycle_get_32();
+  u32_t diff = now - previous;
+  previous = now;
+
+  if (diff > 100'000 && diff < 72'000'000) {
+    LOG_ERR("interval between writes too long: %d cycles", diff);
+  }
+#endif
 }
 
 static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
@@ -46,6 +77,9 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       break;
     case USB_DC_CONFIGURED:
       LOG_INF("USB_DC_CONFIGURED");
+      LOG_WRN("USB interface configured, queueing write");
+      k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
+                                           HID_REPORT_INTERVAL_TICKS);
       break;
     case USB_DC_DISCONNECTED:
       LOG_INF("USB_DC_DISCONNECTED");
@@ -66,8 +100,8 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       LOG_INF("USB_DC_CLEAR_HALT(0x%02x)", *param);
       if (*param == 0x81) {
         LOG_WRN("halt cleared on input descriptor, queueing write");
-        k_delayed_work_submit(&k_delayed_work_write_report, 1);
-        LOG_WRN("halt cleared on input descriptor, queued write");
+        k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
+                                             HID_REPORT_INTERVAL_TICKS);
       }
       break;
     case USB_DC_SOF:
@@ -172,14 +206,20 @@ static const struct hid_ops ops = {
           // TODO: Write reports to interrupt endpoint.
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
-    .int_in_ready = []() { write_report(); },
+    .int_in_ready =
+        []() {
+          k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
+                                               HID_REPORT_INTERVAL_TICKS);
+        },
     .int_out_ready = []() { LOG_WRN("received data on interrupt out endpoint"); },
 };
 
 namespace passinglink {
 
 int usb_hid_init(Hid* hid_impl) {
-  k_delayed_work_init(&k_delayed_work_write_report, write_report);
+  k_work_q_start(&delayed_write_queue, delayed_write_stack,
+                 K_THREAD_STACK_SIZEOF(delayed_write_stack), 5);
+  k_delayed_work_init(&delayed_write_work, write_report);
 
   hid = hid_impl;
 
