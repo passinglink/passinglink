@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build pl_stm32
+          command: '/build.sh -b pl_stm32 -p passinglink'
+
