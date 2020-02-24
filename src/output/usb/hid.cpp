@@ -40,7 +40,7 @@ constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTE
 static void write_report(struct k_work* item = nullptr) {
   u8_t report_buf[64];
 
-  // TODO: Optimize GetReport: it's taking >150us to create the report to send.
+  // TODO: Optimize GetReport: it's taking >100us to create the report to send.
   ssize_t report_size;
   {
     PROFILE("Hid::GetReport", 128);

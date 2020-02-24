@@ -9,6 +9,7 @@
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(input);
 
+#include "arch.h"
 #include "profiling.h"
 
 #if defined(CONFIG_PASSINGLINK_INPUT_NONE)
@@ -24,12 +25,47 @@ bool input_get_state(InputState* out) {
 
 #else
 
+#if defined(STM32F1)
+#define GPIO_PORT_COUNT 4
+#endif
+
+#if defined(GPIO_PORT_COUNT)
+static struct {
+  size_t count;
+  struct device* device;
+} gpio_devices[GPIO_PORT_COUNT];
+
+static size_t gpio_device_count;
+
+static void gpio_device_add(struct device* device) {
+  size_t i;
+  for (i = 0; i < GPIO_PORT_COUNT; ++i) {
+    if (device == gpio_devices[i].device) {
+      // Skipping already-cached device.
+      ++gpio_devices[i].count;
+      return;
+    }
+  }
+  if (gpio_device_count == GPIO_PORT_COUNT) {
+    LOG_ERR("ran out of cached GPIO device slots");
+    k_panic();
+  }
+  gpio_devices[gpio_device_count].count = 1;
+  gpio_devices[gpio_device_count].device = device;
+  ++gpio_device_count;
+}
+#else
+void gpio_device_add(struct device*) {}
+#endif
+
 void input_init() {
-#define PL_GPIO_INIT(type, NAME)                                                              \
-  {                                                                                           \
-    struct device* dev = device_get_binding(DT_GPIO_KEYS_##type##_##NAME##_GPIOS_CONTROLLER); \
-    gpio_pin_configure(dev, DT_GPIO_KEYS_##type##_##NAME##_GPIOS_PIN,                         \
-                       DT_GPIO_KEYS_##type##_##NAME##_GPIOS_FLAGS | GPIO_INPUT);              \
+#define PL_GPIO_INIT(type, NAME)                                                 \
+  {                                                                              \
+    const char* device_name = DT_GPIO_KEYS_##type##_##NAME##_GPIOS_CONTROLLER;   \
+    struct device* device = device_get_binding(device_name);                     \
+    gpio_pin_configure(device, DT_GPIO_KEYS_##type##_##NAME##_GPIOS_PIN,         \
+                       DT_GPIO_KEYS_##type##_##NAME##_GPIOS_FLAGS | GPIO_INPUT); \
+    gpio_device_add(device);                                                     \
   }
 #define PL_BUTTON_GPIO(name, NAME) PL_GPIO_INIT(BUTTON, NAME)
   PL_BUTTON_GPIOS()
@@ -38,12 +74,79 @@ void input_init() {
 #define PL_STICK_GPIO(name, NAME) PL_GPIO_INIT(STICK, NAME)
   PL_STICK_GPIOS()
 #undef PL_STICK_GPIO
+
+#if defined(GPIO_PORT_COUNT)
+  // Sort gpio_device to speed up device finding on average.
+  insertion_sort(gpio_devices, gpio_devices + gpio_device_count,
+                 [](auto x, auto y) { return x.count < y.count; });
+  for (size_t i = 0; i < gpio_device_count; ++i) {
+    LOG_DBG("%s: count = %zu", gpio_devices[i].device->config->name, gpio_devices[i].count);
+  }
+#endif
 }
 
+#if defined(GPIO_PORT_COUNT)
+
+// Optimized GPIO reading.
 bool input_get_raw_state(RawInputState* out) {
   PROFILE("input_get_raw_state", 128);
 
-  // Assign buttons.
+  gpio_port_value_t port_values[GPIO_PORT_COUNT];
+  for (size_t i = 0; i < gpio_device_count; ++i) {
+    gpio_port_get(gpio_devices[i].device, &port_values[i]);
+  }
+
+  // TODO: Speed up mapping of pin to port.
+  //       What we have here is a lot faster than device_get_binding, but strcmp is still 90% of
+  //       our runtime cost.
+#define PL_BUTTON_GPIO(gpio_name, GPIO_NAME)                                                     \
+  {                                                                                              \
+    int port_offset = -1;                                                                        \
+    const char* device_name = DT_GPIO_KEYS_BUTTON_##GPIO_NAME##_GPIOS_CONTROLLER;                \
+    for (size_t i = 0; i < gpio_device_count; ++i) {                                             \
+      if (strcmp(gpio_devices[i].device->config->name, device_name) == 0) {                      \
+        port_offset = i;                                                                         \
+        break;                                                                                   \
+      }                                                                                          \
+    }                                                                                            \
+    if (port_offset == -1) {                                                                     \
+      LOG_ERR("failed to find cached GPIO device %s", device_name);                              \
+      k_panic();                                                                                 \
+    }                                                                                            \
+    bool value = port_values[port_offset] & (1U << DT_GPIO_KEYS_BUTTON_##GPIO_NAME##_GPIOS_PIN); \
+    out->button_##gpio_name = value;                                                             \
+  }
+  PL_BUTTON_GPIOS()
+#undef PL_BUTTON_GPIO
+
+#define PL_STICK_GPIO(gpio_name, GPIO_NAME)                                                     \
+  {                                                                                             \
+    int port_offset = -1;                                                                       \
+    const char* device_name = DT_GPIO_KEYS_STICK_##GPIO_NAME##_GPIOS_CONTROLLER;                \
+    for (size_t i = 0; i < gpio_device_count; ++i) {                                            \
+      if (strcmp(gpio_devices[i].device->config->name, device_name) == 0) {                     \
+        port_offset = i;                                                                        \
+        break;                                                                                  \
+      }                                                                                         \
+    }                                                                                           \
+    if (port_offset == -1) {                                                                    \
+      LOG_ERR("failed to find cached GPIO device %s", device_name);                             \
+      k_panic();                                                                                \
+    }                                                                                           \
+    bool value = port_values[port_offset] & (1U << DT_GPIO_KEYS_STICK_##GPIO_NAME##_GPIOS_PIN); \
+    out->stick_##gpio_name = value;                                                             \
+  }
+  PL_STICK_GPIOS()
+#undef PL_STICK_GPIO
+
+  return true;
+}
+
+#else  // defined(GPIO_PORT_COUNT)
+
+// Generic, but slow GPIO handling.
+bool input_get_raw_state(RawInputState* out) {
+  PROFILE("input_get_raw_state", 128);
 #define PL_BUTTON_GPIO(name, NAME)                                                          \
   {                                                                                         \
     struct device* dev = device_get_binding(DT_GPIO_KEYS_BUTTON_##NAME##_GPIOS_CONTROLLER); \
@@ -57,7 +160,6 @@ bool input_get_raw_state(RawInputState* out) {
   PL_BUTTON_GPIOS()
 #undef PL_BUTTON_GPIO
 
-  // Assign stick.
 #define PL_STICK_GPIO(name, NAME)                                                          \
   bool stick_##name = false;                                                               \
   {                                                                                        \
@@ -74,6 +176,8 @@ bool input_get_raw_state(RawInputState* out) {
 
   return true;
 }
+
+#endif  // defined(GPIO_PORT_COUNT)
 
 bool input_parse(InputState* out, const RawInputState* in) {
   PROFILE("input_parse", 128);

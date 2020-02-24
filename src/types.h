@@ -135,6 +135,38 @@ struct span {
   size_t length_;
 };
 
+template<typename T>
+void swap(T& a, T& b) {
+  auto tmp = a;
+  a = b;
+  b = tmp;
+}
+
+template<typename Iterator, typename Comparator>
+Iterator min(Iterator begin, Iterator end, Comparator cmp) {
+  Iterator min = begin;
+  for (auto it = begin; it != end; ++it) {
+    if (cmp(*min, *it)) {
+      min = it;
+    }
+  }
+
+  return min;
+}
+
+template<typename Iterator, typename Comparator>
+void insertion_sort(Iterator begin, Iterator end, Comparator cmp) {
+  while (begin != end) {
+    Iterator min_it = min(begin, end, cmp);
+    if (min_it == begin) {
+      ++begin;
+      continue;
+    }
+
+    swap(*min_it, *begin++);
+  }
+}
+
 #define SAMPLING_LOG(freq, ...) \
   ({                            \
     static int counter = 0;     \
