@@ -14,10 +14,12 @@
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(hid);
 
+#include "profiling.h"
+
 static Hid* hid;
 static struct device* usb_hid_device;
 
-K_THREAD_STACK_DEFINE(delayed_write_stack, 512);
+K_THREAD_STACK_DEFINE(delayed_write_stack, 768);
 static struct k_work_q delayed_write_queue;
 static struct k_delayed_work delayed_write_work;
 
@@ -39,9 +41,13 @@ static void write_report(struct k_work* item = nullptr) {
   u8_t report_buf[64];
 
   // TODO: Optimize GetReport: it's taking >150us to create the report to send.
-  ssize_t report_size = hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
-  if (report_size < 0) {
-    return;
+  ssize_t report_size;
+  {
+    PROFILE("Hid::GetReport", 128);
+    report_size = hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
+    if (report_size < 0) {
+      return;
+    }
   }
 
   size_t bytes_written = 0;

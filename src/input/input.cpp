@@ -6,8 +6,10 @@
 #include <drivers/gpio.h>
 #include <logging/log.h>
 
-#define LOG_LEVEL LOG_LEVEL_WRN
+#define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(input);
+
+#include "profiling.h"
 
 #if defined(CONFIG_PASSINGLINK_INPUT_NONE)
 
@@ -39,6 +41,8 @@ void input_init() {
 }
 
 bool input_get_raw_state(RawInputState* out) {
+  PROFILE("input_get_raw_state", 128);
+
   // Assign buttons.
 #define PL_BUTTON_GPIO(name, NAME)                                                          \
   {                                                                                         \
@@ -72,6 +76,8 @@ bool input_get_raw_state(RawInputState* out) {
 }
 
 bool input_parse(InputState* out, const RawInputState* in) {
+  PROFILE("input_parse", 128);
+
   // Assign buttons.
 #define PL_BUTTON_GPIO(name, NAME) out->button_##name = in->button_##name;
   PL_BUTTON_GPIOS()

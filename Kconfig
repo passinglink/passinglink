@@ -16,6 +16,12 @@ config PASSINGLINK_CHECK_MAIN_STACK_HWM
 	help
 	  Calculate the main stack's high watermark.
 
+config PASSINGLINK_PROFILING
+	bool "Enable time profiling"
+	default n
+	help
+	  Profile some important functions.
+
 choice PASSINGLINK_INPUT
 	prompt "Input method"
 	default PASSINGLINK_INPUT_GPIO
