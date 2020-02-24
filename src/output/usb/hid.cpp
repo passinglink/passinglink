@@ -187,8 +187,9 @@ static const struct hid_ops ops = {
         },
     .set_idle =
         [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
-          LOG_ERR("Set_Idle unimplemented");
-          return -1;
+          k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
+                                               HID_REPORT_INTERVAL_TICKS);
+          return 0;
         },
     .set_protocol =
         [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
