@@ -53,7 +53,8 @@ static void write_report(struct k_work* item = nullptr) {
   size_t bytes_written = 0;
   int rc = hid_int_ep_write(usb_hid_device, report_buf, report_size, &bytes_written);
   if (rc < 0) {
-    LOG_ERR("USB write failed: rc = %d", rc);
+    LOG_ERR("USB write failed, requeuing: rc = %d", rc);
+    k_delayed_work_submit_to_queue(&delayed_write_queue, &delayed_write_work, 1);
   } else if (bytes_written != static_cast<size_t>(report_size)) {
     LOG_WRN("wrote fewer bytes (%d) than expected (%d): buffer full?", bytes_written, report_size);
   }
