@@ -3,7 +3,9 @@
 #include <init.h>
 #include <logging/log.h>
 
-#if defined(STM32F103xB) || defined(STM32F103xE)
+#include "arch.h"
+
+#if defined(STM32F1)
 #include <drivers/gpio.h>
 #include <dt-bindings/pinctrl/stm32-pinctrlf1.h>
 #endif
@@ -17,7 +19,7 @@ LOG_MODULE_REGISTER(main);
 const char* init_error;
 int init_rc;
 
-#if defined(STM32F103xB) || defined(STM32F103xE)
+#if defined(STM32F1)
 static int stm32_usb_reset(struct device*) {
   // BluePill board has a pull-up resistor on the D+ line.
   // Pull the D+ pin down to send a RESET condition to the USB bus.
