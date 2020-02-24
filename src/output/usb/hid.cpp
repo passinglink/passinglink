@@ -19,8 +19,6 @@ LOG_MODULE_REGISTER(hid);
 static Hid* hid;
 static struct device* usb_hid_device;
 
-K_THREAD_STACK_DEFINE(delayed_write_stack, 768);
-static struct k_work_q delayed_write_queue;
 static struct k_delayed_work delayed_write_work;
 
 // USB transfers works on a host-polled basis: we put data into registers for
@@ -36,6 +34,10 @@ static struct k_delayed_work delayed_write_work;
 //       interrupt which is far more precise?
 constexpr u32_t HID_REPORT_INTERVAL_US = 400;
 constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
+
+static void submit_write() {
+  k_delayed_work_submit_ticks(&delayed_write_work, HID_REPORT_INTERVAL_TICKS);
+}
 
 static void write_report(struct k_work* item = nullptr) {
   u8_t report_buf[64];
@@ -54,7 +56,7 @@ static void write_report(struct k_work* item = nullptr) {
   int rc = hid_int_ep_write(usb_hid_device, report_buf, report_size, &bytes_written);
   if (rc < 0) {
     LOG_ERR("USB write failed, requeuing: rc = %d", rc);
-    k_delayed_work_submit_to_queue(&delayed_write_queue, &delayed_write_work, 1);
+    submit_write();
   } else if (bytes_written != static_cast<size_t>(report_size)) {
     LOG_WRN("wrote fewer bytes (%d) than expected (%d): buffer full?", bytes_written, report_size);
   }
@@ -104,8 +106,7 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       LOG_INF("USB_DC_CLEAR_HALT(0x%02x)", *param);
       if (*param & 0x80) {
         LOG_WRN("halt cleared on input descriptor, queueing write");
-        k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
-                                             HID_REPORT_INTERVAL_TICKS);
+        submit_write();
       }
       break;
     case USB_DC_SOF:
@@ -184,8 +185,7 @@ static const struct hid_ops ops = {
         },
     .set_idle =
         [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
-          k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
-                                               HID_REPORT_INTERVAL_TICKS);
+          submit_write();
           return 0;
         },
     .set_protocol =
@@ -211,19 +211,13 @@ static const struct hid_ops ops = {
           // TODO: Write reports to interrupt endpoint.
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
-    .int_in_ready =
-        []() {
-          k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
-                                               HID_REPORT_INTERVAL_TICKS);
-        },
+    .int_in_ready = []() { submit_write(); },
     .int_out_ready = []() { LOG_WRN("received data on interrupt out endpoint"); },
 };
 
 namespace passinglink {
 
 int usb_hid_init(Hid* hid_impl) {
-  k_work_q_start(&delayed_write_queue, delayed_write_stack,
-                 K_THREAD_STACK_SIZEOF(delayed_write_stack), 5);
   k_delayed_work_init(&delayed_write_work, write_report);
 
   hid = hid_impl;
