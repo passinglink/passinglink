@@ -53,9 +53,6 @@ Passing Link is based on the widely supported Zephyr RTOS with no specific hardw
 - Custom PCB with STM32F103RE
 	- 72MHz, 64kB RAM, 512kB flash
  	- Primary development target: the raw microcontroller can be acquired from AliExpress for under $2 each shipped
- - RobotDyn STM32F303 Black Pill
-	- 72 MHz, 40kB RAM, 256 kB flash
-	- [$4.59 from RobotDyn](https://robotdyn.com/stm32f303cct6-256-kb-flash-stm32-arm-cortexr-m4-mini-system-dev-board-3326a9dd-3c19-11e9-910a-901b0ebb3621.html)
 - Particle Xenon (nRF52840)
 	- 64MHz, 256kB RAM, 1MB flash
 	- Bluetooth LE support (but not useful for implementing a wireless controller, because of missing Bluetooth Classic support)
