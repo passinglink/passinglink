@@ -1,6 +1,14 @@
 version: 2
 jobs:
-  build:
+  build_bluepill:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build bluepill
+          command: '/build.sh -b pl_bluepill -p passinglink'
+  build_pl_stm32:
     docker:
       - image: jmgao/zephyr-docker:latest
     steps:
@@ -8,4 +16,9 @@ jobs:
       - run:
           name: Build pl_stm32
           command: '/build.sh -b pl_stm32 -p passinglink'
-
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build_bluepill
+      - build_pl_stm32
