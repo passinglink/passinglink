@@ -84,9 +84,6 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       break;
     case USB_DC_CONFIGURED:
       LOG_INF("USB_DC_CONFIGURED");
-      LOG_WRN("USB interface configured, queueing write");
-      k_delayed_work_submit_to_queue_ticks(&delayed_write_queue, &delayed_write_work,
-                                           HID_REPORT_INTERVAL_TICKS);
       break;
     case USB_DC_DISCONNECTED:
       LOG_INF("USB_DC_DISCONNECTED");
