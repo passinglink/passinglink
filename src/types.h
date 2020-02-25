@@ -65,6 +65,15 @@ struct optional {
   optional(T t) { reset(static_cast<T&&>(t)); }
   ~optional() { reset(); }
 
+  optional& operator=(const optional& copy) {
+    if (copy) {
+      reset(*copy);
+    } else {
+      reset();
+    }
+    return *this;
+  }
+
   operator bool() const { return valid_; }
 
   T* get() {

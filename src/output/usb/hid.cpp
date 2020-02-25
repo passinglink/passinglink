@@ -110,6 +110,7 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       break;
     case USB_DC_CLEAR_HALT:
       LOG_INF("USB_DC_CLEAR_HALT(0x%02x)", *param);
+      hid->ClearHalt(*param);
       if (*param & 0x80) {
         LOG_WRN("halt cleared on input descriptor, queueing write");
         submit_write();
@@ -257,6 +258,12 @@ int usb_hid_init(Hid* hid_impl) {
   }
 
   return 0;
+}
+
+void usb_hid_uninit() {
+  k_delayed_work_cancel(&delayed_write_work);
+  usb_disable();
+  usb_hid_unregister_device(usb_hid_device);
 }
 
 }  // namespace passinglink
