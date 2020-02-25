@@ -40,9 +40,9 @@ enum class ProbeType : uint64_t {
 };
 
 static optional<ProbeType> ProbeTypeFirst() {
-#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH_PROBE)
   return ProbeType::NX;
-#elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+#elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3_PROBE)
   return ProbeType::PS3;
 #elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
   return ProbeType::PS4;
@@ -54,7 +54,7 @@ static optional<ProbeType> ProbeTypeFirst() {
 optional<ProbeType> ProbeTypeNext(ProbeType probe_type) {
   switch (probe_type) {
     case ProbeType::NX:
-#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3_PROBE)
       return ProbeType::PS3;
 #elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
       return ProbeType::PS4;
@@ -167,14 +167,14 @@ static int usb_probe() {
 #endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
-      if (input.button_r1) {
+      if (input.button_north) {
         LOG_WRN("PS3 mode selected via button");
         return passinglink::usb_hid_init(&ps3_hid);
       }
 #endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
-      if (input.button_north) {
+      if (input.button_r1) {
         LOG_WRN("PS4 mode selected via button");
         return passinglink::usb_hid_init(&ps4_hid);
       }
