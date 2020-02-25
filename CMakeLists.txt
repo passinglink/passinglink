@@ -11,6 +11,7 @@ project(passinglink)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color -Wall -Wextra -Wno-unused")
 list(APPEND app_sources
+    src/arch.cpp
     src/main.cpp
     src/malloc.cpp
     src/input/input.cpp

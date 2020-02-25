@@ -6,11 +6,11 @@
 
 #include <init.h>
 #include <logging/log.h>
-#include <power/reboot.h>
 
 #include <usb/class/usb_hid.h>
 #include <usb/usb_device.h>
 
+#include "arch.h"
 #include "output/output.h"
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
@@ -86,7 +86,7 @@ static Hid* usb_probe() {
 #if defined(CONFIG_USB_DC_STM32)
   // usb_disable isn't implemented for STM32, so we need to stash our result and reboot.
   probe_result = (result == &nx_hid) ? ProbeResult::NX : ProbeResult::PS4;
-  sys_reboot(SYS_REBOOT_WARM);
+  reboot();
 #else
   // Clean up after ourselves.
   usb_disable();

@@ -5,9 +5,8 @@
 
 #include "arch.h"
 
-#if defined(STM32F1)
+#if defined(STM32F1) || defined(STM32F3)
 #include <drivers/gpio.h>
-#include <dt-bindings/pinctrl/stm32-pinctrlf1.h>
 #endif
 
 #include "input/input.h"
@@ -19,7 +18,7 @@ LOG_MODULE_REGISTER(main);
 const char* init_error;
 int init_rc;
 
-#if defined(STM32F1)
+#if defined(STM32F1) || defined(STM32F3)
 static int stm32_usb_reset(struct device*) {
   // BluePill board has a pull-up resistor on the D+ line.
   // Pull the D+ pin down to send a RESET condition to the USB bus.
@@ -41,22 +40,23 @@ static int stm32_usb_reset(struct device*) {
     return 0;
   }
 
-  for (int i = 0; i < 36'000; ++i) {
-    asm volatile("nop");
-  }
+  spin(k_ms_to_cyc_ceil32(20));
 
-  init_rc = gpio_pin_configure(gpioa, 12, GPIO_INPUT | STM32_CNF_IN_ANALOG);
+  init_rc = gpio_pin_configure(gpioa, 12, GPIO_INPUT);
   if (init_rc != 0) {
     init_error = "failed to configure PA12 as input";
     return 0;
   }
 
+  spin(k_ms_to_cyc_ceil32(20));
+
   return 0;
 }
 
-#define USB_RESET_PRIORITY 3
-SYS_INIT(stm32_usb_reset, PRE_KERNEL_1, USB_RESET_PRIORITY);
-static_assert(USB_RESET_PRIORITY > CONFIG_PINMUX_STM32_DEVICE_INITIALIZATION_PRIORITY);
+#define USB_RESET_PRIORITY 41
+SYS_INIT(stm32_usb_reset, POST_KERNEL, USB_RESET_PRIORITY);
+static_assert(CONFIG_KERNEL_INIT_PRIORITY_DEFAULT < USB_RESET_PRIORITY);
+static_assert(USB_RESET_PRIORITY < CONFIG_PINMUX_STM32_DEVICE_INITIALIZATION_PRIORITY);
 
 #endif
 
