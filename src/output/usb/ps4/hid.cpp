@@ -312,9 +312,20 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
           return -1;
       }
 
-#define PL_BUTTON_GPIO(name, NAME) output.button_##name = input.button_##name;
-      PL_BUTTON_GPIOS()
-#undef PL_BUTTON_GPIO
+      output.button_north = input.button_north;
+      output.button_east = input.button_east;
+      output.button_south = input.button_south;
+      output.button_west = input.button_west;
+      output.button_l1 = input.button_l1;
+      output.button_l2 = input.button_l2;
+      output.button_l3 = input.button_l3;
+      output.button_r1 = input.button_r1;
+      output.button_r2 = input.button_r2;
+      output.button_r3 = input.button_r3;
+      output.button_select = input.button_select;
+      output.button_start = input.button_start;
+      output.button_home = input.button_home;
+      output.button_touchpad = input.button_touchpad;
 
       output.report_counter = last_report_counter_++;
 

@@ -38,35 +38,32 @@ inline const char* to_string(StickState state) {
   return "<invalid>";
 }
 
-#define PL_BUTTON_GPIOS()        \
-  PL_BUTTON_GPIO(north, NORTH)   \
-  PL_BUTTON_GPIO(east, EAST)     \
-  PL_BUTTON_GPIO(south, SOUTH)   \
-  PL_BUTTON_GPIO(west, WEST)     \
-  PL_BUTTON_GPIO(l1, L1)         \
-  PL_BUTTON_GPIO(l2, L2)         \
-  PL_BUTTON_GPIO(l3, L3)         \
-  PL_BUTTON_GPIO(r1, R1)         \
-  PL_BUTTON_GPIO(r2, R2)         \
-  PL_BUTTON_GPIO(r3, R3)         \
-  PL_BUTTON_GPIO(select, SELECT) \
-  PL_BUTTON_GPIO(start, START)   \
-  PL_BUTTON_GPIO(home, HOME)     \
-  PL_BUTTON_GPIO(touchpad, TOUCHPAD)
+static constexpr size_t PL_GPIO_COUNT = 18;
 
-#define PL_STICK_GPIOS()      \
-  PL_STICK_GPIO(up, UP)       \
-  PL_STICK_GPIO(down, DOWN)   \
-  PL_STICK_GPIO(right, RIGHT) \
-  PL_STICK_GPIO(left, LEFT)
+#define PL_GPIOS()                              \
+  PL_GPIO(0, button_north, BUTTON_NORTH)        \
+  PL_GPIO(1, button_east, BUTTON_EAST)          \
+  PL_GPIO(2, button_south, BUTTON_SOUTH)        \
+  PL_GPIO(3, button_west, BUTTON_WEST)          \
+  PL_GPIO(4, button_l1, BUTTON_L1)              \
+  PL_GPIO(5, button_l2, BUTTON_L2)              \
+  PL_GPIO(6, button_l3, BUTTON_L3)              \
+  PL_GPIO(7, button_r1, BUTTON_R1)              \
+  PL_GPIO(8, button_r2, BUTTON_R2)              \
+  PL_GPIO(9, button_r3, BUTTON_R3)              \
+  PL_GPIO(10, button_select, BUTTON_SELECT)     \
+  PL_GPIO(11, button_start, BUTTON_START)       \
+  PL_GPIO(12, button_home, BUTTON_HOME)         \
+  PL_GPIO(13, button_touchpad, BUTTON_TOUCHPAD) \
+  PL_GPIO(14, stick_up, STICK_UP)               \
+  PL_GPIO(15, stick_down, STICK_DOWN)           \
+  PL_GPIO(16, stick_right, STICK_RIGHT)         \
+  PL_GPIO(17, stick_left, STICK_LEFT)
 
 struct RawInputState {
-#define PL_STICK_GPIO(name, NAME) u32_t stick_##name : 1;
-  PL_STICK_GPIOS()
-#undef PL_STICK_GPIO
-#define PL_BUTTON_GPIO(name, NAME) u32_t button_##name : 1;
-  PL_BUTTON_GPIOS()
-#undef PL_BUTTON_GPIO
+#define PL_GPIO(index, name, NAME) u32_t name : 1;
+  PL_GPIOS()
+#undef PL_GPIO
 };
 
 struct InputState {
@@ -75,9 +72,20 @@ struct InputState {
   u8_t right_stick_x;
   u8_t right_stick_y;
   StickState dpad;
-#define PL_BUTTON_GPIO(name, NAME) u32_t button_##name : 1;
-  PL_BUTTON_GPIOS()
-#undef PL_BUTTON_GPIO
+  u16_t button_north : 1;
+  u16_t button_east : 1;
+  u16_t button_south : 1;
+  u16_t button_west : 1;
+  u16_t button_l1 : 1;
+  u16_t button_l2 : 1;
+  u16_t button_l3 : 1;
+  u16_t button_r1 : 1;
+  u16_t button_r2 : 1;
+  u16_t button_r3 : 1;
+  u16_t button_select : 1;
+  u16_t button_start : 1;
+  u16_t button_home : 1;
+  u16_t button_touchpad : 1;
 };
 
 void input_init();

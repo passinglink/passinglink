@@ -14,6 +14,7 @@
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(hid);
 
+#include "arch.h"
 #include "profiling.h"
 
 static Hid* hid;
@@ -32,7 +33,12 @@ static struct k_delayed_work delayed_write_work;
 //
 // TODO: Instead of using work queue timing (with ~100us precision), use a timer
 //       interrupt which is far more precise?
-constexpr u32_t HID_REPORT_INTERVAL_US = 400;
+#if defined(STM32)
+constexpr u32_t HID_REPORT_INTERVAL_US = 700;
+#elif defined(NRF52840)
+constexpr u32_t HID_REPORT_INTERVAL_US = 600;
+#endif
+
 constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
 
 static void submit_write() {
