@@ -22,6 +22,8 @@ class Hid {
     return false;
   }
 
+  virtual void InterruptOut(span<u8_t> data) {}
+
   virtual void ClearHalt(u8_t endpoint) {}
 
   // Delay to wait in ticks before checking whether the Hid is successful.

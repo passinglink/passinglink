@@ -15,6 +15,7 @@
 #include "output/output.h"
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
+#include "output/usb/ps3/hid.h"
 #include "output/usb/ps4/hid.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
@@ -24,18 +25,25 @@ LOG_MODULE_REGISTER(usb);
 static nx::Hid nx_hid;
 #endif
 
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+static ps3::Hid ps3_hid;
+#endif
+
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
 static ps4::Hid ps4_hid;
 #endif
 
 enum class ProbeType : uint64_t {
   NX = 0xAAAAAAAAAAAAAAAA,
+  PS3 = 0xA0A0A0A0A0A0A0A0,
   PS4 = 0x5555555555555555,
 };
 
 static optional<ProbeType> ProbeTypeFirst() {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
   return ProbeType::NX;
+#elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+  return ProbeType::PS3;
 #elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
   return ProbeType::PS4;
 #else
@@ -46,6 +54,15 @@ static optional<ProbeType> ProbeTypeFirst() {
 optional<ProbeType> ProbeTypeNext(ProbeType probe_type) {
   switch (probe_type) {
     case ProbeType::NX:
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+      return ProbeType::PS3;
+#elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
+      return ProbeType::PS4;
+#else
+      return {};
+#endif
+
+    case ProbeType::PS3:
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
       return ProbeType::PS4;
 #else
@@ -58,13 +75,20 @@ optional<ProbeType> ProbeTypeNext(ProbeType probe_type) {
 }
 
 bool ProbeTypeIsValid(ProbeType probe_type) {
-  return probe_type == ProbeType::NX || probe_type == ProbeType::PS4;
+  return probe_type == ProbeType::NX || probe_type == ProbeType::PS3 ||
+         probe_type == ProbeType::PS4;
 }
 
 Hid* ProbeTypeHid(ProbeType probe_type) {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
   if (probe_type == ProbeType::NX) {
     return &nx_hid;
+  }
+#endif
+
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+  if (probe_type == ProbeType::PS3) {
+    return &ps3_hid;
   }
 #endif
 
@@ -97,7 +121,9 @@ void set_boot_probe(optional<ProbeType> probe) {
 
 #endif
 
-#define USB_OUTPUT_COUNT CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH + CONFIG_PASSINGLINK_OUTPUT_USB_PS4
+#define USB_OUTPUT_COUNT                                                     \
+  CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH + CONFIG_PASSINGLINK_OUTPUT_USB_PS3 + \
+      CONFIG_PASSINGLINK_OUTPUT_USB_PS4
 
 #if USB_OUTPUT_COUNT > 1
 static optional<ProbeType> current_probe;
@@ -137,6 +163,13 @@ static int usb_probe() {
       if (input.button_west) {
         LOG_WRN("Switch mode selected via button");
         return passinglink::usb_hid_init(&nx_hid);
+      }
+#endif
+
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+      if (input.button_r1) {
+        LOG_WRN("PS3 mode selected via button");
+        return passinglink::usb_hid_init(&ps3_hid);
       }
 #endif
 
@@ -203,6 +236,8 @@ namespace passinglink {
 int usb_init() {
 #if USB_OUTPUT_COUNT > 1
   return usb_probe();
+#elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
+  return passinglink::usb_hid_init(&ps3_hid);
 #elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
   return passinglink::usb_hid_init(&ps4_hid);
 #elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)

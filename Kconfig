@@ -46,6 +46,12 @@ config PASSINGLINK_OUTPUT_USB_SWITCH
 	help
 	  Output to Switch over USB
 
+config PASSINGLINK_OUTPUT_USB_PS3
+	bool "Enable PS3 emulation"
+	default y
+	help
+	  Output to PS3 over USB
+
 config PASSINGLINK_OUTPUT_USB_PS4
 	bool "Enable PS4 emulation"
 	default y

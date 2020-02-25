@@ -219,7 +219,17 @@ static const struct hid_ops ops = {
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
     .int_in_ready = []() { submit_write(); },
-    .int_out_ready = []() { LOG_WRN("received data on interrupt out endpoint"); },
+    .int_out_ready =
+        []() {
+          u8_t input_buf[64];
+          size_t bytes_read;
+          int rc = hid_int_ep_read(usb_hid_device, input_buf, sizeof(input_buf), &bytes_read);
+          if (rc != 0) {
+            LOG_ERR("failed to read from interrupt out endpoint: rc = %d", rc);
+            return;
+          }
+          hid->InterruptOut(span<u8_t>(input_buf, bytes_read));
+        },
 };
 
 namespace passinglink {

@@ -19,6 +19,7 @@ list(APPEND app_sources
     src/output/usb/hid.cpp
     src/output/usb/usb.cpp
     src/output/usb/nx/hid.cpp
+    src/output/usb/ps3/hid.cpp
     src/output/usb/ps4/hid.cpp
     src/output/usb/ps4/auth.cpp
 )
