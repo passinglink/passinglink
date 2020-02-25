@@ -1,13 +1,5 @@
 version: 2
 jobs:
-  build_bluepill:
-    docker:
-      - image: jmgao/zephyr-docker:latest
-    steps:
-      - checkout
-      - run:
-          name: Build bluepill
-          command: '/build.sh -b pl_bluepill -p passinglink'
   build_pl_stm32:
     docker:
       - image: jmgao/zephyr-docker:latest
@@ -16,9 +8,76 @@ jobs:
       - run:
           name: Build pl_stm32
           command: '/build.sh -b pl_stm32 -p passinglink'
+      - run:
+          name: Copy binary to workspace
+          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_stm32.hex
+      - persist_to_workspace:
+          root: /workspace
+          paths: pl_stm32.hex
+  build_pl_robotdyn_f303:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build RobotDyn F303
+          command: '/build.sh -b pl_robotdyn_f303 -p passinglink'
+      - run:
+          name: Copy binary to workspace
+          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_robotdyn_f303.hex
+      - persist_to_workspace:
+          root: /workspace
+          paths: pl_robotdyn_f303.hex
+  build_particle_xenon:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build Particle Xenon
+          command: '/build.sh -b particle_xenon -p passinglink'
+      - run:
+          name: Copy binary to workspace
+          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/particle_xenon.hex
+      - persist_to_workspace:
+          root: /workspace
+          paths: particle_xenon.hex
+  build_bluepill:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build bluepill
+          command: '/build.sh -b pl_bluepill -p passinglink'
+      - run:
+          name: Copy binary to workspace
+          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_bluepill.hex
+      - persist_to_workspace:
+          root: /workspace
+          paths: pl_bluepill.hex
+  package:
+    docker:
+      - image: circleci/buildpack-deps:bionic
+    steps:
+      - run: mkdir -p /tmp/workspace
+      - attach_workspace:
+          at: /tmp/workspace
+      - store_artifacts:
+          path: /tmp/workspace
+          destination: /
+
 workflows:
   version: 2
   build:
     jobs:
-      - build_bluepill
       - build_pl_stm32
+      - build_particle_xenon
+      - build_pl_robotdyn_f303
+      - build_bluepill
+      - package:
+          requires:
+            - build_pl_stm32
+            - build_particle_xenon
+            - build_pl_robotdyn_f303
+            - build_bluepill
