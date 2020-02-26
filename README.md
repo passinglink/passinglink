@@ -51,7 +51,7 @@ west build -b pl_bluepill && west flash
 ### Supported hardware
 Passing Link is based on the widely supported Zephyr RTOS with no specific hardware requirements, so it should be portable to a wide variety of microcontrollers. The following is a list of microcontrollers/development boards that are actively used for development:
 
-- Custom PCB with STM32F103RE
+- [Custom PCB with STM32F103RE](https://github.com/passinglink/pcb)
   - 72MHz, 64kB RAM, 512kB flash
    - Primary development target: the raw microcontroller can be acquired from AliExpress for under $2 each shipped
 - RobotDyn STM32F303 Black Pill
