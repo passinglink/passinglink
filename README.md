@@ -6,10 +6,11 @@ Passing Link is an open source game controller firmware implementation focused o
 
 ### Features
 - USB output
+  - PS3 output
   - PS4 output, with controller authentication supported with [extracted keys](https://fail0verflow.com/blog/2018/ps4-ds4/)
-  - Nintendo Switch output (thanks to [progmem](https://github.com/progmem) for [researching Switch controllers](https://github.com/progmem/Switch-Fightstick)
+  - Nintendo Switch output (thanks to [progmem](https://github.com/progmem) for [researching Switch controllers](https://github.com/progmem/Switch-Fightstick))
   - PC output via PS4
-  - Console autodetection (detects Switch, and falls back to PS4)
+  - Console autodetection (detects Switch and PS3, with fallback to PS4)
 
 ### Future Goals
 - Unimplemented hardware support
