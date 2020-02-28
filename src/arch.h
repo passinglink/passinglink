@@ -16,5 +16,8 @@
 #define NRF52840 1
 #endif
 
+#if defined(__arm__)
 void spin(uint32_t cycles);
+#endif
+
 void reboot();

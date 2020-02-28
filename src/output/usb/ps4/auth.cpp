@@ -90,8 +90,8 @@ static void sign_nonce(struct k_work*) {
   LOG_INF("sign_nonce: finished signing");
 
 #if defined(CONFIG_PASSINGLINK_CHECK_MAIN_STACK_HWM)
-  const char* main_stack = reinterpret_cast<const char*>(&z_main_stack);
-  const char* main_stack_hwm = main_stack;
+  const u8_t* main_stack = reinterpret_cast<const u8_t*>(&z_main_stack);
+  const u8_t* main_stack_hwm = main_stack;
   while (*main_stack_hwm == 0xAA) {
     ++main_stack_hwm;
   }

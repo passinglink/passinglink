@@ -4,6 +4,7 @@
 
 #include <power/reboot.h>
 
+#if defined(__arm__)
 void spin(uint32_t cycles) {
   asm volatile(
     "loop:\n"
@@ -13,6 +14,7 @@ void spin(uint32_t cycles) {
     : "r"(cycles)
   );
 }
+#endif
 
 void reboot() {
   sys_reboot(SYS_REBOOT_WARM);

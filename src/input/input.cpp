@@ -15,9 +15,8 @@ LOG_MODULE_REGISTER(input);
 #if defined(CONFIG_PASSINGLINK_INPUT_NONE)
 
 void input_init() {}
-bool input_get_state(InputState* out) {
+bool input_get_raw_state(RawInputState* out) {
   memset(out, 0, sizeof(*out));
-  out->stick_state = static_cast<u32_t>(StickState::Neutral);
   return true;
 }
 
@@ -46,42 +45,6 @@ static u8_t gpio_device_add(struct device* device) {
   i = gpio_device_count++;
   gpio_devices[i] = device;
   return i;
-}
-
-// Convert ({-1, 0, 1}, {-1, 0, 1}) to a StickState.
-static StickState stick_state_from_x_y(int horizontal, int vertical) {
-  if (vertical == -1 && horizontal == 0) {
-    return StickState::North;
-  } else if (vertical == -1 && horizontal == 1) {
-    return StickState::NorthEast;
-  } else if (vertical == 0 && horizontal == 1) {
-    return StickState::East;
-  } else if (vertical == 1 && horizontal == 1) {
-    return StickState::SouthEast;
-  } else if (vertical == 1 && horizontal == 0) {
-    return StickState::South;
-  } else if (vertical == 1 && horizontal == -1) {
-    return StickState::SouthWest;
-  } else if (vertical == 0 && horizontal == -1) {
-    return StickState::West;
-  } else if (vertical == -1 && horizontal == -1) {
-    return StickState::NorthWest;
-  } else {
-    return StickState::Neutral;
-  }
-
-  k_panic();
-}
-
-// Scale {-1, 0, 1} to {-128, 0, 127}.
-static u8_t stick_scale(int sign) {
-  if (sign < 0) {
-    return 0x00;
-  } else if (sign == 0) {
-    return 0x80;
-  } else {
-    return 0xFF;
-  }
 }
 
 void input_init() {
@@ -117,6 +80,43 @@ bool input_get_raw_state(RawInputState* out) {
 #undef PL_GPIO
 
   return true;
+}
+#endif
+
+// Convert ({-1, 0, 1}, {-1, 0, 1}) to a StickState.
+static StickState stick_state_from_x_y(int horizontal, int vertical) {
+  if (vertical == -1 && horizontal == 0) {
+    return StickState::North;
+  } else if (vertical == -1 && horizontal == 1) {
+    return StickState::NorthEast;
+  } else if (vertical == 0 && horizontal == 1) {
+    return StickState::East;
+  } else if (vertical == 1 && horizontal == 1) {
+    return StickState::SouthEast;
+  } else if (vertical == 1 && horizontal == 0) {
+    return StickState::South;
+  } else if (vertical == 1 && horizontal == -1) {
+    return StickState::SouthWest;
+  } else if (vertical == 0 && horizontal == -1) {
+    return StickState::West;
+  } else if (vertical == -1 && horizontal == -1) {
+    return StickState::NorthWest;
+  } else {
+    return StickState::Neutral;
+  }
+
+  k_panic();
+}
+
+// Scale {-1, 0, 1} to {-128, 0, 127}.
+static u8_t stick_scale(int sign) {
+  if (sign < 0) {
+    return 0x00;
+  } else if (sign == 0) {
+    return 0x80;
+  } else {
+    return 0xFF;
+  }
 }
 
 bool input_parse(InputState* out, const RawInputState* in) {
@@ -210,5 +210,3 @@ bool input_get_state(InputState* out) {
   RawInputState input;
   return input_get_raw_state(&input) && input_parse(out, &input);
 }
-
-#endif

@@ -56,6 +56,14 @@ jobs:
       - persist_to_workspace:
           root: /workspace
           paths: pl_bluepill.hex
+  build_native_posix:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build native_posix
+          command: '/build.sh -b native_posix -p passinglink'
   package:
     docker:
       - image: circleci/buildpack-deps:bionic
@@ -75,6 +83,7 @@ workflows:
       - build_particle_xenon
       - build_pl_robotdyn_f303
       - build_bluepill
+      - build_native_posix
       - package:
           requires:
             - build_pl_stm32

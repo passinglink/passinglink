@@ -37,6 +37,9 @@ static struct k_delayed_work delayed_write_work;
 constexpr u32_t HID_REPORT_INTERVAL_US = 700;
 #elif defined(NRF52840)
 constexpr u32_t HID_REPORT_INTERVAL_US = 600;
+#else
+#warning HID_REPORT_INTERVAL_US unset, defaulting to 0
+constexpr u32_t HID_REPORT_INTERVAL_US = 0;
 #endif
 
 constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
