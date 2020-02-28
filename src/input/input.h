@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types.h>
+#include <kernel.h>
 
 enum class StickState {
   Neutral = 0,
@@ -38,7 +38,47 @@ inline const char* to_string(StickState state) {
   return "<invalid>";
 }
 
-static constexpr size_t PL_GPIO_COUNT = 18;
+static constexpr size_t PL_GPIO_COUNT = 23;
+
+#if defined(DT_GPIO_KEYS_MODE_LOCK_GPIOS)
+#define PL_GPIO_MODE_LOCK_AVAILABLE 1
+#define PL_GPIO_MODE_LOCK(index) PL_GPIO(index, mode_lock, MODE_LOCK)
+#else
+#define PL_GPIO_MODE_LOCK(index)
+#endif
+
+#if defined(DT_GPIO_KEYS_MODE_PS3_GPIOS)
+#define PL_GPIO_MODE_PS3_AVAILABLE 1
+#define PL_GPIO_MODE_PS3(index) PL_GPIO(index, mode_ps3, MODE_PS3)
+#else
+#define PL_GPIO_MODE_PS3(index)
+#endif
+
+#if defined(DT_GPIO_KEYS_MODE_DPAD_GPIOS)
+#define PL_GPIO_MODE_DPAD_AVAILABLE 1
+#define PL_GPIO_MODE_DPAD(index) PL_GPIO(index, mode_dpad, MODE_DPAD)
+#else
+#define PL_GPIO_MODE_DPAD(index)
+#endif
+
+#if defined(DT_GPIO_KEYS_MODE_LS_GPIOS)
+#define PL_GPIO_MODE_LS_AVAILABLE 1
+#define PL_GPIO_MODE_LS(index) PL_GPIO(index, mode_ls, MODE_LS)
+#else
+#define PL_GPIO_MODE_LS(index)
+#endif
+
+#if defined(DT_GPIO_KEYS_MODE_RS_GPIOS)
+#define PL_GPIO_MODE_RS_AVAILABLE 1
+#define PL_GPIO_MODE_RS(index) PL_GPIO(index, mode_rs, MODE_RS)
+#else
+#define PL_GPIO_MODE_RS(index)
+#endif
+
+#define PL_GPIO_OUTPUT_MODES(base_index) \
+  PL_GPIO_MODE_DPAD(base_index)          \
+  PL_GPIO_MODE_LS(base_index + 1)        \
+  PL_GPIO_MODE_RS(base_index + 2)
 
 #define PL_GPIOS()                              \
   PL_GPIO(0, button_north, BUTTON_NORTH)        \
@@ -58,7 +98,10 @@ static constexpr size_t PL_GPIO_COUNT = 18;
   PL_GPIO(14, stick_up, STICK_UP)               \
   PL_GPIO(15, stick_down, STICK_DOWN)           \
   PL_GPIO(16, stick_right, STICK_RIGHT)         \
-  PL_GPIO(17, stick_left, STICK_LEFT)
+  PL_GPIO(17, stick_left, STICK_LEFT)           \
+  PL_GPIO_MODE_LOCK(18)                         \
+  PL_GPIO_MODE_PS3(19)                          \
+  PL_GPIO_OUTPUT_MODES(20)
 
 struct RawInputState {
 #define PL_GPIO(index, name, NAME) u32_t name : 1;

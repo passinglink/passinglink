@@ -48,6 +48,42 @@ static u8_t gpio_device_add(struct device* device) {
   return i;
 }
 
+// Convert ({-1, 0, 1}, {-1, 0, 1}) to a StickState.
+static StickState stick_state_from_x_y(int horizontal, int vertical) {
+  if (vertical == -1 && horizontal == 0) {
+    return StickState::North;
+  } else if (vertical == -1 && horizontal == 1) {
+    return StickState::NorthEast;
+  } else if (vertical == 0 && horizontal == 1) {
+    return StickState::East;
+  } else if (vertical == 1 && horizontal == 1) {
+    return StickState::SouthEast;
+  } else if (vertical == 1 && horizontal == 0) {
+    return StickState::South;
+  } else if (vertical == 1 && horizontal == -1) {
+    return StickState::SouthWest;
+  } else if (vertical == 0 && horizontal == -1) {
+    return StickState::West;
+  } else if (vertical == -1 && horizontal == -1) {
+    return StickState::NorthWest;
+  } else {
+    return StickState::Neutral;
+  }
+
+  k_panic();
+}
+
+// Scale {-1, 0, 1} to {-128, 0, 127}.
+static u8_t stick_scale(int sign) {
+  if (sign < 0) {
+    return 0x00;
+  } else if (sign == 0) {
+    return 0x80;
+  } else {
+    return 0xFF;
+  }
+}
+
 void input_init() {
 #define PL_GPIO(index, name, NAME)                                      \
   {                                                                     \
@@ -97,21 +133,30 @@ bool input_parse(InputState* out, const RawInputState* in) {
   out->button_r1 = in->button_r1;
   out->button_r2 = in->button_r2;
   out->button_r3 = in->button_r3;
+  out->button_touchpad = in->button_touchpad;
+
   out->button_select = in->button_select;
   out->button_start = in->button_start;
   out->button_home = in->button_home;
-  out->button_touchpad = in->button_touchpad;
+#if defined(PL_GPIO_MODE_LOCK_AVAILABLE)
+  if (in->mode_lock) {
+    out->button_select = 0;
+    out->button_start = 0;
+    out->button_touchpad = 0;
+  }
+#endif
 
   // Assign stick.
   int stick_vertical = 0;
   int stick_horizontal = 0;
 
+  // Note: positive Y means down.
   // TODO: Make SOCD cleaning customizable.
   if (in->stick_up) {
-    ++stick_vertical;
+    --stick_vertical;
   }
   if (in->stick_down) {
-    --stick_vertical;
+    ++stick_vertical;
   }
   if (in->stick_right) {
     ++stick_horizontal;
@@ -120,32 +165,44 @@ bool input_parse(InputState* out, const RawInputState* in) {
     --stick_horizontal;
   }
 
-  StickState stick_state;
-  if (stick_vertical == 1 && stick_horizontal == 0) {
-    stick_state = StickState::North;
-  } else if (stick_vertical == 1 && stick_horizontal == 1) {
-    stick_state = StickState::NorthEast;
-  } else if (stick_vertical == 0 && stick_horizontal == 1) {
-    stick_state = StickState::East;
-  } else if (stick_vertical == -1 && stick_horizontal == 1) {
-    stick_state = StickState::SouthEast;
-  } else if (stick_vertical == -1 && stick_horizontal == 0) {
-    stick_state = StickState::South;
-  } else if (stick_vertical == -1 && stick_horizontal == -1) {
-    stick_state = StickState::SouthWest;
-  } else if (stick_vertical == 0 && stick_horizontal == -1) {
-    stick_state = StickState::West;
-  } else if (stick_vertical == 1 && stick_horizontal == -1) {
-    stick_state = StickState::NorthWest;
-  } else {
-    stick_state = StickState::Neutral;
+  enum class OutputMode {
+    MODE_DPAD,
+    MODE_LS,
+    MODE_RS,
+  };
+
+  OutputMode output_mode = OutputMode::MODE_DPAD;
+#define PL_GPIO(index, mode, MODE)  \
+  else if (in->mode) {              \
+    output_mode = OutputMode::MODE; \
+  }
+  if (false) {
+  }
+  PL_GPIO_OUTPUT_MODES();
+#undef PL_GPIO
+
+  out->dpad = StickState::Neutral;
+  out->left_stick_x = 128;
+  out->left_stick_y = 128;
+  out->right_stick_x = 128;
+  out->right_stick_y = 128;
+
+  switch (output_mode) {
+    case OutputMode::MODE_DPAD:
+      out->dpad = stick_state_from_x_y(stick_horizontal, stick_vertical);
+      break;
+
+    case OutputMode::MODE_LS:
+      out->left_stick_x = stick_scale(stick_horizontal);
+      out->left_stick_y = stick_scale(stick_vertical);
+      break;
+
+    case OutputMode::MODE_RS:
+      out->right_stick_x = stick_scale(stick_horizontal);
+      out->right_stick_y = stick_scale(stick_vertical);
+      break;
   }
 
-  out->left_stick_x = 127;
-  out->left_stick_y = 127;
-  out->right_stick_x = 127;
-  out->right_stick_y = 127;
-  out->dpad = stick_state;
   return true;
 }
 

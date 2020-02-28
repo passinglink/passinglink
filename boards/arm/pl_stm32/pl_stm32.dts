@@ -119,6 +119,26 @@
       gpios = <&gpioa 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
       label = "Stick Left";
     };
+
+    mode_ps3 {
+      gpios = <&gpioc 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode PS3";
+    };
+
+    mode_lock {
+      gpios = <&gpioc 14 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode Lock";
+    };
+
+    mode_ls {
+      gpios = <&gpioc 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode LS";
+    };
+
+    mode_rs {
+      gpios = <&gpioc 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode LS";
+    };
   };
 };
 
