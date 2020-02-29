@@ -17,10 +17,16 @@ void spin(uint32_t cycles) {
 }
 #endif
 
-void reboot() {
+static void reboot_impl(k_work*) {
   while (log_buffered_cnt()) {
     k_sleep(K_MSEC(5));
   }
 
   sys_reboot(SYS_REBOOT_WARM);
+}
+K_WORK_DEFINE(reboot_work, reboot_impl);
+
+void reboot() {
+  // We might be called from an ISR, schedule a reboot to happen.
+  k_work_submit(&reboot_work);
 }
