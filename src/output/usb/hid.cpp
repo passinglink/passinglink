@@ -10,6 +10,7 @@
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
 #include "output/usb/ps4/hid.h"
+#include "output/usb/usb.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(hid);
@@ -20,6 +21,7 @@ LOG_MODULE_REGISTER(hid);
 static Hid* hid;
 static struct device* usb_hid_device;
 
+static optional<s64_t> suspend_timestamp;
 static struct k_delayed_work delayed_write_work;
 
 // USB transfers works on a host-polled basis: we put data into registers for
@@ -101,9 +103,25 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       break;
     case USB_DC_SUSPEND:
       LOG_INF("USB_DC_SUSPEND");
+      suspend_timestamp.reset(k_uptime_get());
       break;
     case USB_DC_RESUME:
       LOG_INF("USB_DC_RESUME");
+#if PL_USB_OUTPUT_COUNT > 1
+      // We may have resumed after having failed to probe.
+      // Retry from the beginning if it's been more than a second.
+      if (suspend_timestamp) {
+        if (!hid->ProbeResult()) {
+          s64_t now = k_uptime_get();
+          if (now - *suspend_timestamp > 1000) {
+            LOG_INF("resumed after suspend, retrying probe");
+            passinglink::usb_reset_probe();
+            reboot();
+          }
+        }
+        suspend_timestamp.reset();
+      }
+#endif
       break;
     case USB_DC_INTERFACE:
       LOG_INF("USB_DC_INTERFACE");

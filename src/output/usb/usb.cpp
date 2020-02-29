@@ -121,11 +121,7 @@ void set_boot_probe(optional<ProbeType> probe) {
 
 #endif
 
-#define USB_OUTPUT_COUNT                                                     \
-  CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH + CONFIG_PASSINGLINK_OUTPUT_USB_PS3 + \
-      CONFIG_PASSINGLINK_OUTPUT_USB_PS4
-
-#if USB_OUTPUT_COUNT > 1
+#if PL_USB_OUTPUT_COUNT > 1
 static optional<ProbeType> current_probe;
 
 #if !defined(CONFIG_USB_DC_STM32)
@@ -229,12 +225,12 @@ static void usb_probe_check(k_work*) {
   usb_probe_start(nullptr);
 #endif
 }
-#endif  // USB_OUTPUT_COUNT > 1
+#endif  // PL_USB_OUTPUT_COUNT > 1
 
 namespace passinglink {
 
 int usb_init() {
-#if USB_OUTPUT_COUNT > 1
+#if PL_USB_OUTPUT_COUNT > 1
   return usb_probe();
 #elif defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
   return passinglink::usb_hid_init(&ps3_hid);
@@ -246,6 +242,12 @@ int usb_init() {
 
   LOG_ERR("no USB HID output available");
   return -1;
+}
+
+void usb_reset_probe() {
+#if defined(CONFIG_USB_DC_STM32)
+  set_boot_probe({});
+#endif
 }
 
 }  // namespace passinglink
