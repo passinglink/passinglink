@@ -2,6 +2,7 @@
 
 #include <kernel.h>
 
+#include <logging/log_ctrl.h>
 #include <power/reboot.h>
 
 #if defined(__arm__)
@@ -17,5 +18,9 @@ void spin(uint32_t cycles) {
 #endif
 
 void reboot() {
+  while (log_buffered_cnt()) {
+    k_sleep(K_MSEC(5));
+  }
+
   sys_reboot(SYS_REBOOT_WARM);
 }
