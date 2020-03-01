@@ -137,7 +137,7 @@
 
     mode_rs {
       gpios = <&gpioc 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
-      label = "Mode LS";
+      label = "Mode RS";
     };
   };
 };
