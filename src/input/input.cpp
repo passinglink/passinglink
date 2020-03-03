@@ -66,15 +66,21 @@ bool input_get_raw_state(RawInputState* out) {
 
   gpio_port_value_t port_values[GPIO_PORT_COUNT];
   for (size_t i = 0; i < gpio_device_count; ++i) {
-    gpio_port_get(gpio_devices[i], &port_values[i]);
+    gpio_port_get_raw(gpio_devices[i], &port_values[i]);
   }
 
 #define PL_GPIO(index, gpio_name, GPIO_NAME)                                               \
   {                                                                                        \
     const char* device_name = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_CONTROLLER;                 \
     u8_t device_index = gpio_indices[index];                                               \
+    constexpr u32_t flags = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_FLAGS;                        \
+    static_assert((flags & GPIO_ACTIVE_LOW) || (flags & GPIO_ACTIVE_HIGH));                \
     bool value = port_values[device_index] & (1U << DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_PIN); \
-    out->gpio_name = value;                                                                \
+    if constexpr (flags & GPIO_ACTIVE_LOW) {                                               \
+      out->gpio_name = !value;                                                             \
+    } else {                                                                               \
+      out->gpio_name = value;                                                              \
+    }                                                                                      \
   }
   PL_GPIOS()
 #undef PL_GPIO
