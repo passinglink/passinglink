@@ -74,7 +74,7 @@ static void write_report(struct k_work* item = nullptr) {
 
 #if defined(INTERVAL_PROFILING)
   static u32_t previous;
-  u32_t now = k_cycle_get_32();
+  u32_t now = get_cycle_count();
   u32_t diff = now - previous;
   previous = now;
 

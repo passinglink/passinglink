@@ -72,6 +72,12 @@ extern "C" void main(void) {
     LOG_ERR("%s: rc = %d", init_error, init_rc);
   }
 
+#if defined(NRF52840)
+  // Enable the trace unit so we can get a cycle count.
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+#endif
+
   input_init();
   output_init();
 

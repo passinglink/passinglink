@@ -4,15 +4,17 @@
 #error LOG_LEVEL must be defined before including profiling.h.
 #endif
 
+#include "arch.h"
+
 #if defined(CONFIG_PASSINGLINK_PROFILING)
 template<int Frequency = 1>
 struct Profiler {
   void begin() {
-    begin_cycle_ = k_cycle_get_32();
+    begin_cycle_ = get_cycle_count();
   }
 
   void end(const char* name) {
-    u32_t end_cycle = k_cycle_get_32();
+    u32_t end_cycle = get_cycle_count();
     u32_t diff = end_cycle - begin_cycle_;
     times_[times_count_++] = diff;
     if (times_count_ == Frequency) {
