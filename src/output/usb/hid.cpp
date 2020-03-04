@@ -53,7 +53,6 @@ static void submit_write() {
 static void write_report(struct k_work* item = nullptr) {
   u8_t report_buf[64];
 
-  // TODO: Optimize GetReport: it's taking >100us to create the report to send.
   ssize_t report_size;
   {
     PROFILE("Hid::GetReport", 128);
