@@ -156,7 +156,7 @@ static int usb_probe() {
       LOG_ERR("failed to get input state");
     } else {
       // Only probe if the mode switch is set to PS3.
-#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
+#if defined(DT_GPIO_KEYS_MODE_PS3_GPIOS) && defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
       if (!input.mode_ps3) {
         LOG_WRN("PS4 mode switch set, selecting PS4");
         return passinglink::usb_hid_init(&ps4_hid);
