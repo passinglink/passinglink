@@ -155,6 +155,14 @@ static int usb_probe() {
     if (!input_get_raw_state(&input)) {
       LOG_ERR("failed to get input state");
     } else {
+      // Only probe if the mode switch is set to PS3.
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
+      if (!input.mode_ps3) {
+        LOG_WRN("PS4 mode switch set, selecting PS4");
+        return passinglink::usb_hid_init(&ps4_hid);
+      }
+#endif
+
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
       if (input.button_west) {
         LOG_WRN("Switch mode selected via button");
