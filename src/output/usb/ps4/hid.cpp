@@ -10,6 +10,7 @@
 #include <sys/crc.h>
 
 #include "input/input.h"
+#include "input/touchpad.h"
 #include "output/usb/hid.h"
 #include "output/usb/ps4/auth.h"
 #include "types.h"
@@ -140,9 +141,10 @@ struct __attribute__((packed)) OutputReport {
   u32_t left_trigger : 8;
   u32_t right_trigger : 8;
 
-  // Trackpad and tilt presumably follows.
   u32_t padding : 24;
-  u8_t mystery[51];
+  u8_t mystery[22];
+  TouchpadData touchpad_data;
+  u8_t mystery_2[21];
 };
 
 static_assert(sizeof(OutputReport) == 64);
@@ -333,8 +335,8 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
       output.left_trigger = 0;
       output.right_trigger = 0;
 
-      // TODO: Make the trackpad at least in a default state.
-      //       Right now, it's something along the lines of "a single finger in the direct center".
+      output.touchpad_data = touchpad_data;
+
       memcpy(buf.data(), &output, buf.size());
 
       return buf.size();

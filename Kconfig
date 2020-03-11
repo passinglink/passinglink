@@ -38,6 +38,22 @@ config PASSINGLINK_INPUT_GPIO
 
 endchoice
 
+choice PASSINGLINK_INPUT_TOUCHPAD
+  prompt "Trackpad"
+  default PASSINGLINK_INPUT_TOUCHPAD_NONE
+
+config PASSINGLINK_INPUT_TOUCHPAD_NONE
+  bool "None"
+  help
+    Disable touchpad input.
+
+config PASSINGLINK_INPUT_TOUCHPAD_PANTHERA
+  bool "Razer Panthera"
+  help
+    Enable Razer Panthera touchpad input.
+
+endchoice
+
 menu "Output methods"
 
 config PASSINGLINK_OUTPUT_USB_SWITCH

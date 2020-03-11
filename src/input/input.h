@@ -2,6 +2,8 @@
 
 #include <kernel.h>
 
+#include "input/touchpad.h"
+
 enum class StickState {
   Neutral = 0,
   North,
@@ -129,6 +131,7 @@ struct InputState {
   u16_t button_start : 1;
   u16_t button_home : 1;
   u16_t button_touchpad : 1;
+  TouchpadData touchpad_data;
 };
 
 void input_init();

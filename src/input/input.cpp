@@ -11,10 +11,21 @@ LOG_MODULE_REGISTER(input);
 
 #include "arch.h"
 #include "profiling.h"
+#include "input/touchpad.h"
+
+TouchpadData touchpad_data;
+
+static void input_gpio_init();
+
+void input_init() {
+  input_gpio_init();
+  input_touchpad_init();
+}
 
 #if defined(CONFIG_PASSINGLINK_INPUT_NONE)
 
-void input_init() {}
+static void input_gpio_init() {}
+
 bool input_get_raw_state(RawInputState* out) {
   memset(out, 0, sizeof(*out));
   return true;
@@ -47,7 +58,7 @@ static u8_t gpio_device_add(struct device* device) {
   return i;
 }
 
-void input_init() {
+static void input_gpio_init() {
 #define PL_GPIO(index, name, NAME)                                      \
   {                                                                     \
     const char* device_name = DT_GPIO_KEYS_##NAME##_GPIOS_CONTROLLER;   \
@@ -127,6 +138,9 @@ static u8_t stick_scale(int sign) {
 
 bool input_parse(InputState* out, const RawInputState* in) {
   PROFILE("input_parse", 128);
+
+  // Copy TouchpadData.
+  out->touchpad_data = touchpad_data;
 
   // Assign buttons.
   out->button_north = in->button_north;

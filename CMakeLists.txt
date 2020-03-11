@@ -23,6 +23,15 @@ list(APPEND app_sources
     src/output/usb/ps4/hid.cpp
     src/output/usb/ps4/auth.cpp
 )
+
+target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_TOUCHPAD_NONE app PRIVATE
+    src/input/touchpad/none.cpp
+)
+
+target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_TOUCHPAD_PANTHERA app PRIVATE
+    src/input/touchpad/panthera.cpp
+)
+
 include_directories(
     src
     keys

@@ -11,10 +11,10 @@ Passing Link is an open source game controller firmware implementation focused o
   - Nintendo Switch output (thanks to [progmem](https://github.com/progmem) for [researching Switch controllers](https://github.com/progmem/Switch-Fightstick))
   - PC output via PS4
   - Console autodetection (detects Switch and PS3, with fallback to PS4)
+- Razer Panthera touchpad support
 
 ### Future Goals
 - Unimplemented hardware support
-  - SPI touchpad input
   - PS4 audio output
 - Firmware update via USB DFU
 - Act as a USB decoder/converter

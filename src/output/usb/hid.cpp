@@ -6,6 +6,7 @@
 #include <usb/class/usb_hid.h>
 #include <usb/usb_device.h>
 
+#include "input/touchpad.h"
 #include "output/output.h"
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
@@ -48,6 +49,9 @@ constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTE
 
 static void submit_write() {
   k_delayed_work_submit_ticks(&delayed_write_work, HID_REPORT_INTERVAL_TICKS);
+
+  // Immediately do a touchpad read after submitting, since it's slow.
+  input_touchpad_poll();
 }
 
 static void write_report(struct k_work* item = nullptr) {
