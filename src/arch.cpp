@@ -22,6 +22,11 @@ static void reboot_impl(k_work*) {
   while (log_buffered_cnt()) {
     k_sleep(K_MSEC(5));
   }
+
+  // We've fed all of our log messages to the backend, but it still might take
+  // some time for that to be flushed out over the wire. Sleep for a bit more
+  // to give that some time to happen.
+  k_sleep(K_MSEC(5));
 #endif
 
   sys_reboot(SYS_REBOOT_WARM);
