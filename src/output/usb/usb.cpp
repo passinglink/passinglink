@@ -33,6 +33,10 @@ static ps3::Hid ps3_hid;
 static ps4::Hid ps4_hid;
 #endif
 
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_FORCE_PROBE_REBOOT) || defined(CONFIG_USB_DC_STM32)
+#define REBOOT_PROBE
+#endif
+
 enum class ProbeType : uint64_t {
   NX = 0xAAAAAAAAAAAAAAAA,
   PS3 = 0xA0A0A0A0A0A0A0A0,
@@ -101,7 +105,7 @@ Hid* ProbeTypeHid(ProbeType probe_type) {
   return nullptr;
 }
 
-#if defined(CONFIG_USB_DC_STM32)
+#if defined(REBOOT_PROBE)
 static ProbeType boot_probe_type __attribute__((section(".noinit")));
 
 optional<ProbeType> get_boot_probe() {
@@ -124,7 +128,7 @@ void set_boot_probe(optional<ProbeType> probe) {
 #if PL_USB_OUTPUT_COUNT > 1
 static optional<ProbeType> current_probe;
 
-#if !defined(CONFIG_USB_DC_STM32)
+#if !defined(REBOOT_PROBE)
 static k_delayed_work probe_start_work;
 #endif
 
@@ -133,13 +137,13 @@ static void usb_probe_start(k_work*);
 static void usb_probe_check(k_work*);
 
 static int usb_probe() {
-#if !defined(CONFIG_USB_DC_STM32)
+#if !defined(REBOOT_PROBE)
   k_delayed_work_init(&probe_start_work, usb_probe_start);
 #endif
   k_delayed_work_init(&probe_check_work, usb_probe_check);
 
   optional<ProbeType> probe;
-#if defined(CONFIG_USB_DC_STM32)
+#if defined(REBOOT_PROBE)
   probe = get_boot_probe();
   if (!probe) {
     LOG_INF("no boot probe found, starting usb probe");
@@ -223,7 +227,7 @@ static void usb_probe_check(k_work*) {
 
   LOG_ERR("%s Hid reports failure, continuing", current_hid->Name());
 
-#if defined(CONFIG_USB_DC_STM32)
+#if defined(REBOOT_PROBE)
   // usb_disable isn't implemented for STM32, so we need to stash our result and reboot.
   set_boot_probe(next_probe);
   reboot();

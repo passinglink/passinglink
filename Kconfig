@@ -81,7 +81,14 @@ config PASSINGLINK_OUTPUT_USB_PS4_AUTH
   default y
   help
     Enable PS4 authentication
-  depends on MBEDTLS
+  depends on MBEDTLS && PASSINGLINK_OUTPUT_USB_PS4
+
+config PASSINGLINK_OUTPUT_USB_FORCE_PROBE_REBOOT
+  bool "Force reboot for USB probe"
+  default y
+  help
+    Reboot to probe USB even on boards that support USB deinitialization
+  depends on PASSINGLINK_OUTPUT_USB_SWITCH_PROBE || PASINGLINK_OUTPUT_USB_PS3_PROBE
 
 endmenu # Output methods
 
