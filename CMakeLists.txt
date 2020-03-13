@@ -35,7 +35,6 @@ target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_TOUCHPAD_PANTHERA app PRIVATE
 include_directories(
     src
     keys
-    keys/default
 )
 target_sources(app PRIVATE ${app_sources})
 set_property(TARGET app PROPERTY CXX_STANDARD 17)
