@@ -38,6 +38,8 @@ static ps4::Hid ps4_hid;
 #define REBOOT_PROBE
 #endif
 
+static u32_t probe_led_counter;
+
 enum class ProbeType : uint64_t {
   NX = 0xAAAAAAAAAAAAAAAA,
   PS3 = 0xA0A0A0A0A0A0A0A0,
@@ -214,7 +216,7 @@ static void usb_probe_start(k_work*) {
     }
   }
 
-  led_on(*ProbeTypeLed(*current_probe));
+  probe_led_counter = led_on(*ProbeTypeLed(*current_probe));
   Hid* current_hid = ProbeTypeHid(*current_probe);
   passinglink::usb_hid_init(current_hid);
 
@@ -225,7 +227,7 @@ static void usb_probe_start(k_work*) {
 static void usb_probe_selected() {
   auto probe = ProbeTypeLed(*current_probe);
   if (probe) {
-    led_off(*probe);
+    led_off(*probe, probe_led_counter);
   }
   led_flash(Led::P1, 1000, 300);
   led_flash(Led::P2, 1000, 300);

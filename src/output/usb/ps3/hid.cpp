@@ -11,6 +11,7 @@
 #include <sys/crc.h>
 
 #include "input/input.h"
+#include "output/led.h"
 #include "output/usb/hid.h"
 #include "types.h"
 
@@ -240,7 +241,23 @@ ssize_t ps3::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id,
 
 void ps3::Hid::InterruptOut(span<u8_t> buf) {
   if (buf.size() == 8) {
-    // TODO: Actually parse this output.
-    controller_number_ = 1;
+    controller_number_ = buf[2];
+
+    led_off(Led::P1);
+    led_off(Led::P2);
+    led_off(Led::P3);
+    led_off(Led::P4);
+    if (controller_number_ & 1) {
+      led_on(Led::P1);
+    }
+    if (controller_number_ & 2) {
+      led_on(Led::P2);
+    }
+    if (controller_number_ & 4) {
+      led_on(Led::P3);
+    }
+    if (controller_number_ & 8) {
+      led_on(Led::P4);
+    }
   }
 }

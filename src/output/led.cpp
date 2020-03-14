@@ -13,6 +13,7 @@ struct LedState {
   k_delayed_work work;
   device* led_device;
   u32_t led_pin;
+  u32_t counter;
   bool on;
   bool flashing;
   u32_t duration_ticks;
@@ -92,20 +93,29 @@ void led_init() {
 #endif
 }
 
-void led_on(Led led) {
+u32_t led_set(Led led, bool value, optional<u32_t> expected_counter) {
   LedState& state = led_states[static_cast<size_t>(led)];
-  state.on = true;
+  if (expected_counter && *expected_counter != state.counter) {
+    return state.counter;
+  }
+
+  state.on = value;
   if (!state.flashing) {
     led_update(reinterpret_cast<k_work*>(&state.work));
   }
+
+  if (expected_counter) {
+    return *expected_counter;
+  }
+  return ++state.counter;
 }
 
-void led_off(Led led) {
-  LedState& state = led_states[static_cast<size_t>(led)];
-  state.on = false;
-  if (!state.flashing) {
-    led_update(reinterpret_cast<k_work*>(&state.work));
-  }
+u32_t led_on(Led led, optional<u32_t> expected_counter) {
+  return led_set(led, true, expected_counter);
+}
+
+u32_t led_off(Led led, optional<u32_t> expected_counter) {
+  return led_set(led, false, expected_counter);
 }
 
 void led_flash(Led led, u32_t duration_ms, u32_t interval_ms) {
