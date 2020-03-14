@@ -15,6 +15,7 @@ list(APPEND app_sources
     src/main.cpp
     src/malloc.cpp
     src/input/input.cpp
+    src/output/led.cpp
     src/output/output.cpp
     src/output/usb/hid.cpp
     src/output/usb/usb.cpp

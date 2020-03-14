@@ -20,19 +20,19 @@
       label = "Front LED";
     };
     led_p1: led_1 {
-      gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
+      gpios = <&gpio0 26 GPIO_ACTIVE_LOW>;
       label = "P1 LED";
     };
     led_p2: led_2 {
-      gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+      gpios = <&gpio0 1 GPIO_ACTIVE_LOW>;
       label = "P2 LED";
     };
     led_p3: led_3 {
-      gpios = <&gpio0 1 GPIO_ACTIVE_LOW>;
+      gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
       label = "P3 LED";
     };
     led_p4: led_4 {
-      gpios = <&gpio0 26 GPIO_ACTIVE_LOW>;
+      gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
       label = "P4 LED";
     };
   };

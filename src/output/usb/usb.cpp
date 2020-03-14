@@ -12,6 +12,7 @@
 
 #include "arch.h"
 #include "input/input.h"
+#include "output/led.h"
 #include "output/output.h"
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
@@ -75,6 +76,15 @@ optional<ProbeType> ProbeTypeNext(ProbeType probe_type) {
 
     default:
       return {};
+  }
+}
+
+optional<Led> ProbeTypeLed(ProbeType probe_type) {
+  switch (probe_type) {
+    case ProbeType::NX: return Led::P1;
+    case ProbeType::PS3: return Led::P2;
+    case ProbeType::PS4: return Led::P3;
+    default: return {};
   }
 }
 
@@ -204,6 +214,7 @@ static void usb_probe_start(k_work*) {
     }
   }
 
+  led_on(*ProbeTypeLed(*current_probe));
   Hid* current_hid = ProbeTypeHid(*current_probe);
   passinglink::usb_hid_init(current_hid);
 
@@ -211,17 +222,31 @@ static void usb_probe_start(k_work*) {
   k_delayed_work_submit_ticks(&probe_check_work, delay);
 }
 
+static void usb_probe_selected() {
+  auto probe = ProbeTypeLed(*current_probe);
+  if (probe) {
+    led_off(*probe);
+  }
+  led_flash(Led::P1, 1000, 300);
+  led_flash(Led::P2, 1000, 300);
+  led_flash(Led::P3, 1000, 300);
+  led_flash(Led::P4, 1000, 300);
+  set_boot_probe({});
+}
+
 static void usb_probe_check(k_work*) {
   Hid* current_hid = ProbeTypeHid(*current_probe);
   LOG_INF("checking whether %s was successful", current_hid->Name());
   if (current_hid->ProbeResult()) {
     LOG_INF("%s Hid reports success", current_hid->Name());
+    usb_probe_selected();
     return;
   }
 
   optional<ProbeType> next_probe = ProbeTypeNext(*current_probe);
   if (!next_probe) {
     LOG_ERR("%s Hid reports failure, but no more Hids are available", current_hid->Name());
+    usb_probe_selected();
     return;
   }
 
