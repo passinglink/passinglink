@@ -17,3 +17,7 @@ manifest:
       remote: passinglink
       revision: master
       path: tools/mbed_embed
+    - name: pcb
+      remote: passinglink
+      revision: master
+      path: pcb
