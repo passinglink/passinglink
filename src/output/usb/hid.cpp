@@ -22,7 +22,7 @@ LOG_MODULE_REGISTER(hid);
 static Hid* hid;
 static struct device* usb_hid_device;
 
-static optional<s64_t> suspend_timestamp;
+static optional<int64_t> suspend_timestamp;
 static struct k_delayed_work delayed_write_work;
 
 // USB transfers works on a host-polled basis: we put data into registers for
@@ -37,15 +37,15 @@ static struct k_delayed_work delayed_write_work;
 // TODO: Instead of using work queue timing (with ~100us precision), use a timer
 //       interrupt which is far more precise?
 #if defined(STM32)
-constexpr u32_t HID_REPORT_INTERVAL_US = 700;
+constexpr uint32_t HID_REPORT_INTERVAL_US = 700;
 #elif defined(NRF52840)
-constexpr u32_t HID_REPORT_INTERVAL_US = 600;
+constexpr uint32_t HID_REPORT_INTERVAL_US = 600;
 #else
 #warning HID_REPORT_INTERVAL_US unset, defaulting to 0
-constexpr u32_t HID_REPORT_INTERVAL_US = 0;
+constexpr uint32_t HID_REPORT_INTERVAL_US = 0;
 #endif
 
-constexpr u32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
+constexpr uint32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
 
 static void submit_write() {
   k_delayed_work_submit_ticks(&delayed_write_work, HID_REPORT_INTERVAL_TICKS);
@@ -55,7 +55,7 @@ static void submit_write() {
 }
 
 static void write_report(struct k_work* item = nullptr) {
-  u8_t report_buf[64];
+  uint8_t report_buf[64];
 
   ssize_t report_size;
   {
@@ -76,9 +76,9 @@ static void write_report(struct k_work* item = nullptr) {
   }
 
 #if defined(INTERVAL_PROFILING)
-  static u32_t previous;
-  u32_t now = get_cycle_count();
-  u32_t diff = now - previous;
+  static uint32_t previous;
+  uint32_t now = get_cycle_count();
+  uint32_t diff = now - previous;
   previous = now;
 
   if (diff > 100'000 && diff < 72'000'000) {
@@ -87,7 +87,7 @@ static void write_report(struct k_work* item = nullptr) {
 #endif
 }
 
-static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
+static void usb_status_cb(enum usb_dc_status_code status, const uint8_t* param) {
   switch (status) {
     case USB_DC_ERROR:
       LOG_INF("USB_DC_ERROR");
@@ -115,7 +115,7 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
       // Retry from the beginning if it's been more than a second.
       if (suspend_timestamp) {
         if (!hid->ProbeResult()) {
-          s64_t now = k_uptime_get();
+          int64_t now = k_uptime_get();
           if (now - *suspend_timestamp > 1000) {
             LOG_INF("resumed after suspend, retrying probe");
             passinglink::usb_reset_probe();
@@ -152,9 +152,10 @@ static void usb_status_cb(enum usb_dc_status_code status, const u8_t* param) {
   }
 }
 
-static bool decode_hid_report_value(u16_t value, optional<HidReportType>* out_type, u8_t* out_id) {
-  u8_t type = value >> 8;
-  u8_t id = value & 0xFFu;
+static bool decode_hid_report_value(uint16_t value, optional<HidReportType>* out_type,
+                                    uint8_t* out_id) {
+  uint8_t type = value >> 8;
+  uint8_t id = value & 0xFFu;
   switch (type) {
     case 0:
       out_type->reset();
@@ -178,15 +179,15 @@ static bool decode_hid_report_value(u16_t value, optional<HidReportType>* out_ty
 
 static const struct hid_ops ops = {
     .get_report =
-        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           optional<HidReportType> report_type;
-          u8_t report_id;
+          uint8_t report_id;
           if (!decode_hid_report_value(setup->wValue, &report_type, &report_id)) {
             LOG_ERR("failed to decode HID report value: %u", setup->wValue);
             return -1;
           }
 
-          int result = hid->GetReport(report_type, report_id, span<u8_t>(*data, *len));
+          int result = hid->GetReport(report_type, report_id, span<uint8_t>(*data, *len));
           if (result != -1) {
             *len = result;
             return 0;
@@ -194,38 +195,38 @@ static const struct hid_ops ops = {
           return -1;
         },
     .get_idle =
-        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           LOG_ERR("Get_Idle unimplemented");
           return -1;
         },
     .get_protocol =
-        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           LOG_ERR("Get_Protocol unimplemented");
           return -1;
         },
     .set_report =
-        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           optional<HidReportType> report_type;
-          u8_t report_id;
+          uint8_t report_id;
           if (!decode_hid_report_value(setup->wValue, &report_type, &report_id)) {
             return -1;
           }
 
-          bool result = hid->SetReport(report_type, report_id, span<u8_t>(*data, *len));
+          bool result = hid->SetReport(report_type, report_id, span<uint8_t>(*data, *len));
           return result ? 0 : -1;
         },
     .set_idle =
-        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           submit_write();
           return 0;
         },
     .set_protocol =
-        [](struct usb_setup_packet* setup, s32_t* len, u8_t** data) {
+        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           LOG_ERR("Set_Protocol unimplemented");
           return -1;
         },
     .protocol_change =
-        [](u8_t protocol) {
+        [](uint8_t protocol) {
           const char* type = "<invalid>";
           switch (protocol) {
             case HID_PROTOCOL_BOOT:
@@ -238,21 +239,21 @@ static const struct hid_ops ops = {
           LOG_WRN("Protocol change: %s", type);
         },
     .on_idle =
-        [](u16_t report_id) {
+        [](uint16_t report_id) {
           // TODO: Write reports to interrupt endpoint.
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
     .int_in_ready = []() { submit_write(); },
     .int_out_ready =
         []() {
-          u8_t input_buf[64];
+          uint8_t input_buf[64];
           size_t bytes_read;
           int rc = hid_int_ep_read(usb_hid_device, input_buf, sizeof(input_buf), &bytes_read);
           if (rc != 0) {
             LOG_ERR("failed to read from interrupt out endpoint: rc = %d", rc);
             return;
           }
-          hid->InterruptOut(span<u8_t>(input_buf, bytes_read));
+          hid->InterruptOut(span<uint8_t>(input_buf, bytes_read));
         },
 };
 
@@ -276,7 +277,7 @@ int usb_hid_init(Hid* hid_impl) {
     return -ENODEV;
   }
 
-  span<const u8_t> report_descriptor = hid->ReportDescriptor();
+  span<const uint8_t> report_descriptor = hid->ReportDescriptor();
   usb_hid_register_device(usb_hid_device, report_descriptor.data(), report_descriptor.size(), &ops);
 
   rc = usb_hid_init(usb_hid_device);

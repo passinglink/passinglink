@@ -22,14 +22,14 @@ struct Bitset {
   bool get(size_t idx) {
     size_t byte_idx = idx / 8;
     size_t bit_idx = idx % 8;
-    u8_t byte = data_[byte_idx];
+    uint8_t byte = data_[byte_idx];
     return byte & (1 << bit_idx);
   }
 
   void set(size_t idx, bool value) {
     size_t byte_idx = idx / 8;
     size_t bit_idx = idx % 8;
-    u8_t byte = data_[byte_idx];
+    uint8_t byte = data_[byte_idx];
     if (value) {
       byte |= 1 << bit_idx;
     } else {
@@ -47,7 +47,7 @@ struct Bitset {
     return {};
   }
 
-  u8_t data_[Bytes] = {};
+  uint8_t data_[Bytes] = {};
 };
 
 template <size_t Size, size_t Count>

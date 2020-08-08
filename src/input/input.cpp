@@ -36,12 +36,12 @@ bool input_get_raw_state(RawInputState* out) {
 #define GPIO_PORT_COUNT 4
 
 static struct device* gpio_devices[GPIO_PORT_COUNT];
-static u8_t gpio_device_count;
+static uint8_t gpio_device_count;
 
-static u8_t gpio_indices[PL_GPIO_COUNT];
+static uint8_t gpio_indices[PL_GPIO_COUNT];
 
-static u8_t gpio_device_add(struct device* device) {
-  u8_t i;
+static uint8_t gpio_device_add(struct device* device) {
+  uint8_t i;
   for (i = 0; i < GPIO_PORT_COUNT; ++i) {
     if (device == gpio_devices[i]) {
       // Skipping already-cached device.
@@ -65,7 +65,7 @@ static void input_gpio_init() {
     struct device* device = device_get_binding(device_name);            \
     gpio_pin_configure(device, DT_GPIO_KEYS_##NAME##_GPIOS_PIN,         \
                        DT_GPIO_KEYS_##NAME##_GPIOS_FLAGS | GPIO_INPUT); \
-    u8_t device_offset = gpio_device_add(device);                       \
+    uint8_t device_offset = gpio_device_add(device);                    \
     gpio_indices[index] = device_offset;                                \
   }
   PL_GPIOS()
@@ -83,8 +83,8 @@ bool input_get_raw_state(RawInputState* out) {
 #define PL_GPIO(index, gpio_name, GPIO_NAME)                                               \
   {                                                                                        \
     const char* device_name = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_CONTROLLER;                 \
-    u8_t device_index = gpio_indices[index];                                               \
-    constexpr u32_t flags = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_FLAGS;                        \
+    uint8_t device_index = gpio_indices[index];                                            \
+    constexpr uint32_t flags = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_FLAGS;                     \
     static_assert((flags & GPIO_ACTIVE_LOW) || (flags & GPIO_ACTIVE_HIGH));                \
     bool value = port_values[device_index] & (1U << DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_PIN); \
     if constexpr (flags & GPIO_ACTIVE_LOW) {                                               \
@@ -126,7 +126,7 @@ static StickState stick_state_from_x_y(int horizontal, int vertical) {
 }
 
 // Scale {-1, 0, 1} to {-128, 0, 127}.
-static u8_t stick_scale(int sign) {
+static uint8_t stick_scale(int sign) {
   if (sign < 0) {
     return 0x00;
   } else if (sign == 0) {

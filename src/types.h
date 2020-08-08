@@ -30,13 +30,13 @@ struct atomic_u32 {
   }
 
  private:
-  static u32_t to_int(T x) {
-    u32_t result;
+  static uint32_t to_int(T x) {
+    uint32_t result;
     memcpy(&result, &x, sizeof(T));
     return result;
   }
 
-  static T from_int(u32_t x) {
+  static T from_int(uint32_t x) {
     T result;
     memcpy(&result, &x, sizeof(T));
     return result;

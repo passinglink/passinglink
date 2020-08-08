@@ -12,12 +12,12 @@ LOG_MODULE_REGISTER(led);
 struct LedState {
   k_delayed_work work;
   device* led_device;
-  u32_t led_pin;
-  u32_t counter;
+  uint32_t led_pin;
+  uint32_t counter;
   bool on;
   bool flashing;
-  u32_t duration_ticks;
-  u32_t interval_ticks;
+  uint32_t duration_ticks;
+  uint32_t interval_ticks;
 
   size_t index() const;
 };
@@ -63,7 +63,7 @@ void led_update(k_work* work) {
   }
 }
 
-static void led_init(LedState& state, const char* device_name, u32_t gpio_pin, u32_t flags) {
+static void led_init(LedState& state, const char* device_name, uint32_t gpio_pin, uint32_t flags) {
   k_delayed_work_init(&state.work, led_update);
   if (device_name) {
     state.led_device = device_get_binding(device_name);
@@ -93,7 +93,7 @@ void led_init() {
 #endif
 }
 
-u32_t led_set(Led led, bool value, optional<u32_t> expected_counter) {
+uint32_t led_set(Led led, bool value, optional<uint32_t> expected_counter) {
   LedState& state = led_states[static_cast<size_t>(led)];
   if (expected_counter && *expected_counter != state.counter) {
     return state.counter;
@@ -110,15 +110,15 @@ u32_t led_set(Led led, bool value, optional<u32_t> expected_counter) {
   return ++state.counter;
 }
 
-u32_t led_on(Led led, optional<u32_t> expected_counter) {
+uint32_t led_on(Led led, optional<uint32_t> expected_counter) {
   return led_set(led, true, expected_counter);
 }
 
-u32_t led_off(Led led, optional<u32_t> expected_counter) {
+uint32_t led_off(Led led, optional<uint32_t> expected_counter) {
   return led_set(led, false, expected_counter);
 }
 
-void led_flash(Led led, u32_t duration_ms, u32_t interval_ms) {
+void led_flash(Led led, uint32_t duration_ms, uint32_t interval_ms) {
   LedState& state = led_states[static_cast<size_t>(led)];
   state.flashing = true;
   state.duration_ticks = k_ms_to_ticks_ceil32(duration_ms);

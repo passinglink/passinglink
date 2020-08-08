@@ -15,19 +15,20 @@ class Hid {
   virtual const char* Name() const = 0;
   virtual int Init() { return 0; }
 
-  virtual span<const u8_t> ReportDescriptor() const = 0;
-  virtual ssize_t GetReport(optional<HidReportType> report_type, u8_t report_id,
-                            span<u8_t> buf) = 0;
-  virtual bool SetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> data) {
+  virtual span<const uint8_t> ReportDescriptor() const = 0;
+  virtual ssize_t GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) = 0;
+  virtual bool SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                         span<uint8_t> data) {
     return false;
   }
 
-  virtual void InterruptOut(span<u8_t> data) {}
+  virtual void InterruptOut(span<uint8_t> data) {}
 
-  virtual void ClearHalt(u8_t endpoint) {}
+  virtual void ClearHalt(uint8_t endpoint) {}
 
   // Delay to wait in ticks before checking whether the Hid is successful.
-  virtual u32_t ProbeDelay() { return 0; }
+  virtual uint32_t ProbeDelay() { return 0; }
 
   virtual bool ProbeResult() { return false; }
 };

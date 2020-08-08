@@ -25,23 +25,23 @@ namespace ps4 {
 
 #if HAVE_DS4_KEY
 static mbedtls_rsa_context* ds4_key = const_cast<mbedtls_rsa_context*>(&__ds4_key);
-static const u8_t* ds4_key_e = reinterpret_cast<const u8_t*>(__ds4_key_e);
-static const u8_t* ds4_key_n = reinterpret_cast<const u8_t*>(__ds4_key_n);
-static const u8_t* ds4_serial = reinterpret_cast<const u8_t*>(__ds4_serial);
-static const u8_t* ds4_signature = reinterpret_cast<const u8_t*>(__ds4_signature);
+static const uint8_t* ds4_key_e = reinterpret_cast<const uint8_t*>(__ds4_key_e);
+static const uint8_t* ds4_key_n = reinterpret_cast<const uint8_t*>(__ds4_key_n);
+static const uint8_t* ds4_serial = reinterpret_cast<const uint8_t*>(__ds4_serial);
+static const uint8_t* ds4_signature = reinterpret_cast<const uint8_t*>(__ds4_signature);
 #else
 static mbedtls_rsa_context* ds4_key = nullptr;
-static const u8_t* ds4_key_e = nullptr;
-static const u8_t* ds4_key_n = nullptr;
-static const u8_t* ds4_serial = nullptr;
-static const u8_t* ds4_signature = nullptr;
+static const uint8_t* ds4_key_e = nullptr;
+static const uint8_t* ds4_key_n = nullptr;
+static const uint8_t* ds4_serial = nullptr;
+static const uint8_t* ds4_signature = nullptr;
 #endif
 
 static void sign_nonce(struct k_work*);
 
 static atomic_u32<AuthState> auth_state;
-static u8_t nonce[256];
-static u8_t nonce_signature[256];
+static uint8_t nonce[256];
+static uint8_t nonce_signature[256];
 
 K_WORK_DEFINE(k_work_sign, sign_nonce);
 
@@ -70,7 +70,7 @@ static void sign_nonce(struct k_work*) {
     return 0;
   };
 
-  u8_t hashed_nonce[32];
+  uint8_t hashed_nonce[32];
   if (mbedtls_sha256_ret(nonce, sizeof(nonce), hashed_nonce, 0) != 0) {
     LOG_ERR("sign_nonce: failed to hash nonce");
     return;
@@ -90,8 +90,8 @@ static void sign_nonce(struct k_work*) {
   LOG_INF("sign_nonce: finished signing");
 
 #if defined(CONFIG_PASSINGLINK_CHECK_MAIN_STACK_HWM)
-  const u8_t* main_stack = reinterpret_cast<const u8_t*>(&z_main_stack);
-  const u8_t* main_stack_hwm = main_stack;
+  const uint8_t* main_stack = reinterpret_cast<const uint8_t*>(&z_main_stack);
+  const uint8_t* main_stack_hwm = main_stack;
   while (*main_stack_hwm == 0xAA) {
     ++main_stack_hwm;
   }
@@ -107,7 +107,7 @@ static void sign_nonce(struct k_work*) {
   }
 }
 
-bool set_nonce(u8_t nonce_id, u8_t nonce_part, span<u8_t> data) {
+bool set_nonce(uint8_t nonce_id, uint8_t nonce_part, span<uint8_t> data) {
   if (!ds4_key) {
     LOG_ERR("set_nonce: no signing key available");
     return false;
@@ -116,7 +116,7 @@ bool set_nonce(u8_t nonce_id, u8_t nonce_part, span<u8_t> data) {
   AuthState current_state = get_auth_state();
   if (current_state.type != AuthStateType::ReceivingNonce) {
     LOG_ERR("set_nonce: received nonce in incorrect state: %u",
-            static_cast<u8_t>(current_state.type));
+            static_cast<uint8_t>(current_state.type));
     return false;
   }
 
@@ -132,7 +132,7 @@ bool set_nonce(u8_t nonce_id, u8_t nonce_part, span<u8_t> data) {
   }
 
   LOG_INF("set_nonce: received data for nonce %u, part %u/5", nonce_id, nonce_part + 1);
-  u8_t* begin = nonce + nonce_part * 56;
+  uint8_t* begin = nonce + nonce_part * 56;
   memcpy(begin, data.data(), data.size());
 
   AuthState new_state = current_state;
@@ -162,7 +162,7 @@ bool set_nonce(u8_t nonce_id, u8_t nonce_part, span<u8_t> data) {
   return true;
 }
 
-static const u8_t padding[24] = {0};
+static const uint8_t padding[24] = {0};
 
 #define SIGNATURE_BLOCKS()                         \
   SIGNATURE_BLOCK(nonce_sig, 256, nonce_signature) \
@@ -172,20 +172,20 @@ static const u8_t padding[24] = {0};
   SIGNATURE_BLOCK(key_sig, 256, ds4_signature)     \
   SIGNATURE_BLOCK(padding, 24, padding)
 
-#define SIGNATURE_BLOCK(name, block_size, source)            \
-  static size_t copy_##name(span<u8_t> buf, size_t offset) { \
-    size_t bytes = block_size - offset;                      \
-    if (bytes > buf.size()) {                                \
-      bytes = buf.size();                                    \
-    }                                                        \
-    memcpy(buf.data(), (source) + offset, bytes);            \
-    return bytes;                                            \
+#define SIGNATURE_BLOCK(name, block_size, source)               \
+  static size_t copy_##name(span<uint8_t> buf, size_t offset) { \
+    size_t bytes = block_size - offset;                         \
+    if (bytes > buf.size()) {                                   \
+      bytes = buf.size();                                       \
+    }                                                           \
+    memcpy(buf.data(), (source) + offset, bytes);               \
+    return bytes;                                               \
   }
 
 SIGNATURE_BLOCKS()
 #undef SIGNATURE_BLOCK
 
-bool get_next_signature_chunk(span<u8_t> buf) {
+bool get_next_signature_chunk(span<uint8_t> buf) {
   if (buf.size() != 56) {
     LOG_ERR("get_next_signature_chunk: invalid buffer size: %zu", buf.size());
     return false;

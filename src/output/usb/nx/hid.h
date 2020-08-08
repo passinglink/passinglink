@@ -14,15 +14,15 @@ class Hid : public ::Hid {
   virtual const char* Name() const override final { return "Switch"; }
   virtual int Init() override final;
 
-  virtual span<const u8_t> ReportDescriptor() const override final;
-  ssize_t GetFeatureReport(u8_t report_id, span<u8_t> buf);
-  ssize_t GetInputReport(u8_t report_id, span<u8_t> buf);
-  virtual ssize_t GetReport(optional<HidReportType> report_type, u8_t report_id,
-                            span<u8_t> buf) override final;
-  virtual bool SetReport(optional<HidReportType> report_type, u8_t report_id,
-                         span<u8_t> data) override final;
+  virtual span<const uint8_t> ReportDescriptor() const override final;
+  ssize_t GetFeatureReport(uint8_t report_id, span<uint8_t> buf);
+  ssize_t GetInputReport(uint8_t report_id, span<uint8_t> buf);
+  virtual ssize_t GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) override final;
+  virtual bool SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                         span<uint8_t> data) override final;
 
-  virtual void ClearHalt(u8_t endpoint) override final {
+  virtual void ClearHalt(uint8_t endpoint) override final {
     if (endpoint & 0x80) {
       input_halt_cleared_ = true;
     } else {

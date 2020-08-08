@@ -106,31 +106,31 @@ static constexpr size_t PL_GPIO_COUNT = 23;
   PL_GPIO_OUTPUT_MODES(20)
 
 struct RawInputState {
-#define PL_GPIO(index, name, NAME) u32_t name : 1;
+#define PL_GPIO(index, name, NAME) uint32_t name : 1;
   PL_GPIOS()
 #undef PL_GPIO
 };
 
 struct InputState {
-  u8_t left_stick_x;
-  u8_t left_stick_y;
-  u8_t right_stick_x;
-  u8_t right_stick_y;
+  uint8_t left_stick_x;
+  uint8_t left_stick_y;
+  uint8_t right_stick_x;
+  uint8_t right_stick_y;
   StickState dpad;
-  u16_t button_north : 1;
-  u16_t button_east : 1;
-  u16_t button_south : 1;
-  u16_t button_west : 1;
-  u16_t button_l1 : 1;
-  u16_t button_l2 : 1;
-  u16_t button_l3 : 1;
-  u16_t button_r1 : 1;
-  u16_t button_r2 : 1;
-  u16_t button_r3 : 1;
-  u16_t button_select : 1;
-  u16_t button_start : 1;
-  u16_t button_home : 1;
-  u16_t button_touchpad : 1;
+  uint16_t button_north : 1;
+  uint16_t button_east : 1;
+  uint16_t button_south : 1;
+  uint16_t button_west : 1;
+  uint16_t button_l1 : 1;
+  uint16_t button_l2 : 1;
+  uint16_t button_l3 : 1;
+  uint16_t button_r1 : 1;
+  uint16_t button_r2 : 1;
+  uint16_t button_r3 : 1;
+  uint16_t button_select : 1;
+  uint16_t button_start : 1;
+  uint16_t button_home : 1;
+  uint16_t button_touchpad : 1;
   TouchpadData touchpad_data;
 };
 

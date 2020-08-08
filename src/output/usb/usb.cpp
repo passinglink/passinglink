@@ -38,7 +38,7 @@ static ps4::Hid ps4_hid;
 #define REBOOT_PROBE
 #endif
 
-static u32_t probe_led_counter;
+static uint32_t probe_led_counter;
 
 enum class ProbeType : uint64_t {
   NX = 0xAAAAAAAAAAAAAAAA,
@@ -220,7 +220,7 @@ static void usb_probe_start(k_work*) {
   Hid* current_hid = ProbeTypeHid(*current_probe);
   passinglink::usb_hid_init(current_hid);
 
-  u32_t delay = current_hid->ProbeDelay();
+  uint32_t delay = current_hid->ProbeDelay();
   k_delayed_work_submit_ticks(&probe_check_work, delay);
 }
 

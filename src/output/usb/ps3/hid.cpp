@@ -19,7 +19,7 @@
 LOG_MODULE_REGISTER(PS3HID);
 
 // clang-format off
-const u8_t kPS3ReportDescriptor[] = {
+const uint8_t kPS3ReportDescriptor[] = {
   0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
   0x09, 0x05,        // Usage (Game Pad)
   0xA1, 0x01,        // Collection (Application)
@@ -89,44 +89,44 @@ const u8_t kPS3ReportDescriptor[] = {
 // clang-format on
 
 struct __attribute__((packed)) OutputReport {
-  u16_t button_west : 1;
-  u16_t button_south : 1;
-  u16_t button_east : 1;
-  u16_t button_north : 1;
-  u16_t button_l1 : 1;
-  u16_t button_r1 : 1;
-  u16_t button_l2 : 1;
-  u16_t button_r2 : 1;
-  u16_t button_select : 1;
-  u16_t button_start : 1;
-  u16_t button_l3 : 1;
-  u16_t button_r3 : 1;
-  u16_t button_home : 1;
-  u16_t padding_1 : 3;
-  u8_t dpad : 4;
-  u8_t padding_2 : 4;
-  u8_t left_stick_x;
-  u8_t left_stick_y;
-  u8_t right_stick_x;
-  u8_t right_stick_y;
-  u8_t padding_3[13];
-  u8_t two_1;
-  u8_t padding_4;
-  u8_t two_2;
-  u8_t padding_5;
-  u8_t two_3;
-  u8_t padding_6;
-  u8_t two_4;
+  uint16_t button_west : 1;
+  uint16_t button_south : 1;
+  uint16_t button_east : 1;
+  uint16_t button_north : 1;
+  uint16_t button_l1 : 1;
+  uint16_t button_r1 : 1;
+  uint16_t button_l2 : 1;
+  uint16_t button_r2 : 1;
+  uint16_t button_select : 1;
+  uint16_t button_start : 1;
+  uint16_t button_l3 : 1;
+  uint16_t button_r3 : 1;
+  uint16_t button_home : 1;
+  uint16_t padding_1 : 3;
+  uint8_t dpad : 4;
+  uint8_t padding_2 : 4;
+  uint8_t left_stick_x;
+  uint8_t left_stick_y;
+  uint8_t right_stick_x;
+  uint8_t right_stick_y;
+  uint8_t padding_3[13];
+  uint8_t two_1;
+  uint8_t padding_4;
+  uint8_t two_2;
+  uint8_t padding_5;
+  uint8_t two_3;
+  uint8_t padding_6;
+  uint8_t two_4;
 };
 
 static_assert(sizeof(OutputReport) == 27);
 
-span<const u8_t> ps3::Hid::ReportDescriptor() const {
-  return span<const u8_t>(reinterpret_cast<const u8_t*>(kPS3ReportDescriptor),
-                          sizeof(kPS3ReportDescriptor));
+span<const uint8_t> ps3::Hid::ReportDescriptor() const {
+  return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kPS3ReportDescriptor),
+                             sizeof(kPS3ReportDescriptor));
 }
 
-ssize_t ps3::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
+ssize_t ps3::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   buf[0] = report_id;
   if (report_id == 0) {
     if (buf.size() < 8) {
@@ -141,7 +141,7 @@ ssize_t ps3::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
   return -1;
 }
 
-ssize_t ps3::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
+ssize_t ps3::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   switch (report_id) {
     case 0x01: {
       if (buf.size() != 64) {
@@ -223,7 +223,8 @@ ssize_t ps3::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
   }
 }
 
-ssize_t ps3::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> buf) {
+ssize_t ps3::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
@@ -239,7 +240,7 @@ ssize_t ps3::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id,
   return -1;
 }
 
-void ps3::Hid::InterruptOut(span<u8_t> buf) {
+void ps3::Hid::InterruptOut(span<uint8_t> buf) {
   if (buf.size() == 8) {
     controller_number_ = buf[2];
 

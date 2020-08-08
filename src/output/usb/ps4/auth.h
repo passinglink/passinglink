@@ -4,7 +4,7 @@
 
 namespace ps4 {
 
-enum class AuthStateType : u8_t {
+enum class AuthStateType : uint8_t {
   // Waiting for a complete nonce.
   // Transitions to ReadyToSign when the full nonce has been read.
   ReceivingNonce,
@@ -24,15 +24,15 @@ enum class AuthStateType : u8_t {
 
 struct alignas(1) AuthState {
   AuthStateType type;
-  u8_t nonce_id;
-  u8_t next_part;
-  u8_t padding;
+  uint8_t nonce_id;
+  uint8_t next_part;
+  uint8_t padding;
 };
 
 static_assert(sizeof(AuthState) == 4);
 
 AuthState get_auth_state();
-bool set_nonce(u8_t nonce_id, u8_t nonce_part, span<u8_t> data);
-bool get_next_signature_chunk(span<u8_t> buf);
+bool set_nonce(uint8_t nonce_id, uint8_t nonce_part, span<uint8_t> data);
+bool get_next_signature_chunk(span<uint8_t> buf);
 
 }  // namespace ps4

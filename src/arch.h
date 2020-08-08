@@ -18,11 +18,11 @@
 #endif
 
 #if defined(NRF52840)
-static u32_t get_cycle_count() {
+static uint32_t get_cycle_count() {
   return DWT->CYCCNT;
 }
 #else
-static u32_t get_cycle_count() {
+static uint32_t get_cycle_count() {
   return k_cycle_get_32();
 }
 #endif

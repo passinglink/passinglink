@@ -15,14 +15,14 @@ struct Profiler {
 
   void end(const char* name) {
     if (times_count_ != Frequency) {
-      u32_t end_cycle = get_cycle_count();
-      u32_t diff = end_cycle - begin_cycle_;
+      uint32_t end_cycle = get_cycle_count();
+      uint32_t diff = end_cycle - begin_cycle_;
       times_[times_count_++] = diff;
     } else {
       times_count_ = 0;
       u64_t total = 0;
-      u32_t min = UINT32_MAX;
-      u32_t max = 0;
+      uint32_t min = UINT32_MAX;
+      uint32_t max = 0;
       for (auto time : times_) {
         total += time;
         if (time < min) {
@@ -33,15 +33,15 @@ struct Profiler {
         }
       }
 
-      u32_t average = total / (Frequency - 1);
+      uint32_t average = total / (Frequency - 1);
       LOG_INF("%s: avg = %u, min = %u, max = %u", name, average, min, max);
     }
   }
 
-  u32_t times_[Frequency - 1];
+  uint32_t times_[Frequency - 1];
   size_t times_count_;
 
-  u32_t begin_cycle_;
+  uint32_t begin_cycle_;
 };
 
 template<int Frequency>

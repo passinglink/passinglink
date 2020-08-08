@@ -18,7 +18,7 @@
 LOG_MODULE_REGISTER(NXHid);
 
 // clang-format off
-const u8_t kNXReportDescriptor[] = {
+const uint8_t kNXReportDescriptor[] = {
   0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
   0x09, 0x05,        // Usage (Game Pad)
   0xA1, 0x01,        // Collection (Application)
@@ -64,29 +64,29 @@ const u8_t kNXReportDescriptor[] = {
 // clang-format on
 
 struct __attribute__((packed)) OutputReport {
-  u16_t button_west : 1;
-  u16_t button_south : 1;
-  u16_t button_east : 1;
-  u16_t button_north : 1;
-  u16_t button_l1 : 1;
-  u16_t button_r1 : 1;
-  u16_t button_l2 : 1;
-  u16_t button_r2 : 1;
-  u16_t button_select : 1;
-  u16_t button_start : 1;
-  u16_t button_l3 : 1;
-  u16_t button_r3 : 1;
-  u16_t button_home : 1;
-  u16_t button_touchpad : 1;
-  u16_t button_15 : 1;
-  u16_t button_16 : 1;
-  u8_t dpad : 4;
-  u8_t unknown_1 : 4;
-  u8_t left_stick_x;
-  u8_t left_stick_y;
-  u8_t right_stick_x;
-  u8_t right_stick_y;
-  u8_t unknown_2;
+  uint16_t button_west : 1;
+  uint16_t button_south : 1;
+  uint16_t button_east : 1;
+  uint16_t button_north : 1;
+  uint16_t button_l1 : 1;
+  uint16_t button_r1 : 1;
+  uint16_t button_l2 : 1;
+  uint16_t button_r2 : 1;
+  uint16_t button_select : 1;
+  uint16_t button_start : 1;
+  uint16_t button_l3 : 1;
+  uint16_t button_r3 : 1;
+  uint16_t button_home : 1;
+  uint16_t button_touchpad : 1;
+  uint16_t button_15 : 1;
+  uint16_t button_16 : 1;
+  uint8_t dpad : 4;
+  uint8_t unknown_1 : 4;
+  uint8_t left_stick_x;
+  uint8_t left_stick_y;
+  uint8_t right_stick_x;
+  uint8_t right_stick_y;
+  uint8_t unknown_2;
 };
 
 static_assert(sizeof(OutputReport) == 8);
@@ -97,18 +97,18 @@ int nx::Hid::Init() {
   return 0;
 }
 
-span<const u8_t> nx::Hid::ReportDescriptor() const {
-  return span<const u8_t>(reinterpret_cast<const u8_t*>(kNXReportDescriptor),
-                          sizeof(kNXReportDescriptor));
+span<const uint8_t> nx::Hid::ReportDescriptor() const {
+  return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kNXReportDescriptor),
+                             sizeof(kNXReportDescriptor));
 }
 
-ssize_t nx::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
+ssize_t nx::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   buf[0] = report_id;
   LOG_ERR("GetFeatureReport called for unknown report 0x%02X", report_id);
   return -1;
 }
 
-ssize_t nx::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
+ssize_t nx::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   switch (report_id) {
     case 0x01: {
       if (buf.size() != 64) {
@@ -185,7 +185,8 @@ ssize_t nx::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
   }
 }
 
-ssize_t nx::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> buf) {
+ssize_t nx::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                           span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
@@ -201,7 +202,8 @@ ssize_t nx::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id, 
   return -1;
 }
 
-bool nx::Hid::SetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> data) {
+bool nx::Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                        span<uint8_t> data) {
   LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
 
   if (!report_type) {

@@ -19,7 +19,7 @@
 LOG_MODULE_REGISTER(PS4Hid);
 
 // clang-format off
-const u8_t kPS4ReportDescriptor[] = {
+const uint8_t kPS4ReportDescriptor[] = {
   0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
   0x09, 0x05,        // Usage (Game Pad)
   0xA1, 0x01,        // Collection (Application)
@@ -110,79 +110,79 @@ const u8_t kPS4ReportDescriptor[] = {
 // clang-format on
 
 struct __attribute__((packed)) OutputReport {
-  u8_t report_id;
-  u8_t left_stick_x;
-  u8_t left_stick_y;
-  u8_t right_stick_x;
-  u8_t right_stick_y;
+  uint8_t report_id;
+  uint8_t left_stick_x;
+  uint8_t left_stick_y;
+  uint8_t right_stick_x;
+  uint8_t right_stick_y;
 
   // 4 bits for the d-pad.
-  u32_t dpad : 4;
+  uint32_t dpad : 4;
 
   // 14 bits for buttons.
-  u32_t button_west : 1;
-  u32_t button_south : 1;
-  u32_t button_east : 1;
-  u32_t button_north : 1;
-  u32_t button_l1 : 1;
-  u32_t button_r1 : 1;
-  u32_t button_l2 : 1;
-  u32_t button_r2 : 1;
-  u32_t button_select : 1;
-  u32_t button_start : 1;
-  u32_t button_l3 : 1;
-  u32_t button_r3 : 1;
-  u32_t button_home : 1;
-  u32_t button_touchpad : 1;
+  uint32_t button_west : 1;
+  uint32_t button_south : 1;
+  uint32_t button_east : 1;
+  uint32_t button_north : 1;
+  uint32_t button_l1 : 1;
+  uint32_t button_r1 : 1;
+  uint32_t button_l2 : 1;
+  uint32_t button_r2 : 1;
+  uint32_t button_select : 1;
+  uint32_t button_start : 1;
+  uint32_t button_l3 : 1;
+  uint32_t button_r3 : 1;
+  uint32_t button_home : 1;
+  uint32_t button_touchpad : 1;
 
   // 6 bit report counter.
-  u32_t report_counter : 6;
+  uint32_t report_counter : 6;
 
-  u32_t left_trigger : 8;
-  u32_t right_trigger : 8;
+  uint32_t left_trigger : 8;
+  uint32_t right_trigger : 8;
 
-  u32_t padding : 24;
-  u8_t mystery[22];
+  uint32_t padding : 24;
+  uint8_t mystery[22];
   TouchpadData touchpad_data;
-  u8_t mystery_2[21];
+  uint8_t mystery_2[21];
 };
 
 static_assert(sizeof(OutputReport) == 64);
 
-static bool check_crc(span<u8_t> data) {
+static bool check_crc(span<uint8_t> data) {
   if (data.size() < 4) {
     return false;
   }
 
-  u32_t crc = crc32_ieee(data.data(), data.size() - sizeof(crc));
+  uint32_t crc = crc32_ieee(data.data(), data.size() - sizeof(crc));
   return memcmp(&crc, data.data() + (data.size() - sizeof(crc)), sizeof(crc)) == 0;
 }
 
-static int write_with_crc(span<u8_t> dst, span<u8_t> src) {
+static int write_with_crc(span<uint8_t> dst, span<uint8_t> src) {
   if (dst.size() < 4 || dst.size() - 4 < src.size()) {
     LOG_ERR("write_with_crc: attempted to write %zu bytes into a %zu byte buffer", src.size(),
             dst.size());
     return -1;
   }
 
-  u32_t crc = crc32_ieee(src.data(), src.size());
+  uint32_t crc = crc32_ieee(src.data(), src.size());
   memcpy(dst.data(), src.data(), src.size());
   memcpy(dst.data() + src.size(), &crc, 4);
   return src.size() + 4;
 }
 
-span<const u8_t> ps4::Hid::ReportDescriptor() const {
-  return span<const u8_t>(reinterpret_cast<const u8_t*>(kPS4ReportDescriptor),
-                          sizeof(kPS4ReportDescriptor));
+span<const uint8_t> ps4::Hid::ReportDescriptor() const {
+  return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kPS4ReportDescriptor),
+                             sizeof(kPS4ReportDescriptor));
 }
 
-ssize_t ps4::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
+ssize_t ps4::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   buf[0] = report_id;
 
   switch (report_id) {
     case 0x03: {
       // Unknown, copied from an actual device.
-      static constexpr u8_t output_0x03[] = {
+      static constexpr uint8_t output_0x03[] = {
           0x3, 0x21, 0x27, 0x4, 0x40, 0x7, 0x2c, 0x56, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
           0x0, 0x0,  0xd,  0xd, 0x0,  0x0, 0x0,  0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
           0x0, 0x0,  0x0,  0x0, 0x0,  0x0, 0x0,  0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
@@ -213,19 +213,19 @@ ssize_t ps4::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
         return -1;
       }
 
-      u8_t data[60] = {};
+      uint8_t data[60] = {};
       data[0] = 0xF1;
       data[1] = state.nonce_id;
       data[2] = state.next_part;
       data[3] = 0;
 
-      span<u8_t> output_buffer(data, sizeof(data));
+      span<uint8_t> output_buffer(data, sizeof(data));
       output_buffer.remove_prefix(4);
       if (!get_next_signature_chunk(output_buffer)) {
         return -1;
       }
 
-      return write_with_crc(buf, span<u8_t>(data, sizeof(data)));
+      return write_with_crc(buf, span<uint8_t>(data, sizeof(data)));
 #endif
     }
 
@@ -235,17 +235,17 @@ ssize_t ps4::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
       LOG_ERR("GetFeatureReport(0xF2): auth unavailable");
       return -1;
 #else
-      u8_t data[12] = {};
+      uint8_t data[12] = {};
       auto state = get_auth_state();
       data[0] = 0xF2;
       data[1] = state.nonce_id;
       data[2] = state.type == AuthStateType::SendingSignature ? 0 : 16;
-      return write_with_crc(buf, span<u8_t>(data, sizeof(data)));
+      return write_with_crc(buf, span<uint8_t>(data, sizeof(data)));
 #endif
     }
 
     case 0xF3: {
-      static constexpr u8_t output_0xf3[] = {0xf3, 0x0, 0x38, 0x38, 0, 0, 0, 0};
+      static constexpr uint8_t output_0xf3[] = {0xf3, 0x0, 0x38, 0x38, 0, 0, 0, 0};
       if (buf.size() != sizeof(output_0xf3)) {
         LOG_ERR("GetFeatureReport(0xf3) called with unexpected size %zu", buf.size());
         return -1;
@@ -261,7 +261,7 @@ ssize_t ps4::Hid::GetFeatureReport(u8_t report_id, span<u8_t> buf) {
   }
 }
 
-ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
+ssize_t ps4::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   switch (report_id) {
     case 0x01: {
       if (buf.size() != 64) {
@@ -348,7 +348,8 @@ ssize_t ps4::Hid::GetInputReport(u8_t report_id, span<u8_t> buf) {
   }
 }
 
-ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> buf) {
+ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
@@ -364,7 +365,8 @@ ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, u8_t report_id,
   return -1;
 }
 
-bool ps4::Hid::SetReport(optional<HidReportType> report_type, u8_t report_id, span<u8_t> data) {
+bool ps4::Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                         span<uint8_t> data) {
   LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
 
   if (!report_type) {
@@ -392,8 +394,8 @@ bool ps4::Hid::SetReport(optional<HidReportType> report_type, u8_t report_id, sp
         return false;
       }
 
-      u8_t nonce_id = data[1];
-      u8_t nonce_part = data[2];
+      uint8_t nonce_id = data[1];
+      uint8_t nonce_part = data[2];
 
       // 4 byte header.
       data.remove_prefix(4);

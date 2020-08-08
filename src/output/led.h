@@ -15,9 +15,9 @@ void led_init();
 // Set an LED value.
 // A counter value is returned, which allows for the ability to undo an operation without affecting
 // things if another operation came in after the initial operation.
-u32_t led_set(Led led, bool value, optional<u32_t> expected_counter = {});
+uint32_t led_set(Led led, bool value, optional<uint32_t> expected_counter = {});
 
-u32_t led_on(Led led, optional<u32_t> expected_counter = {});
-u32_t led_off(Led led, optional<u32_t> expected_counter = {});
+uint32_t led_on(Led led, optional<uint32_t> expected_counter = {});
+uint32_t led_off(Led led, optional<uint32_t> expected_counter = {});
 
-void led_flash(Led led, u32_t duration_ms, u32_t interval_ms);
+void led_flash(Led led, uint32_t duration_ms, uint32_t interval_ms);
