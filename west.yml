@@ -1,4 +1,6 @@
 manifest:
+  self:
+    path: passinglink
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
@@ -7,7 +9,7 @@ manifest:
   projects:
     - name: zephyr
       remote: passinglink
-      revision: pl-v2.1-20200229
+      revision: pl-v2.3-20200807
       import: true
     - name: mbedtls
       remote: passinglink

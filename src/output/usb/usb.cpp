@@ -221,7 +221,7 @@ static void usb_probe_start(k_work*) {
   passinglink::usb_hid_init(current_hid);
 
   uint32_t delay = current_hid->ProbeDelay();
-  k_delayed_work_submit_ticks(&probe_check_work, delay);
+  k_delayed_work_submit(&probe_check_work, K_TICKS(delay));
 }
 
 static void usb_probe_selected() {

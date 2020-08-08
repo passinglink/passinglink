@@ -41,7 +41,7 @@ static void led_toggle(LedState& state) {
 }
 
 static void led_schedule_update(LedState& state) {
-  k_delayed_work_submit_ticks(&state.work, state.interval_ticks);
+  k_delayed_work_submit(&state.work, K_TICKS(state.interval_ticks));
 }
 
 void led_update(k_work* work) {

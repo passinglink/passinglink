@@ -48,7 +48,7 @@ constexpr uint32_t HID_REPORT_INTERVAL_US = 0;
 constexpr uint32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
 
 static void submit_write() {
-  k_delayed_work_submit_ticks(&delayed_write_work, HID_REPORT_INTERVAL_TICKS);
+  k_delayed_work_submit(&delayed_write_work, K_TICKS(HID_REPORT_INTERVAL_TICKS));
 
   // Immediately do a touchpad read after submitting, since it's slow.
   input_touchpad_poll();

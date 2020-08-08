@@ -39,9 +39,9 @@ struct TouchpadOutput {
 static void tp_reset() {
   LOG_INF("resetting touchpad");
   gpio_pin_set(tp_rst_device, DT_GPIO_KEYS_TP_RST_GPIOS_PIN, 0);
-  k_sleep(10);
+  k_sleep(K_MSEC(10));
   gpio_pin_set(tp_rst_device, DT_GPIO_KEYS_TP_RST_GPIOS_PIN, 1);
-  k_sleep(10);
+  k_sleep(K_MSEC(10));
 }
 
 static uint8_t counter;
@@ -89,7 +89,7 @@ void input_touchpad_poll() {
 }
 
 void input_touchpad_init() {
-  tp_i2c_device = device_get_binding(DT_ALIAS_I2C_0_LABEL);
+  tp_i2c_device = device_get_binding(DT_ALIAS_TP_I2C_LABEL);
   tp_rst_device = device_get_binding(DT_GPIO_KEYS_TP_RST_GPIOS_CONTROLLER);
   gpio_pin_configure(tp_rst_device, DT_GPIO_KEYS_TP_RST_GPIOS_PIN,
                      DT_GPIO_KEYS_TP_RST_GPIOS_FLAGS | GPIO_OUTPUT);
