@@ -101,7 +101,7 @@ config PASSINGLINK_OUTPUT_USB_PS4_AUTH
 
 config PASSINGLINK_OUTPUT_USB_FORCE_PROBE_REBOOT
   bool "Force reboot for USB probe"
-  default y
+  default n
   help
     Reboot to probe USB even on boards that support USB deinitialization
   depends on PASSINGLINK_OUTPUT_USB_SWITCH_PROBE || PASINGLINK_OUTPUT_USB_PS3_PROBE

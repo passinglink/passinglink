@@ -233,7 +233,9 @@ static void usb_probe_selected() {
   led_flash(Led::P2, 1000, 300);
   led_flash(Led::P3, 1000, 300);
   led_flash(Led::P4, 1000, 300);
+#if defined(REBOOT_PROBE)
   set_boot_probe({});
+#endif
 }
 
 static void usb_probe_check(k_work*) {
