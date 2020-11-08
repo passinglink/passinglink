@@ -31,6 +31,10 @@ bool input_get_raw_state(RawInputState* out) {
   return true;
 }
 
+#elif defined(CONFIG_PASSINGLINK_INPUT_EXTERNAL)
+
+static void input_gpio_init() {}
+
 #else
 
 #define GPIO_PORT_COUNT 4

@@ -14,6 +14,7 @@ list(APPEND app_sources
     src/arch.cpp
     src/main.cpp
     src/malloc.cpp
+    src/shell.cpp
     src/input/input.cpp
     src/output/led.cpp
     src/output/output.cpp

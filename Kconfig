@@ -36,6 +36,11 @@ config PASSINGLINK_INPUT_GPIO
   help
     Enable input from GPIO pins
 
+config PASSINGLINK_INPUT_EXTERNAL
+  bool "External (e.g. shell)"
+  help
+    Enable input from an external source (e.g. the shell)
+
 endchoice
 
 choice PASSINGLINK_INPUT_TOUCHPAD
