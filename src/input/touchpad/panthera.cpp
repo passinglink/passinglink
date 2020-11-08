@@ -44,8 +44,16 @@ static void tp_reset() {
   k_sleep(K_MSEC(10));
 }
 
+static bool succeeded_once;
+static bool disabled;
+static uint8_t attempts;
+
 static uint8_t counter;
 void input_touchpad_poll() {
+  if (disabled) {
+    return;
+  }
+
   // We get polled at 1000Hz by USB.
   // Divide this by 8, since this isn't critical.
   if (++counter == 8) {
@@ -64,10 +72,19 @@ void input_touchpad_poll() {
   int rc = i2c_write_read(tp_i2c_device, TP_I2C_ADDRESS, &reg, sizeof(reg), &input, sizeof(input));
 
   if (rc != 0) {
-    LOG_ERR("failed to read TP_OUTPUT_REGISTER: rc = %d", rc);
+    if (!succeeded_once) {
+      if (attempts++ > 128) {
+        LOG_ERR("touchpad: not found, disabling");
+        disabled = true;
+        return;
+      }
+    } else {
+      LOG_WRN("failed to read TP_OUTPUT_REGISTER: rc = %d", rc);
+    }
   } else {
     if (input.touchpoints == 0) {
       LOG_DBG("no touchpoints");
+      output->p1.unpressed = 1;
     }
 
     if (input.touchpoints >= 1) {
