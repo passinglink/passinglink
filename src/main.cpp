@@ -81,5 +81,5 @@ extern "C" void main(void) {
   input_init();
   output_init();
 
-  k_thread_priority_set(k_current_get(), CONFIG_NUM_PREEMPT_PRIORITIES - 1);
+  k_thread_priority_set(k_current_get(), K_IDLE_PRIO);
 }
