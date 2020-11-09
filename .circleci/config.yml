@@ -1,5 +1,20 @@
 version: 2
 jobs:
+  build_pl_e73:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build pl_e73
+          command: '/build.sh -b pl_e73 -p passinglink'
+      - run:
+          name: Copy binary to workspace
+          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_e73.hex
+      - persist_to_workspace:
+          root: /workspace
+          paths: pl_e73.hex
+
   build_pl_stm32:
     docker:
       - image: jmgao/zephyr-docker:latest
@@ -20,7 +35,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Build RobotDyn F303
+          name: Build pl_robotdyn_f303
           command: '/build.sh -b pl_robotdyn_f303 -p passinglink'
       - run:
           name: Copy binary to workspace
@@ -28,27 +43,13 @@ jobs:
       - persist_to_workspace:
           root: /workspace
           paths: pl_robotdyn_f303.hex
-  build_particle_xenon:
+  build_pl_bluepill:
     docker:
       - image: jmgao/zephyr-docker:latest
     steps:
       - checkout
       - run:
-          name: Build Particle Xenon
-          command: '/build.sh -b particle_xenon -p passinglink'
-      - run:
-          name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/particle_xenon.hex
-      - persist_to_workspace:
-          root: /workspace
-          paths: particle_xenon.hex
-  build_bluepill:
-    docker:
-      - image: jmgao/zephyr-docker:latest
-    steps:
-      - checkout
-      - run:
-          name: Build bluepill
+          name: Build pl_bluepill
           command: '/build.sh -b pl_bluepill -p passinglink'
       - run:
           name: Copy binary to workspace
@@ -56,6 +57,20 @@ jobs:
       - persist_to_workspace:
           root: /workspace
           paths: pl_bluepill.hex
+  build_particle_xenon:
+    docker:
+      - image: jmgao/zephyr-docker:latest
+    steps:
+      - checkout
+      - run:
+          name: Build particle_xenon
+          command: '/build.sh -b particle_xenon -p passinglink'
+      - run:
+          name: Copy binary to workspace
+          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/particle_xenon.hex
+      - persist_to_workspace:
+          root: /workspace
+          paths: particle_xenon.hex
   build_native_posix:
     docker:
       - image: jmgao/zephyr-docker:latest
@@ -79,14 +94,17 @@ workflows:
   version: 2
   build:
     jobs:
+      - build_pl_e73
       - build_pl_stm32
-      - build_particle_xenon
       - build_pl_robotdyn_f303
-      - build_bluepill
+      - build_pl_bluepill
+      - build_particle_xenon
       - build_native_posix
       - package:
           requires:
+            - build_pl_e73
             - build_pl_stm32
-            - build_particle_xenon
             - build_pl_robotdyn_f303
-            - build_bluepill
+            - build_pl_bluepill
+            - build_particle_xenon
+            - build_native_posix
