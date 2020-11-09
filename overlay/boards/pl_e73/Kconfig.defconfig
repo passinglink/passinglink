@@ -1,11 +1,7 @@
+if BOARD_PL_E73
+
 config BOARD
-	default "nrf52840_mdk"
-
-config ADC
-	default y
-
-config I2C
-	default y
+	default "pl_e73"
 
 if USB
 
@@ -23,3 +19,5 @@ config IEEE802154_NRF5
 
 config BT_CTLR
 	default BT
+
+endif # BOARD_PL_E73
