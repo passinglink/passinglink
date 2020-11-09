@@ -70,7 +70,7 @@ config PASSINGLINK_OUTPUT_USB_SWITCH
 config PASSINGLINK_OUTPUT_USB_SWITCH_PROBE
   bool "Automatically detect Nintendo Switch"
   default y
-  depends on PASSINGLINK_OUTPUT_USB_SWITCH
+  select PASSINGLINK_OUTPUT_USB_SWITCH
   help
     Automatically detect the Nintendo Switch.
     This adds ~1 second to startup time if we're not connected to a Switch.
@@ -85,7 +85,7 @@ config PASSINGLINK_OUTPUT_USB_PS3
 config PASSINGLINK_OUTPUT_USB_PS3_PROBE
   bool "Automatically detect PS3"
   default y
-  depends on PASSINGLINK_OUTPUT_USB_PS3
+  select PASSINGLINK_OUTPUT_USB_PS3
   help
     Automatically detect the PS3.
     This adds ~1 second to startup time if we're not connected to a PS3.
