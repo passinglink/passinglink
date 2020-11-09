@@ -9,6 +9,7 @@
 #include <drivers/gpio.h>
 #endif
 
+#include "bt/bt.h"
 #include "input/input.h"
 #include "output/output.h"
 
@@ -80,6 +81,10 @@ extern "C" void main(void) {
 
   input_init();
   output_init();
+
+#if defined(CONFIG_PASSINGLINK_BT)
+  bluetooth_init();
+#endif
 
   k_thread_priority_set(k_current_get(), K_IDLE_PRIO);
 }

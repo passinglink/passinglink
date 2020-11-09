@@ -129,6 +129,25 @@ endmenu # Output methods
 
 menu "Optional components"
 
+config PASSINGLINK_BT
+  bool "Bluetooth"
+  default n
+  select BT
+  select BT_PERIPHERAL
+  select BT_SMP
+  select BT_FIXED_PASSKEY
+  select BT_DEVICE_NAME_DYNAMIC
+  select BT_SHELL
+  help
+    Bluetooth support.
+
+config PASSINGLINK_BT_PAIRING_KEY
+  int "Bluetooth pairing key"
+  default 123456
+  depends on PASSINGLINK_BT
+  help
+    Bluetooth pairing key.
+
 config PASSINGLINK_OPT_GUNDAM_CAMERA
   bool "Gundam EXVS spectator camera control"
   default n
