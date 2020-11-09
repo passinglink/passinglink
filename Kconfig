@@ -59,6 +59,20 @@ config PASSINGLINK_INPUT_TOUCHPAD_PANTHERA
 
 endchoice
 
+config PASSINGLINK_INPUT_QUEUE
+  bool "Input queue"
+  default n
+  help
+    Enable input queue.
+
+config PASSINGLINK_INPUT_SHELL
+  bool "Enable input from shell"
+  default n
+  select SHELL
+  select PASSINGLINK_INPUT_QUEUE
+  help
+    Enable input from UART shell.
+
 menu "Output methods"
 
 config PASSINGLINK_OUTPUT_USB_SWITCH

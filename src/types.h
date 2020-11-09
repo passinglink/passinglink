@@ -6,10 +6,22 @@
 
 #include <sys/atomic.h>
 
-// Placement new overload that normally come from <new>.
+#include <zephyr.h>
+
+// Placement new overload that normally comes from <new>.
 inline void* operator new(size_t size, void* ptr) {
   return ptr;
 }
+
+struct ScopedIRQLock {
+  ScopedIRQLock() { irq_lock_ = irq_lock(); }
+  ~ScopedIRQLock() { irq_unlock(irq_lock_); }
+
+  ScopedIRQLock(const ScopedIRQLock& copy) = delete;
+  ScopedIRQLock(ScopedIRQLock&& move) = delete;
+
+  uint64_t irq_lock_;
+};
 
 template <typename T>
 struct atomic_u32 {
@@ -144,14 +156,45 @@ struct span {
   size_t length_;
 };
 
-template<typename T>
+template <size_t Length>
+struct Bitmap {
+  struct BitmapProxy {
+    BitmapProxy(uint8_t* p, uint8_t offset) {
+      p_ = p;
+      offset_ = offset;
+    }
+
+    operator bool() { return *p_ & 1 << offset_; }
+
+    BitmapProxy& operator=(bool rhs) {
+      if (rhs) {
+        *p_ |= 1 << offset_;
+      } else {
+        *p_ &= ~(1 << offset_);
+      }
+      return *this;
+    }
+
+   private:
+    uint8_t* p_;
+    uint8_t offset_;
+  };
+
+  size_t size() { return Length; }
+  BitmapProxy operator[](size_t i) { return BitmapProxy(&data_[i / 8], i % 8); }
+
+ private:
+  uint8_t data_[Length / 8];
+};
+
+template <typename T>
 void swap(T& a, T& b) {
   auto tmp = a;
   a = b;
   b = tmp;
 }
 
-template<typename Iterator, typename Comparator>
+template <typename Iterator, typename Comparator>
 Iterator min(Iterator begin, Iterator end, Comparator cmp) {
   Iterator min = begin;
   for (auto it = begin; it != end; ++it) {
@@ -163,7 +206,7 @@ Iterator min(Iterator begin, Iterator end, Comparator cmp) {
   return min;
 }
 
-template<typename Iterator, typename Comparator>
+template <typename Iterator, typename Comparator>
 void insertion_sort(Iterator begin, Iterator end, Comparator cmp) {
   while (begin != end) {
     Iterator min_it = min(begin, end, cmp);

@@ -3,48 +3,9 @@
 #include <shell/shell.h>
 
 #include "input/input.h"
+#include "input/queue.h"
 
-#if defined(CONFIG_PASSINGLINK_INPUT_EXTERNAL)
-
-static RawInputState input_state;
-
-struct InputQueue {
-  RawInputState state;
-
-  // Delay until the next element of the queue.
-  k_timeout_t delay;
-
-  InputQueue* next;
-};
-
-static InputQueue queue_storage[128];
-static InputQueue* queue_next;
-static int64_t queue_next_tick;
-
-static void input_state_reset() {
-  memset(&input_state, 0, sizeof(input_state));
-}
-
-static void input_queue_advance() {
-  if (queue_next && queue_next_tick < k_uptime_ticks()) {
-    input_state = queue_next->state;
-    queue_next_tick = z_timeout_end_calc(queue_next->delay);
-    queue_next = queue_next->next;
-  }
-}
-
-bool input_get_raw_state(RawInputState* out) {
-  input_queue_advance();
-
-  *out = input_state;
-  return true;
-}
-
-static int cmd_input_clear(const struct shell* shell, size_t argc, char** argv) {
-  input_state_reset();
-  shell_print(shell, "input: cleared");
-  return 0;
-}
+#if defined(CONFIG_PASSINGLINK_INPUT_SHELL)
 
 static const char* shorten(const char* name) {
   if (strncmp(name, "button_", strlen("button_")) == 0) return name + strlen("button_");
@@ -77,6 +38,12 @@ static bool parse_button(RawInputState* state, const char* arg) {
   return false;
 }
 
+#if defined(CONFIG_PASSINGLINK_INPUT_EXTERNAL)
+static int cmd_input_clear(const struct shell* shell, size_t argc, char** argv) {
+  shell_print(shell, "input: cleared");
+  return 0;
+}
+
 static int cmd_input_modify(const struct shell* shell, size_t argc, char** argv) {
   RawInputState copy = input_state;
   if (argc <= 1) {
@@ -95,6 +62,7 @@ static int cmd_input_modify(const struct shell* shell, size_t argc, char** argv)
   shell_print(shell, "input: modified");
   return 0;
 }
+#endif
 
 static int cmd_cam(const struct shell* shell, size_t argc, char** argv) {
   static int current_cam = 1;
@@ -134,41 +102,68 @@ static int cmd_cam(const struct shell* shell, size_t argc, char** argv) {
   }
 
   if (count != 0) {
-    for (size_t i = 0; i < count; ++i) {
-      size_t j = i * 2;
-      queue_storage[j].state = {};
-      if (up) {
-        queue_storage[j].state.stick_up = 1;
-      } else {
-        queue_storage[j].state.stick_down = 1;
-      }
-      queue_storage[j].delay = K_USEC(16'666);
-      queue_storage[j].next = &queue_storage[j + 1];
-
-      queue_storage[j + 1].state = {};
-      queue_storage[j + 1].delay = K_USEC(16'666);
-      queue_storage[j + 1].next = &queue_storage[j + 2];
+    InputQueue* head = input_queue_alloc();
+    if (!head) {
+      shell_print(shell, "failed to allocate!");
+      return 0;
     }
-    queue_storage[count * 2 - 1].next = nullptr;
 
-    queue_next = &queue_storage[0];
-    queue_next_tick = k_uptime_ticks();
+    InputQueue* cur = head;
+    for (size_t i = 0; i < count; ++i) {
+      cur->state = {};
+      if (up) {
+        cur->state.stick_up = 1;
+      } else {
+        cur->state.stick_down = 1;
+      }
+      cur->delay = K_USEC(16'666);
+      cur = input_queue_append(cur);
+      if (!cur) {
+        shell_print(shell, "failed to allocate!");
+        input_queue_free(head);
+        return 0;
+      }
+
+      cur->state = {};
+      cur->delay = K_USEC(16'666);
+      cur = input_queue_append(cur);
+      if (!cur) {
+        shell_print(shell, "failed to allocate!");
+        input_queue_free(head);
+        return 0;
+      }
+    }
+
+    cur->state = {};
+    cur->delay = K_USEC(0);
+    input_queue_set_active(head, true);
   }
 
   return 0;
 }
 
 static int cmd_input_home(const struct shell* shell, size_t argc, char** argv) {
-  queue_storage[0].state = {};
-  queue_storage[0].state.button_home = 1;
-  queue_storage[0].delay = K_USEC(33'333);
-  queue_storage[0].next = &queue_storage[1];
-  queue_storage[1].state = {};
-  queue_storage[1].delay = K_USEC(33'333);
-  queue_storage[1].next = nullptr;
+  InputQueue* head = input_queue_alloc();
+  if (!head) {
+    shell_print(shell, "failed to allocate!");
+    return 0;
+  }
 
-  queue_next = &queue_storage[0];
-  queue_next_tick = k_uptime_ticks();
+  head->state = {};
+  head->state.button_home = 1;
+  head->delay = K_USEC(33'333);
+
+  InputQueue* next = input_queue_append(head);
+  if (!next) {
+    shell_print(shell, "failed to allocate!");
+    input_queue_free(head);
+    return 0;
+  }
+
+  next->state = {};
+  next->delay = K_USEC(33'333);
+
+  input_queue_set_active(head, true);
   return 0;
 }
 
@@ -176,8 +171,10 @@ static int cmd_input_home(const struct shell* shell, size_t argc, char** argv) {
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 // clang-format off
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_input,
+#if defined(CONFIG_PASSINGLINK_INPUT_EXTERNAL)
   SHELL_CMD(clear, NULL, "Clear inputs.", cmd_input_clear),
   SHELL_CMD(modify, NULL, "Modify inputs.", cmd_input_modify),
+#endif
   SHELL_CMD(home, NULL, "Press home.", cmd_input_home),
   SHELL_SUBCMD_SET_END
 );

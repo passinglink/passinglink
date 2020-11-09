@@ -10,8 +10,9 @@
 LOG_MODULE_REGISTER(input);
 
 #include "arch.h"
-#include "profiling.h"
+#include "input/queue.h"
 #include "input/touchpad.h"
+#include "profiling.h"
 
 TouchpadData touchpad_data;
 
@@ -27,13 +28,38 @@ void input_init() {
 static void input_gpio_init() {}
 
 bool input_get_raw_state(RawInputState* out) {
+#if defined(CONFIG_PASSINGLINK_INPUT_QUEUE)
+  if (auto input = input_queue_get_state()) {
+    *out = input;
+    return true;
+  }
+#endif
+
   memset(out, 0, sizeof(*out));
   return true;
 }
 
 #elif defined(CONFIG_PASSINGLINK_INPUT_EXTERNAL)
 
+static RawInputState input_state;
+
 static void input_gpio_init() {}
+
+bool input_get_raw_state(RawInputState* out) {
+#if defined(CONFIG_PASSINGLINK_INPUT_QUEUE)
+  if (auto input = input_queue_get_state()) {
+    *out = input;
+    return true;
+  }
+#endif
+
+  *out = input_state;
+  return true;
+}
+
+void input_set_raw_state(RawInputState* in) {
+  input_state = *in;
+}
 
 #else
 
@@ -78,6 +104,13 @@ static void input_gpio_init() {
 
 bool input_get_raw_state(RawInputState* out) {
   PROFILE("input_get_raw_state", 128);
+
+#if defined(CONFIG_PASSINGLINK_INPUT_QUEUE)
+  if (auto input = input_queue_get_state()) {
+    *out = *input;
+    return true;
+  }
+#endif
 
   gpio_port_value_t port_values[GPIO_PORT_COUNT];
   for (size_t i = 0; i < gpio_device_count; ++i) {

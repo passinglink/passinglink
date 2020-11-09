@@ -139,6 +139,10 @@ void input_init();
 // Get the raw state of the buttons, unaffected by SOCD cleaning, mode switches, etc.
 bool input_get_raw_state(RawInputState* out);
 
+#if defined(CONFIG_PASSINGLINK_INPUT_EXTERNAL)
+void input_set_raw_state(RawInputState* out);
+#endif
+
 // Parse a RawInputState into host-facing output.
 bool input_parse(InputState* out, const RawInputState* in);
 
