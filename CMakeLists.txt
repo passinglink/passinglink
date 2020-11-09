@@ -25,6 +25,7 @@ list(APPEND app_sources
     src/output/usb/ps3/hid.cpp
     src/output/usb/ps4/hid.cpp
     src/output/usb/ps4/auth.cpp
+    src/opt/gundam.cpp
 )
 
 target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_TOUCHPAD_NONE app PRIVATE

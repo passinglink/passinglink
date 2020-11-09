@@ -127,6 +127,17 @@ config PASSINGLINK_OUTPUT_USB_FORCE_PROBE_REBOOT
 
 endmenu # Output methods
 
+menu "Optional components"
+
+config PASSINGLINK_OPT_GUNDAM_CAMERA
+  bool "Gundam EXVS spectator camera control"
+  default n
+  select PASSINGLINK_INPUT_QUEUE
+  help
+    Macros to control the spectator camera in Gundam.
+
+endmenu # Optional components
+
 endmenu # Passing Link Configuration
 
 menu "Kernel configuration"

@@ -64,84 +64,6 @@ static int cmd_input_modify(const struct shell* shell, size_t argc, char** argv)
 }
 #endif
 
-static int cmd_cam(const struct shell* shell, size_t argc, char** argv) {
-  static int current_cam = 1;
-
-  if (argc != 2) {
-    shell_print(shell, "usage: cam [next | prev | reset | NUMBER]");
-    return 0;
-  }
-
-  size_t count = 0;
-  bool up = false;
-  if (strcmp(argv[1], "reset") == 0) {
-    current_cam = 1;
-    return 0;
-  } else if (strcmp(argv[1], "next") == 0) {
-    count = 1;
-    up = true;
-  } else if (strcmp(argv[1], "prev") == 0) {
-    count = 1;
-    up = false;
-  } else {
-    int x = argv[1][0] - '0';
-    if (x < 0 || x > 9) {
-      shell_print(shell, "usage: cam [next | prev | reset | NUMBER]");
-      return 0;
-    }
-
-    int diff = x - current_cam;
-    if (diff < 0) {
-      count = -diff;
-      up = false;
-    } else {
-      count = diff;
-      up = true;
-    }
-    current_cam = x;
-  }
-
-  if (count != 0) {
-    InputQueue* head = input_queue_alloc();
-    if (!head) {
-      shell_print(shell, "failed to allocate!");
-      return 0;
-    }
-
-    InputQueue* cur = head;
-    for (size_t i = 0; i < count; ++i) {
-      cur->state = {};
-      if (up) {
-        cur->state.stick_up = 1;
-      } else {
-        cur->state.stick_down = 1;
-      }
-      cur->delay = K_USEC(16'666);
-      cur = input_queue_append(cur);
-      if (!cur) {
-        shell_print(shell, "failed to allocate!");
-        input_queue_free(head);
-        return 0;
-      }
-
-      cur->state = {};
-      cur->delay = K_USEC(16'666);
-      cur = input_queue_append(cur);
-      if (!cur) {
-        shell_print(shell, "failed to allocate!");
-        input_queue_free(head);
-        return 0;
-      }
-    }
-
-    cur->state = {};
-    cur->delay = K_USEC(0);
-    input_queue_set_active(head, true);
-  }
-
-  return 0;
-}
-
 static int cmd_input_home(const struct shell* shell, size_t argc, char** argv) {
   InputQueue* head = input_queue_alloc();
   if (!head) {
@@ -179,7 +101,6 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_input,
   SHELL_SUBCMD_SET_END
 );
 
-SHELL_CMD_REGISTER(cam, NULL, "Gundam spectator camera control", cmd_cam);
 // clang-format on
 #pragma GCC diagnostic pop
 
