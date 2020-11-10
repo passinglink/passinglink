@@ -20,8 +20,8 @@ LOG_MODULE_REGISTER(touchpad);
 
 #define TP_I2C_ADDRESS 0x38
 
-static struct device* tp_i2c_device;
-static struct device* tp_rst_device;
+static const struct device* tp_i2c_device;
+static const struct device* tp_rst_device;
 
 struct TouchpadXYFormat {
   uint8_t xh : 4;

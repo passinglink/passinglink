@@ -65,12 +65,12 @@ void input_set_raw_state(RawInputState* in) {
 
 #define GPIO_PORT_COUNT 4
 
-static struct device* gpio_devices[GPIO_PORT_COUNT];
+static const struct device* gpio_devices[GPIO_PORT_COUNT];
 static uint8_t gpio_device_count;
 
 static uint8_t gpio_indices[PL_GPIO_COUNT];
 
-static uint8_t gpio_device_add(struct device* device) {
+static uint8_t gpio_device_add(const struct device* device) {
   uint8_t i;
   for (i = 0; i < GPIO_PORT_COUNT; ++i) {
     if (device == gpio_devices[i]) {
@@ -92,7 +92,7 @@ static void input_gpio_init() {
 #define PL_GPIO(index, name, NAME)                                      \
   {                                                                     \
     const char* device_name = DT_GPIO_KEYS_##NAME##_GPIOS_CONTROLLER;   \
-    struct device* device = device_get_binding(device_name);            \
+    const struct device* device = device_get_binding(device_name);      \
     gpio_pin_configure(device, DT_GPIO_KEYS_##NAME##_GPIOS_PIN,         \
                        DT_GPIO_KEYS_##NAME##_GPIOS_FLAGS | GPIO_INPUT); \
     uint8_t device_offset = gpio_device_add(device);                    \

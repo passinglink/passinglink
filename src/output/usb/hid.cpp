@@ -20,7 +20,7 @@ LOG_MODULE_REGISTER(hid);
 #include "profiling.h"
 
 static Hid* hid;
-static struct device* usb_hid_device;
+static const struct device* usb_hid_device;
 
 static optional<int64_t> suspend_timestamp;
 static struct k_delayed_work delayed_write_work;
@@ -179,7 +179,7 @@ static bool decode_hid_report_value(uint16_t value, optional<HidReportType>* out
 
 static const struct hid_ops ops = {
     .get_report =
-        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+        [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           optional<HidReportType> report_type;
           uint8_t report_id;
           if (!decode_hid_report_value(setup->wValue, &report_type, &report_id)) {
@@ -195,17 +195,17 @@ static const struct hid_ops ops = {
           return -1;
         },
     .get_idle =
-        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+        [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           LOG_ERR("Get_Idle unimplemented");
           return -1;
         },
     .get_protocol =
-        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+        [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           LOG_ERR("Get_Protocol unimplemented");
           return -1;
         },
     .set_report =
-        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+        [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           optional<HidReportType> report_type;
           uint8_t report_id;
           if (!decode_hid_report_value(setup->wValue, &report_type, &report_id)) {
@@ -216,17 +216,17 @@ static const struct hid_ops ops = {
           return result ? 0 : -1;
         },
     .set_idle =
-        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+        [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           submit_write();
           return 0;
         },
     .set_protocol =
-        [](struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
+        [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
           LOG_ERR("Set_Protocol unimplemented");
           return -1;
         },
     .protocol_change =
-        [](uint8_t protocol) {
+        [](const struct device*, uint8_t protocol) {
           const char* type = "<invalid>";
           switch (protocol) {
             case HID_PROTOCOL_BOOT:
@@ -239,13 +239,13 @@ static const struct hid_ops ops = {
           LOG_WRN("Protocol change: %s", type);
         },
     .on_idle =
-        [](uint16_t report_id) {
+        [](const struct device*, uint16_t report_id) {
           // TODO: Write reports to interrupt endpoint.
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
-    .int_in_ready = []() { submit_write(); },
+    .int_in_ready = [](const struct device*) { submit_write(); },
     .int_out_ready =
-        []() {
+        [](const struct device*) {
           uint8_t input_buf[64];
           size_t bytes_read;
           int rc = hid_int_ep_read(usb_hid_device, input_buf, sizeof(input_buf), &bytes_read);

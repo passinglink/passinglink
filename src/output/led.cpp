@@ -11,7 +11,7 @@ LOG_MODULE_REGISTER(led);
 
 struct LedState {
   k_delayed_work work;
-  device* led_device;
+  const device* led_device;
   uint32_t led_pin;
   uint32_t counter;
   bool on;

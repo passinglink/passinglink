@@ -20,10 +20,10 @@ const char* init_error;
 int init_rc;
 
 #if defined(STM32F1) || defined(STM32F3)
-static int stm32_usb_reset(struct device*) {
+static int stm32_usb_reset(const struct device*) {
   // BluePill board has a pull-up resistor on the D+ line.
   // Pull the D+ pin down to send a RESET condition to the USB bus.
-  struct device* gpioa = device_get_binding("GPIOA");
+  const struct device* gpioa = device_get_binding("GPIOA");
 
   if (!gpioa) {
     init_error = "failed to get device binding for GPIOA";

@@ -9,11 +9,11 @@ manifest:
   projects:
     - name: zephyr
       remote: passinglink
-      revision: pl-v2.3-20201108
+      revision: pl-v2.4-20201110
       import: true
     - name: mbedtls
       remote: passinglink
-      revision: master
+      revision: pl-v2.4-20201110
       path: modules/crypto/mbedtls
     - name: mbed_embed
       remote: passinglink
