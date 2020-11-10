@@ -86,5 +86,5 @@ extern "C" void main(void) {
   bluetooth_init();
 #endif
 
-  k_thread_priority_set(k_current_get(), K_IDLE_PRIO);
+  k_thread_priority_set(k_current_get(), CONFIG_NUM_PREEMPT_PRIORITIES - 1);
 }
