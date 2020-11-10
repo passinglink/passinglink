@@ -45,20 +45,22 @@ static int cmd_input_clear(const struct shell* shell, size_t argc, char** argv) 
 }
 
 static int cmd_input_modify(const struct shell* shell, size_t argc, char** argv) {
-  RawInputState copy = input_state;
+  RawInputState state = {};
+  input_get_raw_state(&state);
+
   if (argc <= 1) {
     shell_print(shell, "usage: input modify [[+|-][button_|stick_]INPUT_NAME]...");
     return 0;
   }
 
   for (size_t i = 1; i < argc; ++i) {
-    if (!parse_button(&copy, argv[i])) {
+    if (!parse_button(&state, argv[i])) {
       shell_print(shell, "failed to parse argument '%s'", argv[i]);
       return 0;
     }
   }
 
-  input_state = copy;
+  input_set_raw_state(&state);
   shell_print(shell, "input: modified");
   return 0;
 }

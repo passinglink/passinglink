@@ -30,7 +30,7 @@ static void input_gpio_init() {}
 bool input_get_raw_state(RawInputState* out) {
 #if defined(CONFIG_PASSINGLINK_INPUT_QUEUE)
   if (auto input = input_queue_get_state()) {
-    *out = input;
+    *out = *input;
     return true;
   }
 #endif
@@ -48,7 +48,7 @@ static void input_gpio_init() {}
 bool input_get_raw_state(RawInputState* out) {
 #if defined(CONFIG_PASSINGLINK_INPUT_QUEUE)
   if (auto input = input_queue_get_state()) {
-    *out = input;
+    *out = *input;
     return true;
   }
 #endif
