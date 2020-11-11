@@ -141,13 +141,13 @@ struct span {
   size_t size() const { return length_; }
 
   void remove_prefix(size_t n) {
-    assert(length_ > n);
+    assert(length_ >= n);
     ptr_ += n;
     length_ -= n;
   }
 
   void remove_suffix(size_t n) {
-    assert(length_ > n);
+    assert(length_ >= n);
     length_ -= n;
   }
 
