@@ -90,6 +90,7 @@ void set_cam(uint8_t x, bool record) {
 }  // namespace gundam
 }  // namespace opt
 
+#if defined(CONFIG_SHELL)
 static int cmd_cam(const struct shell* shell, size_t argc, char** argv) {
   if (argc != 2) {
     shell_print(shell, "usage: cam [next | prev | reset | NUMBER]");
@@ -117,6 +118,7 @@ static int cmd_cam(const struct shell* shell, size_t argc, char** argv) {
 }
 
 SHELL_CMD_REGISTER(cam, NULL, "Gundam spectator camera control", cmd_cam);
+#endif
 
 #if defined(CONFIG_PASSINGLINK_BT)
 static struct bt_uuid_128 bt_gundam_svc_uuid = BT_UUID_INIT_128(0x01, 0x28, PL_BT_UUID_PREFIX);
