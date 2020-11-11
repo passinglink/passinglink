@@ -58,7 +58,7 @@ void input_queue_free(InputQueue* p) {
   do {
     ptrdiff_t offset = p - queue_storage;
     assert(offset >= 0);
-    assert(offset < queue_storage_size);
+    assert(static_cast<size_t>(offset) < queue_storage_size);
     p = p->next;
 
     queue_storage_bitmap[offset] = false;
