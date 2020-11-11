@@ -10,10 +10,6 @@
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(touchpad);
 
-#if !defined(CONFIG_I2C)
-#error I2C touchpad enabled without I2C?
-#endif
-
 #include "arch.h"
 #include "profiling.h"
 #include "types.h"

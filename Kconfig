@@ -54,6 +54,7 @@ config PASSINGLINK_INPUT_TOUCHPAD_NONE
 
 config PASSINGLINK_INPUT_TOUCHPAD_PANTHERA
   bool "Razer Panthera"
+  select I2C
   help
     Enable Razer Panthera touchpad input.
 
