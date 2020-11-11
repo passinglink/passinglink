@@ -13,9 +13,6 @@
 
 #include "opt/gundam.h"
 
-static_assert(CONFIG_BT_CTLR_LLL_PRIO > 0,
-              "CONFIG_BT_CTLR_LLL_PRIO needs to be greater than 0 to avoid crashes");
-
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(bt);
 
