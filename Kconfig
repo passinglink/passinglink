@@ -139,10 +139,7 @@ config PASSINGLINK_BT
   default n
   select BT
   select BT_PERIPHERAL
-  select BT_SMP
-  select BT_FIXED_PASSKEY
   select BT_DEVICE_NAME_DYNAMIC
-  select BT_SHELL
   help
     Bluetooth support.
 
@@ -153,6 +150,8 @@ config PASSINGLINK_BT_INPUT
 config PASSINGLINK_BT_AUTHENTICATION
   bool "Use Bluetooth authentication"
   default y
+  select BT_SMP
+  select BT_FIXED_PASSKEY
   depends on PASSINGLINK_BT
 
 config PASSINGLINK_BT_PAIRING_KEY
