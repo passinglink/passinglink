@@ -64,7 +64,7 @@ void adjust_cam(int8_t offset, bool record) {
       } else {
         cur->state.stick_down = 1;
       }
-      cur->delay = K_USEC(16'666);
+      cur->delay = K_USEC(33'333);
       cur = input_queue_append(cur);
       if (!cur) {
         LOG_ERR("failed to allocate!");
@@ -73,7 +73,7 @@ void adjust_cam(int8_t offset, bool record) {
       }
 
       cur->state = {};
-      cur->delay = K_USEC(16'666);
+      cur->delay = K_USEC(33'333);
       cur = input_queue_append(cur);
       if (!cur) {
         LOG_ERR("failed to allocate!");
@@ -194,7 +194,6 @@ BT_GATT_SERVICE_DEFINE(bt_gundam_svc,
     bt_gundam_reset_write,
     &current_cam
   ),
-
 );
 // clang-format on
 #endif  // defined(CONFIG_PASSINGLINK_BT)
