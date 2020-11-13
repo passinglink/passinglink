@@ -149,7 +149,11 @@ BT_GATT_SERVICE_DEFINE(bt_gundam_svc,
   BT_GATT_CHARACTERISTIC(
     &bt_gundam_camera_uuid.uuid,
     BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
+#if CONFIG_PASSINGLINK_BT_AUTHENTICATION
     BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
+#else
+    BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
+#endif
     bt_gundam_read,
     bt_gundam_write,
     &current_cam

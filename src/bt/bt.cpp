@@ -56,6 +56,7 @@ void bluetooth_init() {
     return;
   }
 
+#if defined(CONFIG_PASSINGLINK_BT_AUTHENTICATION)
   // XXX: If the passkey is set to "1234", pairing seems to fail unless "001234" is used.
   static_assert(CONFIG_PASSINGLINK_BT_PAIRING_KEY >= 100000, "BT pairing key must be 6 digits");
   static_assert(CONFIG_PASSINGLINK_BT_PAIRING_KEY <= 999999, "BT pairing key must be 6 digits");
@@ -66,6 +67,9 @@ void bluetooth_init() {
   } else {
     LOG_INF("Bluetooth passkey set to %d", CONFIG_PASSINGLINK_BT_PAIRING_KEY);
   }
+#else
+  LOG_INF("Bluetooth authentication disabled");
+#endif
 
   bt_conn_cb_register(&connection_cbs);
 

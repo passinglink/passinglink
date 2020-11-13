@@ -142,10 +142,15 @@ config PASSINGLINK_BT
   help
     Bluetooth support.
 
+config PASSINGLINK_BT_AUTHENTICATION
+  bool "Use Bluetooth authentication"
+  default y
+  depends on PASSINGLINK_BT
+
 config PASSINGLINK_BT_PAIRING_KEY
   int "Bluetooth pairing key"
   default 123456
-  depends on PASSINGLINK_BT
+  depends on PASSINGLINK_BT_AUTHENTICATION
   help
     Bluetooth pairing key.
 
