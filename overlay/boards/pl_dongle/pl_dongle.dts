@@ -1,0 +1,243 @@
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+
+/ {
+  model = "Passing Link Dongle";
+  compatible = "nordic,nrf52840-qiaa", "nordic,nrf52840";
+
+  aliases {
+    tp-i2c = &i2c0;
+  };
+
+  chosen {
+    zephyr,console = &uart0;
+    zephyr,shell-uart = &uart0;
+    zephyr,sram = &sram0;
+    zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+  };
+
+  // TODO: All of the pins are lies.
+  leds {
+    compatible = "gpio-leds";
+    led_front: led_0 {
+      gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
+      label = "Front LED";
+    };
+    led_p1: led_1 {
+      gpios = <&gpio0 26 GPIO_ACTIVE_LOW>;
+      label = "P1 LED";
+    };
+    led_p2: led_2 {
+      gpios = <&gpio0 1 GPIO_ACTIVE_LOW>;
+      label = "P2 LED";
+    };
+    led_p3: led_3 {
+      gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+      label = "P3 LED";
+    };
+    led_p4: led_4 {
+      gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
+      label = "P4 LED";
+    };
+  };
+
+  gpio_keys {
+    compatible = "gpio-keys";
+
+    button_north {
+      gpios = <&gpio0 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "North Button";
+    };
+
+    button_east {
+      gpios = <&gpio1 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "East Button";
+    };
+
+    button_south {
+      gpios = <&gpio1 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "South Button";
+    };
+
+    button_west {
+      gpios = <&gpio1 4 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "West Button";
+    };
+
+    button_l1 {
+      gpios = <&gpio0 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L1 Button";
+    };
+
+    button_l2 {
+      gpios = <&gpio0 22 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L2 Button";
+    };
+
+    button_l3 {
+      gpios = <&gpio0 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L3 Button";
+    };
+
+    button_r1 {
+      gpios = <&gpio1 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R1 Button";
+    };
+
+    button_r2 {
+      gpios = <&gpio0 24 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R2 Button";
+    };
+
+    button_r3 {
+      gpios = <&gpio1 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R3 Button";
+    };
+
+    button_select {
+      gpios = <&gpio0 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Select Button";
+    };
+
+    button_start {
+      gpios = <&gpio0 20 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Start Button";
+    };
+
+    button_home {
+      gpios = <&gpio0 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Home Button";
+    };
+
+    button_touchpad {
+      gpios = <&gpio1 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Touchpad Button";
+    };
+
+    stick_up {
+      gpios = <&gpio1 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Up";
+    };
+
+    stick_down {
+      gpios = <&gpio1 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Down";
+    };
+
+    stick_right {
+      gpios = <&gpio0 28 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Right";
+    };
+
+    stick_left {
+      gpios = <&gpio0 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Left";
+    };
+
+    mode_ps3 {
+      gpios = <&gpio0 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode PS3";
+    };
+
+    mode_lock {
+      gpios = <&gpio0 30 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode Lock";
+    };
+
+    mode_ls {
+      gpios = <&gpio0 31 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode LS";
+    };
+
+    mode_rs {
+      gpios = <&gpio0 29 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode RS";
+    };
+
+    tp_rst {
+      gpios = <&gpio0 7 (GPIO_PUSH_PULL)>;
+      label = "Touchpad reset";
+    };
+  };
+};
+
+&adc {
+  status = "okay";
+};
+
+&gpiote {
+  status = "okay";
+};
+
+&gpio0 {
+  status = "okay";
+};
+
+&gpio1 {
+  status = "okay";
+};
+
+&uart0 {
+  compatible = "nordic,nrf-uarte";
+  current-speed = <921600>;
+  status = "okay";
+  tx-pin = <18>;
+  rx-pin = <15>;
+};
+
+&i2c0 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+	sda-pin = <7>;
+	scl-pin = <12>;
+};
+
+&flash0 {
+  /*
+   * For more information, see:
+   * http://docs.zephyrproject.org/latest/guides/dts/index.html#flash-partitions
+   */
+  partitions {
+    compatible = "fixed-partitions";
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    boot_partition: partition@0 {
+      label = "mcuboot";
+      reg = <0x000000000 0x00010000>;
+    };
+    slot0_partition: partition@10000 {
+      label = "image-0";
+      reg = <0x00010000 0x000040000>;
+    };
+    slot1_partition: partition@50000 {
+      label = "image-1";
+      reg = <0x00050000 0x000040000>;
+    };
+    scratch_partition: partition@da000 {
+      label = "image-scratch";
+      reg = <0x000da000 0x0001e000>;
+    };
+
+    /*
+     * The flash starting at 0x000f8000 and ending at
+     * 0x000fffff is reserved for use by the application.
+     */
+
+    /*
+     * Storage partition will be used by FCB/LittleFS/NVS
+     * if enabled.
+     */
+    storage_partition: partition@f8000 {
+      label = "storage";
+      reg = <0x000f8000 0x00008000>;
+    };
+  };
+};
+
+&usbd {
+  compatible = "nordic,nrf-usbd";
+  status = "okay";
+};
