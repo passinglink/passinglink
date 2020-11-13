@@ -148,13 +148,14 @@ static ssize_t bt_gundam_write(struct bt_conn* conn, const struct bt_gatt_attr* 
   return len;
 }
 
-static ssize_t bt_gundam_reset_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
-                              uint16_t len, uint16_t offset) {
+static ssize_t bt_gundam_reset_read(struct bt_conn* conn, const struct bt_gatt_attr* attr,
+                                    void* buf, uint16_t len, uint16_t offset) {
   return bt_gatt_attr_read(conn, attr, buf, len, offset, &current_cam, 1);
 }
 
 static ssize_t bt_gundam_reset_write(struct bt_conn* conn, const struct bt_gatt_attr* attr,
-                               const void* buf, uint16_t len, uint16_t offset, uint8_t flags) {
+                                     const void* buf, uint16_t len, uint16_t offset,
+                                     uint8_t flags) {
   if (offset > 0 || len != 1) {
     LOG_ERR("bt: write: invalid length (len = %d, offset = %d)", len, offset);
     return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
@@ -165,7 +166,6 @@ static ssize_t bt_gundam_reset_write(struct bt_conn* conn, const struct bt_gatt_
   opt::gundam::reset_cam(x);
   return len;
 }
-
 
 // clang-format off
 BT_GATT_SERVICE_DEFINE(bt_gundam_svc,

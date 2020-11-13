@@ -7,11 +7,9 @@
 #include "arch.h"
 
 #if defined(CONFIG_PASSINGLINK_PROFILING)
-template<int Frequency = 1>
+template <int Frequency = 1>
 struct Profiler {
-  void begin() {
-    begin_cycle_ = get_cycle_count();
-  }
+  void begin() { begin_cycle_ = get_cycle_count(); }
 
   void end(const char* name) {
     if (times_count_ != Frequency) {
@@ -44,25 +42,23 @@ struct Profiler {
   uint32_t begin_cycle_;
 };
 
-template<int Frequency>
+template <int Frequency>
 struct ScopedProfile {
   explicit ScopedProfile(Profiler<Frequency>& profiler, const char* name)
       : profiler_(profiler), name_(name) {
     profiler_.begin();
   }
 
-  ~ScopedProfile() {
-    profiler_.end(name_);
-  }
+  ~ScopedProfile() { profiler_.end(name_); }
 
   Profiler<Frequency>& profiler_;
   const char* name_;
 };
 #else
-template<int Frequency>
+template <int Frequency>
 struct Profiler {};
 
-template<int Frequency>
+template <int Frequency>
 struct ScopedProfile {
   explicit ScopedProfile(Profiler<Frequency>& profiler, const char* name) {}
 };

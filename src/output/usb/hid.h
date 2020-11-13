@@ -36,4 +36,4 @@ class Hid {
 namespace passinglink {
 int usb_hid_init(Hid* hid_impl);
 void usb_hid_uninit();
-}
+}  // namespace passinglink

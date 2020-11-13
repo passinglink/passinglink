@@ -106,7 +106,10 @@ static ssize_t bt_input_write(struct bt_conn* conn, const struct bt_gatt_attr* a
   memcpy(&state, buf, sizeof(state));
 
   LOG_INF("input: write");
-#define PL_GPIO(id, name, NAME) if (state.name) { LOG_INF(#name); }
+#define PL_GPIO(id, name, NAME) \
+  if (state.name) {             \
+    LOG_INF(#name);             \
+  }
   PL_GPIOS()
 #undef PL_GPIO
 

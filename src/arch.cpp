@@ -8,12 +8,11 @@
 #if defined(__arm__)
 void spin(uint32_t cycles) {
   asm volatile(
-    "loop:\n"
-    "subs %0, #7\n"
-    "bpl loop\n"
-    : // No outputs.
-    : "r"(cycles)
-  );
+      "loop:\n"
+      "subs %0, #7\n"
+      "bpl loop\n"
+      :  // No outputs.
+      : "r"(cycles));
 }
 #endif
 

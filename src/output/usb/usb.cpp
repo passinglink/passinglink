@@ -83,10 +83,14 @@ optional<ProbeType> ProbeTypeNext(ProbeType probe_type) {
 
 optional<Led> ProbeTypeLed(ProbeType probe_type) {
   switch (probe_type) {
-    case ProbeType::NX: return Led::P1;
-    case ProbeType::PS3: return Led::P2;
-    case ProbeType::PS4: return Led::P3;
-    default: return {};
+    case ProbeType::NX:
+      return Led::P1;
+    case ProbeType::PS3:
+      return Led::P2;
+    case ProbeType::PS4:
+      return Led::P3;
+    default:
+      return {};
   }
 }
 

@@ -10,8 +10,7 @@ LOG_MODULE_REGISTER(touchpad);
 
 #define TP_I2C_ADDRESS 0x38
 
-void input_touchpad_poll() {
-}
+void input_touchpad_poll() {}
 
 void input_touchpad_init() {
   LOG_INF("touchpad disabled");
