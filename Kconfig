@@ -126,6 +126,10 @@ config PASSINGLINK_OUTPUT_USB_FORCE_PROBE_REBOOT
     Reboot to probe USB even on boards that support USB deinitialization
   depends on PASSINGLINK_OUTPUT_USB_SWITCH_PROBE || PASINGLINK_OUTPUT_USB_PS3_PROBE
 
+config PASSINGLINK_OUTPUT_USB_DEFERRED
+  bool "Defer USB writes for better latency"
+  default y
+
 endmenu # Output methods
 
 menu "Optional components"

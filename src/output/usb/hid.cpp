@@ -47,6 +47,8 @@ constexpr uint32_t HID_REPORT_INTERVAL_US = 0;
 
 constexpr uint32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
 
+static void write_report(struct k_work* item = nullptr);
+
 static void submit_write() {
   k_delayed_work_submit(&delayed_write_work, K_TICKS(HID_REPORT_INTERVAL_TICKS));
 
@@ -54,7 +56,15 @@ static void submit_write() {
   input_touchpad_poll();
 }
 
-static void write_report(struct k_work* item = nullptr) {
+static void do_write() {
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
+  submit_write();
+#else
+  write_report();
+#endif
+}
+
+static void write_report(struct k_work* item) {
   uint8_t report_buf[64];
 
   ssize_t report_size;
@@ -137,7 +147,7 @@ static void usb_status_cb(enum usb_dc_status_code status, const uint8_t* param) 
       hid->ClearHalt(*param);
       if (*param & 0x80) {
         LOG_WRN("halt cleared on input descriptor, queueing write");
-        submit_write();
+        do_write();
       }
       break;
     case USB_DC_SOF:
@@ -217,7 +227,7 @@ static const struct hid_ops ops = {
         },
     .set_idle =
         [](const struct device*, struct usb_setup_packet* setup, int32_t* len, uint8_t** data) {
-          submit_write();
+          do_write();
           return 0;
         },
     .set_protocol =
@@ -243,7 +253,7 @@ static const struct hid_ops ops = {
           // TODO: Write reports to interrupt endpoint.
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
-    .int_in_ready = [](const struct device*) { submit_write(); },
+    .int_in_ready = [](const struct device*) { do_write(); },
     .int_out_ready =
         [](const struct device*) {
           uint8_t input_buf[64];
