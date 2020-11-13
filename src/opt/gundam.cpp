@@ -121,12 +121,12 @@ SHELL_CMD_REGISTER(cam, NULL, "Gundam spectator camera control", cmd_cam);
 #endif
 
 #if defined(CONFIG_PASSINGLINK_BT)
-static struct bt_uuid_128 bt_gundam_svc_uuid = BT_UUID_INIT_128(0x01, 0x28, PL_BT_UUID_PREFIX);
-static struct bt_uuid_128 bt_gundam_camera_uuid = BT_UUID_INIT_128(0x02, 0x28, PL_BT_UUID_PREFIX);
+static struct bt_uuid_128 bt_gundam_svc_uuid = BT_UUID_INIT_128(0x00, 0x28, PL_BT_UUID_PREFIX);
+static struct bt_uuid_128 bt_gundam_camera_uuid = BT_UUID_INIT_128(0x01, 0x28, PL_BT_UUID_PREFIX);
+static struct bt_uuid_128 bt_gundam_reset_uuid = BT_UUID_INIT_128(0x02, 0x28, PL_BT_UUID_PREFIX);
 
 static ssize_t bt_gundam_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
                               uint16_t len, uint16_t offset) {
-  LOG_INF("bt: read");
   return bt_gatt_attr_read(conn, attr, buf, len, offset, &current_cam, 1);
 }
 
@@ -143,6 +143,25 @@ static ssize_t bt_gundam_write(struct bt_conn* conn, const struct bt_gatt_attr* 
   return len;
 }
 
+static ssize_t bt_gundam_reset_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
+                              uint16_t len, uint16_t offset) {
+  return bt_gatt_attr_read(conn, attr, buf, len, offset, &current_cam, 1);
+}
+
+static ssize_t bt_gundam_reset_write(struct bt_conn* conn, const struct bt_gatt_attr* attr,
+                               const void* buf, uint16_t len, uint16_t offset, uint8_t flags) {
+  if (offset > 0 || len != 1) {
+    LOG_ERR("bt: write: invalid length (len = %d, offset = %d)", len, offset);
+    return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
+  }
+
+  uint8_t x = static_cast<const uint8_t*>(buf)[0];
+  LOG_INF("bt: resetting camera to %d", x);
+  opt::gundam::reset_cam(x);
+  return len;
+}
+
+
 // clang-format off
 BT_GATT_SERVICE_DEFINE(bt_gundam_svc,
   BT_GATT_PRIMARY_SERVICE(&bt_gundam_svc_uuid),
@@ -158,6 +177,19 @@ BT_GATT_SERVICE_DEFINE(bt_gundam_svc,
     bt_gundam_write,
     &current_cam
   ),
+  BT_GATT_CHARACTERISTIC(
+    &bt_gundam_reset_uuid.uuid,
+    BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
+#if CONFIG_PASSINGLINK_BT_AUTHENTICATION
+    BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
+#else
+    BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
+#endif
+    bt_gundam_reset_read,
+    bt_gundam_reset_write,
+    &current_cam
+  ),
+
 );
 // clang-format on
 #endif  // defined(CONFIG_PASSINGLINK_BT)
