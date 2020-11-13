@@ -11,6 +11,7 @@
 
 #include <logging/log.h>
 
+#include "input/input.h"
 #include "opt/gundam.h"
 
 #define LOG_LEVEL LOG_LEVEL_INF
@@ -80,4 +81,55 @@ void bluetooth_init() {
   }
 }
 
+#if defined(CONFIG_PASSINGLINK_BT_INPUT)
+static struct bt_uuid_128 bt_input_svc_uuid = BT_UUID_INIT_128(0x00, 0x01, PL_BT_UUID_PREFIX);
+static struct bt_uuid_128 bt_input_attr_uuid = BT_UUID_INIT_128(0x01, 0x01, PL_BT_UUID_PREFIX);
+
+static ssize_t bt_input_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
+                             uint16_t len, uint16_t offset) {
+  LOG_INF("input: read");
+  RawInputState input;
+  if (!input_get_raw_state(&input)) {
+    return BT_GATT_ERR(BT_ATT_ERR_ATTRIBUTE_NOT_FOUND);
+  }
+  return bt_gatt_attr_read(conn, attr, buf, len, offset, &input, sizeof(input));
+}
+
+static ssize_t bt_input_write(struct bt_conn* conn, const struct bt_gatt_attr* attr,
+                              const void* buf, uint16_t len, uint16_t offset, uint8_t flags) {
+  if (offset > 0 || len != sizeof(RawInputState)) {
+    LOG_ERR("input: write: invalid length (len = %d, offset = %d)", len, offset);
+    return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
+  }
+
+  RawInputState state;
+  memcpy(&state, buf, sizeof(state));
+
+  LOG_INF("input: write");
+#define PL_GPIO(id, name, NAME) if (state.name) { LOG_INF(#name); }
+  PL_GPIOS()
+#undef PL_GPIO
+
+  input_set_raw_state(&state);
+  return len;
+}
+
+// clang-format off
+BT_GATT_SERVICE_DEFINE(bt_input_svc,
+  BT_GATT_PRIMARY_SERVICE(&bt_input_svc_uuid),
+  BT_GATT_CHARACTERISTIC(
+    &bt_input_attr_uuid.uuid,
+    BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
+#if CONFIG_PASSINGLINK_BT_AUTHENTICATION
+    BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
+#else
+    BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
+#endif
+    bt_input_read,
+    bt_input_write,
+    nullptr
+  ),
+);
+// clang-format on
+#endif  // defined(CONFIG_PASSINGLINK_BT_INPUT)
 #endif  // defined(CONFIG_PASSINGLINK_BT)

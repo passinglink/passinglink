@@ -142,6 +142,10 @@ config PASSINGLINK_BT
   help
     Bluetooth support.
 
+config PASSINGLINK_BT_INPUT
+  bool "External input over Bluetooth"
+  depends on PASSINGLINK_INPUT_EXTERNAL
+
 config PASSINGLINK_BT_AUTHENTICATION
   bool "Use Bluetooth authentication"
   default y
