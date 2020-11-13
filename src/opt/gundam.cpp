@@ -27,6 +27,11 @@ void reset_cam(uint8_t x) {
 }
 
 void adjust_cam(int8_t offset, bool record) {
+  if (input_queue_is_active()) {
+    LOG_ERR("input queue is currently active, aborting");
+    return;
+  }
+
   size_t count = 0;
   bool up = false;
 

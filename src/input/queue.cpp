@@ -91,6 +91,10 @@ optional<RawInputState> input_queue_get_state() {
   return {};
 }
 
+bool input_queue_is_active() {
+  return queue_next;
+}
+
 void input_queue_set_active(InputQueue* queue, bool consume) {
   ScopedIRQLock lock;
 

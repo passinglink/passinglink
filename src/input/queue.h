@@ -28,6 +28,8 @@ InputQueue* input_queue_append(InputQueue* head);
 
 optional<RawInputState> input_queue_get_state();
 
+bool input_queue_is_active();
+
 // Set the currently active InputQueue.
 // If consume is true, it will be freed after completion.
 void input_queue_set_active(InputQueue* queue, bool consume);
