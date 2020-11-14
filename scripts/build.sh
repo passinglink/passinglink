@@ -34,7 +34,9 @@ mkdir -p "$BUILD_DIR"
 west build -p -d "$BUILD_DIR/mcuboot" -s "$ROOT/bootloader/mcuboot/boot/zephyr" -- \
   -DCONFIG_SINGLE_APPLICATION_SLOT=y \
   -DCONFIG_SIZE_OPTIMIZATIONS=y \
-  -DCONFIG_USB_DEVICE_VID=1209 -DCONFIG_USB_DEVICE_PID=214d ${MCUBOOT_OPTS}
+  -DCONFIG_USB_DEVICE_VID=1209 -DCONFIG_USB_DEVICE_PID=214d \
+  -DCONFIG_USB_DEVICE_PRODUCT="\"Passing Link Bootloader\"" \
+  ${MCUBOOT_OPTS}
 cp "$BUILD_DIR/mcuboot/zephyr/zephyr.bin" "$BUILD_DIR/mcuboot.bin"
 
 ## Build and sign Passing Link.
