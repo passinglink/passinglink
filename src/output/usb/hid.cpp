@@ -50,7 +50,10 @@ constexpr uint32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_I
 static void write_report(struct k_work* item = nullptr);
 
 static void submit_write() {
-  k_delayed_work_submit(&delayed_write_work, K_TICKS(HID_REPORT_INTERVAL_TICKS));
+  {
+    ScopedIRQLock lock;
+    k_delayed_work_submit(&delayed_write_work, K_TICKS(HID_REPORT_INTERVAL_TICKS));
+  }
 
   // Immediately do a touchpad read after submitting, since it's slow.
   input_touchpad_poll();
