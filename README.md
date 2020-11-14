@@ -12,11 +12,11 @@ Passing Link is an open source game controller firmware implementation focused o
   - PC output via PS4
   - Console autodetection (detects Switch and PS3, with fallback to PS4)
 - Razer Panthera touchpad support
+- USB firmware upgrade support
 
 ### Future Goals
 - Unimplemented hardware support
   - PS4 audio output
-- Firmware update via USB DFU
 - Act as a USB decoder/converter
   - Input/output over SPI
   - USB input
@@ -42,7 +42,8 @@ west update
 
 # Build and flash
 cd passinglink
-west build -b pl_bluepill && west flash
+west build -b pl_bluepill -t menuconfig
+west flash
 
 # See also: https://github.com/passinglink/zephyr-docker/blob/master/Dockerfile
 ```

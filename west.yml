@@ -9,8 +9,12 @@ manifest:
   projects:
     - name: zephyr
       remote: passinglink
-      revision: pl-v2.4-20201110
+      revision: pl-v2.4-20201113
       import: true
+    - name: mcuboot
+      remote: passinglink
+      revision: pl-v2.4-20201113
+      path: bootloader/mcuboot
     - name: mbedtls
       remote: passinglink
       revision: pl-v2.4-20201110

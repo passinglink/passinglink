@@ -2,83 +2,77 @@ version: 2
 jobs:
   build_pl_e73:
     docker:
-      - image: jmgao/zephyr-docker:latest
+      - image: jmgao/zephyr-docker:20201113
     steps:
       - checkout
+      - run:
+          name: Fetch source
+          command: '/fetch.sh -p passinglink'
       - run:
           name: Build pl_e73
-          command: '/build.sh -b pl_e73 -p passinglink'
+          command: 'cd /zephyr/passinglink; BOARD=pl_e73 /zephyr/passinglink/scripts/build.sh'
       - run:
           name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_e73.hex
+          command: mkdir /workspace && cp /zephyr/passinglink/build_pl_e73/pl.bin /workspace/pl_e73.bin
       - persist_to_workspace:
           root: /workspace
-          paths: pl_e73.hex
+          paths: pl_e73.bin
 
-  build_pl_stm32:
+  build_pl_dongle:
     docker:
-      - image: jmgao/zephyr-docker:latest
+      - image: jmgao/zephyr-docker:20201113
     steps:
       - checkout
       - run:
-          name: Build pl_stm32
-          command: '/build.sh -b pl_stm32 -p passinglink'
+          name: Fetch source
+          command: '/fetch.sh -p passinglink'
+      - run:
+          name: Build pl_dongle
+          command: 'cd /zephyr/passinglink; BOARD=pl_dongle /zephyr/passinglink/scripts/build.sh'
       - run:
           name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_stm32.hex
+          command: mkdir /workspace && cp /zephyr/passinglink/build_pl_dongle/pl.bin /workspace/pl_dongle.bin
       - persist_to_workspace:
           root: /workspace
-          paths: pl_stm32.hex
+          paths: pl_dongle.bin
+
+
   build_pl_robotdyn_f303:
     docker:
-      - image: jmgao/zephyr-docker:latest
+      - image: jmgao/zephyr-docker:20201113
     steps:
       - checkout
       - run:
+          name: Fetch source
+          command: '/fetch.sh -p passinglink'
+      - run:
           name: Build pl_robotdyn_f303
-          command: '/build.sh -b pl_robotdyn_f303 -p passinglink'
+          command: 'cd /zephyr/passinglink; west build -b pl_robotdyn_f303'
       - run:
           name: Copy binary to workspace
           command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_robotdyn_f303.hex
       - persist_to_workspace:
           root: /workspace
           paths: pl_robotdyn_f303.hex
+
   build_pl_bluepill:
     docker:
-      - image: jmgao/zephyr-docker:latest
+      - image: jmgao/zephyr-docker:20201113
     steps:
       - checkout
       - run:
-          name: Build pl_bluepill
-          command: '/build.sh -b pl_bluepill -p passinglink'
+          name: Fetch source
+          command: '/fetch.sh -p passinglink'
+      - run:
+          name: Build pl_robotdyn_f303
+          command: 'cd /zephyr/passinglink; west build -b pl_bluepill'
       - run:
           name: Copy binary to workspace
           command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_bluepill.hex
       - persist_to_workspace:
           root: /workspace
           paths: pl_bluepill.hex
-  build_particle_xenon:
-    docker:
-      - image: jmgao/zephyr-docker:latest
-    steps:
-      - checkout
-      - run:
-          name: Build particle_xenon
-          command: '/build.sh -b particle_xenon -p passinglink'
-      - run:
-          name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/particle_xenon.hex
-      - persist_to_workspace:
-          root: /workspace
-          paths: particle_xenon.hex
-  build_native_posix:
-    docker:
-      - image: jmgao/zephyr-docker:latest
-    steps:
-      - checkout
-      - run:
-          name: Build native_posix
-          command: '/build.sh -b native_posix -p passinglink'
+
   package:
     docker:
       - image: circleci/buildpack-deps:bionic
@@ -95,16 +89,12 @@ workflows:
   build:
     jobs:
       - build_pl_e73
-      - build_pl_stm32
+      - build_pl_dongle
       - build_pl_robotdyn_f303
       - build_pl_bluepill
-      - build_particle_xenon
-      - build_native_posix
       - package:
           requires:
             - build_pl_e73
-            - build_pl_stm32
+            - build_pl_dongle
             - build_pl_robotdyn_f303
             - build_pl_bluepill
-            - build_particle_xenon
-            - build_native_posix
