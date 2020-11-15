@@ -1,0 +1,126 @@
+&usart2 {
+  current-speed = <921600>;
+};
+
+/ {
+  aliases {
+    button-home = &user_button;
+  };
+
+  gpio_keys {
+    compatible = "gpio-keys";
+    
+    button_north {
+      gpios = <&gpioe 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "North Button";
+    };
+
+    button_east {
+      gpios = <&gpioe 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "East Button";
+    };
+
+    button_south {
+      gpios = <&gpioe 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "South Button";
+    };
+
+    button_west {
+      gpios = <&gpioe 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "West Button";
+    };
+
+    button_l1 {
+      gpios = <&gpioe 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L1 Button";
+    };
+
+    button_l2 {
+      gpios = <&gpioe 13 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L2 Button";
+    };
+
+    button_l3 {
+      gpios = <&gpiod 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "L3 Button";
+    };
+
+    button_r1 {
+      gpios = <&gpioe 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R1 Button";
+    };
+
+    button_r2 {
+      gpios = <&gpioe 14 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R2 Button";
+    };
+
+    button_r3 {
+      gpios = <&gpiod 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "R3 Button";
+    };
+
+    button_select {
+      gpios = <&gpiod 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Select Button";
+    };
+
+    button_start {
+      gpios = <&gpiod 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Start Button";
+    };
+
+    /* See aliases.button_home */
+    /*
+    button_home {
+      gpios = <&gpioa 0 (GPIO_ACTIVE_LOW)>;
+      label = "Home Button";
+    };
+    */
+
+    button_touchpad {
+      gpios = <&gpioe 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Touchpad Button";
+    };
+
+    stick_up {
+      gpios = <&gpiod 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Up";
+    };
+
+    stick_down {
+      gpios = <&gpiod 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Down";
+    };
+
+    stick_right {
+      gpios = <&gpiod 10 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Right";
+    };
+
+    stick_left {
+      gpios = <&gpiod 9 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Stick Left";
+    };
+
+    mode_ps3 {
+      gpios = <&gpioe 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode PS3";
+    };
+
+    mode_lock {
+      gpios = <&gpioe 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode Lock";
+    };
+
+    mode_ls {
+      gpios = <&gpioe 4 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode LS";
+    };
+
+    mode_rs {
+      gpios = <&gpioe 5 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      label = "Mode RS";
+    };
+  };
+};

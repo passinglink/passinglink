@@ -5,7 +5,7 @@
 
 #include "arch.h"
 
-#if defined(STM32F1) || defined(STM32F3)
+#if defined(STM32F1) || defined(STM32F3) || defined(STM32F4)
 #include <drivers/gpio.h>
 #endif
 

@@ -71,6 +71,10 @@ Passing Link is based on the widely supported Zephyr RTOS with no specific hardw
   - 72MHz, 20kB RAM, 64kB flash
   - Recommended against due to resource constraints, but will be supported for as long as is feasible
   - [$3 from RobotDyn](https://robotdyn.com/stm32f103-stm32-arm-mini-system-dev-board-stm-firmware.html)
+- STM32F4 Discovery board (STM32F407VG)
+  - 168MHz, 128kB RAM + 64kB CCM, 1MB flash
+  - 2 USB controllers (currently only 1 can be used).
+  - [~$22 from Digi-Key](https://www.digikey.com/en/products/detail/stmicroelectronics/STM32F407G-DISC1/5824404). Cheaper option should be available elsewhere.
 
 ### Copying
 Passing Link is open source software licensed under the MIT license.
