@@ -13,9 +13,9 @@
 #define STM32F3 1
 #endif
 
-#if defined(STM32F407xG)
+#if defined(STM32F407xx)
 #define STM32 1
-#define STM32F4 1
+// Seems that cube already defines STM32F4. Omitted here.
 #endif
 
 #if defined(NRF52840_XXAA)
