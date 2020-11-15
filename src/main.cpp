@@ -19,7 +19,7 @@ LOG_MODULE_REGISTER(main);
 const char* init_error;
 int init_rc;
 
-#if defined(STM32F1) || defined(STM32F3) || defined(STM32F4)
+#if defined(STM32F1) || defined(STM32F3)
 static int stm32_usb_reset(const struct device*) {
   // BluePill board has a pull-up resistor on the D+ line.
   // Pull the D+ pin down to send a RESET condition to the USB bus.
