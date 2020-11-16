@@ -186,11 +186,11 @@
 };
 
 &i2c0 {
-	compatible = "nordic,nrf-twim";
-	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
-	sda-pin = <7>;
-	scl-pin = <12>;
+  compatible = "nordic,nrf-twim";
+  status = "okay";
+  clock-frequency = <I2C_BITRATE_FAST>;
+  sda-pin = <7>;
+  scl-pin = <12>;
 };
 
 &usbd {
