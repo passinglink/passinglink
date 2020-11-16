@@ -13,7 +13,7 @@ static const struct pin_config pinconf[] = {
     {STM32_PIN_PA12, STM32F3_PINMUX_FUNC_PA12_USB_DP},
 };
 
-static int pinmux_stm32_init(struct device *port) {
+static int pinmux_stm32_init(const struct device *port) {
   ARG_UNUSED(port);
 
   stm32_setup_pins(pinconf, ARRAY_SIZE(pinconf));
