@@ -178,6 +178,17 @@ source "Kconfig.zephyr"
 
 endmenu # Kernel configuration
 
+# Don't emit logs twice.
+config LOG_BACKEND_UART
+  default n if SHELL
+
+# Set USB logging to ERR by default.
+config USB_DRIVER_LOG_LEVEL
+  default 1 if LOG
+
+config USB_DEVICE_LOG_LEVEL
+  default 1 if LOG
+
 # Turn on zero latency IRQs to reduce Bluetooth radio IRQ latency.
 config ZERO_LATENCY_IRQS
   default y if PASSINGLINK_BT
