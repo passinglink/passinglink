@@ -177,3 +177,17 @@ menu "Kernel configuration"
 source "Kconfig.zephyr"
 
 endmenu # Kernel configuration
+
+# Turn on zero latency IRQs to reduce Bluetooth radio IRQ latency.
+config ZERO_LATENCY_IRQS
+  default y if PASSINGLINK_BT
+
+config BT_CTLR_ZLI
+  default y if PASSINGLINK_BT
+
+# Prefer 7.5ms connection interval.
+config BT_PERIPHERAL_PREF_MIN_INT
+  default 6 if PASSINGLINK_BT
+
+config BT_PERIPHERAL_PREF_MAX_INT
+  default 6 if PASSINGLINK_BT
