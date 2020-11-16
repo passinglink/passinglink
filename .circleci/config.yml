@@ -1,77 +1,32 @@
-version: 2
+version: 2.1
+executors:
+  zephyr-docker:
+    docker:
+      - image: jmgao/zephyr-docker:20201113
+
 jobs:
-  build_pl_e73:
-    docker:
-      - image: jmgao/zephyr-docker:20201113
+  build:
+    executor: zephyr-docker
+    parameters:
+      board:
+        description: "Board to build"
+        type: string
+    environment:
+      BOARD: << parameters.board >>
     steps:
       - checkout
       - run:
           name: Fetch source
-          command: '/fetch.sh -p passinglink'
+          command: "/fetch.sh -p passinglink"
       - run:
-          name: Build pl_e73
-          command: 'cd /zephyr/passinglink; BOARD=pl_e73 /zephyr/passinglink/scripts/build.sh'
-      - run:
-          name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build_pl_e73/pl.bin /workspace/pl_e73.bin
-      - persist_to_workspace:
-          root: /workspace
-          paths: pl_e73.bin
-
-  build_pl_dongle:
-    docker:
-      - image: jmgao/zephyr-docker:20201113
-    steps:
-      - checkout
-      - run:
-          name: Fetch source
-          command: '/fetch.sh -p passinglink'
-      - run:
-          name: Build pl_dongle
-          command: 'cd /zephyr/passinglink; BOARD=pl_dongle /zephyr/passinglink/scripts/build.sh'
+          name: Build << parameters.board >>
+          command: "cd /zephyr/passinglink; /zephyr/passinglink/scripts/build.sh"
       - run:
           name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build_pl_dongle/pl.bin /workspace/pl_dongle.bin
+          command: "mkdir /workspace && cp /zephyr/passinglink/build_<< parameters.board >>/pl.bin /workspace/<< parameters.board >>.bin"
       - persist_to_workspace:
           root: /workspace
-          paths: pl_dongle.bin
-
-
-  build_pl_robotdyn_f303:
-    docker:
-      - image: jmgao/zephyr-docker:20201113
-    steps:
-      - checkout
-      - run:
-          name: Fetch source
-          command: '/fetch.sh -p passinglink'
-      - run:
-          name: Build pl_robotdyn_f303
-          command: 'cd /zephyr/passinglink; west build -b pl_robotdyn_f303'
-      - run:
-          name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_robotdyn_f303.hex
-      - persist_to_workspace:
-          root: /workspace
-          paths: pl_robotdyn_f303.hex
-
-  build_pl_bluepill:
-    docker:
-      - image: jmgao/zephyr-docker:20201113
-    steps:
-      - checkout
-      - run:
-          name: Fetch source
-          command: '/fetch.sh -p passinglink'
-      - run:
-          name: Build pl_robotdyn_f303
-          command: 'cd /zephyr/passinglink; west build -b pl_bluepill'
-      - run:
-          name: Copy binary to workspace
-          command: mkdir /workspace && cp /zephyr/passinglink/build/zephyr/zephyr.elf /workspace/pl_bluepill.hex
-      - persist_to_workspace:
-          root: /workspace
-          paths: pl_bluepill.hex
+          paths: "<< parameters.board >>.bin"
 
   package:
     docker:
@@ -88,10 +43,18 @@ workflows:
   version: 2
   build:
     jobs:
-      - build_pl_e73
-      - build_pl_dongle
-      - build_pl_robotdyn_f303
-      - build_pl_bluepill
+      - build:
+          name: build_pl_e73
+          board: pl_e73
+      - build:
+          name: build_pl_dongle
+          board: pl_dongle
+      - build:
+          name: build_pl_robotdyn_f303
+          board: pl_robotdyn_f303
+      - build:
+          name: build_pl_bluepill
+          board: pl_bluepill
       - package:
           requires:
             - build_pl_e73
