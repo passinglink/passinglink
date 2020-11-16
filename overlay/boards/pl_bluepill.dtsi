@@ -1,0 +1,25 @@
+/ {
+  chosen {
+    zephyr,console = &usart2;
+    zephyr,shell-uart = &usart2;
+    zephyr,sram = &sram0;
+    zephyr,flash = &flash0;
+  };
+
+  leds {
+    compatible = "gpio-leds";
+    status: led_1 {
+      gpios = <&gpioc 13 0>;
+      label = "Blue LED";
+    };
+  };
+};
+
+&usart2 {
+  current-speed = <921600>;
+  status = "okay";
+};
+
+&usb {
+  status = "okay";
+};
