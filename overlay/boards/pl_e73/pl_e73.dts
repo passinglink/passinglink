@@ -19,7 +19,7 @@
 
   leds {
     compatible = "gpio-leds";
-    led_front: led_0 {
+    led_status: led_0 {
       gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
       label = "Front LED";
     };

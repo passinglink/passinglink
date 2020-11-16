@@ -17,28 +17,19 @@
 		zephyr,code-partition = &slot0_partition;
   };
 
-  // TODO: All of the pins are lies.
   leds {
     compatible = "gpio-leds";
-    led_front: led_0 {
-      gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
-      label = "Front LED";
+    led_status_r: led_0 {
+      gpios = <&gpio0 23 GPIO_ACTIVE_LOW>;
+      label = "Status LED Red Component";
     };
-    led_p1: led_1 {
-      gpios = <&gpio0 26 GPIO_ACTIVE_LOW>;
-      label = "P1 LED";
+    led_status_g: led_1 {
+      gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
+      label = "Status LED Green Component";
     };
-    led_p2: led_2 {
-      gpios = <&gpio0 1 GPIO_ACTIVE_LOW>;
-      label = "P2 LED";
-    };
-    led_p3: led_3 {
-      gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
-      label = "P3 LED";
-    };
-    led_p4: led_4 {
-      gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
-      label = "P4 LED";
+    led_status_b: led_2 {
+      gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
+      label = "Status LED Blue Component";
     };
   };
 };

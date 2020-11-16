@@ -14,15 +14,15 @@
 
   leds {
     compatible = "gpio-leds";
-    status_red: led_1 {
+    led_status_r: led_0 {
       gpios = <&gpioa 7 0>;
       label = "Red LED";
     };
-    status_green: led_2 {
+    led_status_g: led_1 {
       gpios = <&gpiob 0 0>;
       label = "Green LED";
     };
-    status_blue: led_3 {
+    led_status_b: led_2 {
       gpios = <&gpiob 1 0>;
       label = "Blue LED";
     };

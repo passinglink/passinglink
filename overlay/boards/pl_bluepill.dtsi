@@ -8,9 +8,9 @@
 
   leds {
     compatible = "gpio-leds";
-    status: led_1 {
+    led_status: led_1 {
       gpios = <&gpioc 13 0>;
-      label = "Blue LED";
+      label = "Status LED";
     };
   };
 };
