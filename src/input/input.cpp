@@ -12,15 +12,18 @@ LOG_MODULE_REGISTER(input);
 #include "arch.h"
 #include "input/queue.h"
 #include "input/touchpad.h"
+#include "input/imu.h"
 #include "profiling.h"
 
 TouchpadData touchpad_data;
+InternalIMUData imu_data;
 
 static void input_gpio_init();
 
 void input_init() {
   input_gpio_init();
   input_touchpad_init();
+  input_imu_init();
 }
 
 #if defined(CONFIG_PASSINGLINK_INPUT_NONE)
@@ -178,6 +181,9 @@ bool input_parse(InputState* out, const RawInputState* in) {
 
   // Copy TouchpadData.
   out->touchpad_data = touchpad_data;
+
+  // Copy IMU data.
+  out->imu_data = imu_data;
 
   // Assign buttons.
   out->button_north = in->button_north;

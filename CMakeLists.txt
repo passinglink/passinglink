@@ -37,6 +37,10 @@ target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_TOUCHPAD_PANTHERA app PRIVATE
     src/input/touchpad/panthera.cpp
 )
 
+target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_IMU_NONE app PRIVATE
+    src/input/imu/none.cpp
+)
+
 include_directories(
     src
     keys
