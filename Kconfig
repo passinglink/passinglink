@@ -60,6 +60,17 @@ config PASSINGLINK_INPUT_TOUCHPAD_PANTHERA
 
 endchoice
 
+choice PASSINGLINK_INPUT_IMU
+  prompt "IMU"
+  default PASSINGLINK_INPUT_IMU_NONE
+
+config PASSINGLINK_INPUT_IMU_NONE
+  bool "None"
+  help
+    Disable IMU input.
+
+endchoice
+
 config PASSINGLINK_INPUT_QUEUE
   bool "Input queue"
   default n

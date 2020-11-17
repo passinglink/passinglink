@@ -11,6 +11,7 @@
 
 #include "input/input.h"
 #include "input/touchpad.h"
+#include "input/imu.h"
 #include "output/usb/hid.h"
 #include "output/usb/ps4/auth.h"
 #include "types.h"
@@ -109,13 +110,19 @@ const uint8_t kPS4ReportDescriptor[] = {
 };
 // clang-format on
 
-struct __attribute__((packed)) OutputReport {
-  uint8_t report_id;
-  uint8_t left_stick_x;
-  uint8_t left_stick_y;
-  uint8_t right_stick_x;
-  uint8_t right_stick_y;
+struct __attribute__((packed)) TouchpadFrame {
+    uint8_t seq;
+    TouchpadData data;
+};
 
+struct __attribute__((packed)) OutputReport {
+  uint8_t report_id; // 0
+  uint8_t left_stick_x; // 1
+  uint8_t left_stick_y; // 2
+  uint8_t right_stick_x; // 3
+  uint8_t right_stick_y; // 4
+
+  // 5-8
   // 4 bits for the d-pad.
   uint32_t dpad : 4;
 
@@ -139,12 +146,37 @@ struct __attribute__((packed)) OutputReport {
   uint32_t report_counter : 6;
 
   uint32_t left_trigger : 8;
-  uint32_t right_trigger : 8;
+  uint8_t right_trigger; // 9
 
-  uint32_t padding : 24;
-  uint8_t mystery[22];
-  TouchpadData touchpad_data;
-  uint8_t mystery_2[21];
+  // Timestamp used by the imu
+  uint16_t imu_timestamp; // 10-11
+
+  // Battery %age. Not used on USB controllers.
+  uint8_t battery; // 12
+
+  uint8_t unk13; // 13
+
+  // 12 bytes IMU data
+  int16_t gyro_pitch; // 14-15
+  int16_t gyro_yaw; // 16-17
+  int16_t gyro_roll; // 18-19
+  int16_t accel_x; // 20-21
+  int16_t accel_y; // 22-23
+  int16_t accel_z; // 24-25
+
+  uint32_t unk26; // 26-29
+
+  // Peripheral states bitfield.
+  uint8_t peripheral_state; // 30
+
+  uint16_t unk31; // 31-32
+
+  uint8_t touchpad_queue_length; // 33
+
+  // Touchpad data
+  TouchpadFrame touchpad_frames[3];
+
+  uint8_t padding[3];
 };
 
 static_assert(sizeof(OutputReport) == 64);
@@ -335,7 +367,17 @@ ssize_t ps4::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
       output.left_trigger = 0;
       output.right_trigger = 0;
 
-      output.touchpad_data = touchpad_data;
+      // TODO properly set report sequence
+      output.touchpad_frames[0].data = touchpad_data;
+      // Disable the rest of the queue for now
+      for (uint8_t i=1; i<3; i++) {
+        output.touchpad_frames[i].data.p1.unpressed = 1;
+        output.touchpad_frames[i].data.p2.unpressed = 1;
+      }
+
+      output.touchpad_queue_length = 1;
+
+      // TODO copy over IMU data and translate
 
       memcpy(buf.data(), &output, buf.size());
 
