@@ -55,9 +55,13 @@ workflows:
       - build:
           name: build_pl_bluepill
           board: pl_bluepill
+      - build:
+          name: build_stm32f4_disco
+          board: stm32f4_disco
       - package:
           requires:
             - build_pl_e73
             - build_pl_dongle
             - build_pl_robotdyn_f303
             - build_pl_bluepill
+            - build_stm32f4_disco
