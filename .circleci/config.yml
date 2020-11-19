@@ -23,7 +23,7 @@ jobs:
           command: "cd /zephyr/passinglink; /zephyr/passinglink/scripts/build.sh"
       - run:
           name: Copy binary to workspace
-          command: "mkdir /workspace && cp /zephyr/passinglink/build_<< parameters.board >>/pl.bin /workspace/<< parameters.board >>.bin"
+          command: "mkdir /workspace && cp /zephyr/passinglink/build/<< parameters.board >>/pl.bin /workspace/<< parameters.board >>.bin"
       - persist_to_workspace:
           root: /workspace
           paths: "<< parameters.board >>.bin"

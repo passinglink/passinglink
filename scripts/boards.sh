@@ -10,6 +10,8 @@ if [ -z "$BOARD" ]; then
   exit 1
 fi
 
+BUILD_DIR="build/$BOARD"
+
 if [[ "$BOARD" == "pl_e73" ]]; then
   PL_MCUBOOT_SUPPORTED=1
   PL_MCUBOOT_OPTS="

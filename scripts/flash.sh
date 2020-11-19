@@ -7,7 +7,6 @@ ROOT="$SCRIPT_PATH/../.."
 
 set -euxo pipefail
 
-BUILD_DIR="build_$BOARD"
 if [[ $PL_MCUBOOT_SUPPORTED == "1" ]]; then
   west flash -d "$BUILD_DIR/mcuboot"
   pyocd flash -e sector -a 0x10000 -t nrf52840 "$BUILD_DIR/pl.bin"

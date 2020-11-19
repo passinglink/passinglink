@@ -7,7 +7,6 @@ ROOT="$SCRIPT_PATH/../.."
 
 set -euxo pipefail
 
-BUILD_DIR="build_$BOARD"
 mkdir -p "$BUILD_DIR"
 
 if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
