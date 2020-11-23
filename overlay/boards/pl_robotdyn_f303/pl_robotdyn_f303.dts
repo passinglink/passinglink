@@ -1,9 +1,0 @@
-/dts-v1/;
-#include <st/f3/stm32f303Xc.dtsi>
-
-#include "pl_bluepill.dtsi"
-
-/ {
-  model = "RobotDyn F303 development board";
-  compatible = "st,stm32f303cc";
-};

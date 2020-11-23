@@ -50,9 +50,6 @@ workflows:
           name: build_pl_dongle
           board: pl_dongle
       - build:
-          name: build_pl_robotdyn_f303
-          board: pl_robotdyn_f303
-      - build:
           name: build_pl_bluepill
           board: pl_bluepill
       - build:
@@ -62,6 +59,5 @@ workflows:
           requires:
             - build_pl_e73
             - build_pl_dongle
-            - build_pl_robotdyn_f303
             - build_pl_bluepill
             - build_stm32f4_disco

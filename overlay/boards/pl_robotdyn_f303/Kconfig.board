@@ -1,3 +1,0 @@
-config BOARD_PL_ROBOTDYN_F303
-	bool "RobotDyn F303 development board"
-	depends on SOC_STM32F303XC

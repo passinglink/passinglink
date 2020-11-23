@@ -1,6 +1,0 @@
-if BOARD_PL_ROBOTDYN_F303
-
-config BOARD
-	default "pl_robotdyn_f303" if BOARD_PL_ROBOTDYN_F303
-
-endif # BOARD_PL_STM32

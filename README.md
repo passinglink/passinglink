@@ -64,9 +64,6 @@ Passing Link is based on the widely supported Zephyr RTOS with no specific hardw
     - $25
     - 21 GPIOs
   - Particle Xenon (discontinued by manufacturer)
-- RobotDyn STM32F303 Black Pill (aka `pl_robotdyn_f303`)
-  - 72 MHz, 40kB RAM, 256 kB flash
-  - [$4.59 from RobotDyn](https://robotdyn.com/stm32f303cct6-256-kb-flash-stm32-arm-cortexr-m4-mini-system-dev-board-3326a9dd-3c19-11e9-910a-901b0ebb3621.html)
 - Generic STM32F103 Bluepill boards (aka `pl_bluepill`)
   - 72MHz, 20kB RAM, 64kB flash
   - Recommended against due to resource constraints, but will be supported for as long as is feasible
