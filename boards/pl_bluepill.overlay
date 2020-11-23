@@ -1,1 +1,25 @@
+/ {
+  chosen {
+    zephyr,code-partition = &code_partition;
+  };
+};
+
+&flash0 {
+  partitions {
+    compatible = "fixed-partitions";
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    code_partition: partition@0 {
+      label = "code";
+      reg = <0x0 0xf000>;
+    };
+
+    provisioning_partition: partition@f000 {
+      label = "provisioning";
+      reg = <0xf000 0x1000>;
+    };
+  };
+};
+
 #include "bluepill_pins.dtsi"

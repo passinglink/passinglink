@@ -42,8 +42,13 @@ west update
 
 # Build and flash
 cd passinglink
-west build -b pl_bluepill -t menuconfig
-west flash
+export BOARD=pl_bluepill
+./scripts/build.sh
+# `ninja -C build/$BOARD menuconfig` to configure
+./scripts/flash.sh
+
+# If you have an extracted PS4 authentication key:
+./scripts/provision.sh "arbitrary name string" ds4.der ds4.serial ds4.sig
 
 # See also: https://github.com/passinglink/zephyr-docker/blob/master/Dockerfile
 ```
@@ -68,7 +73,7 @@ Passing Link is based on the widely supported Zephyr RTOS with no specific hardw
   - 72MHz, 20kB RAM, 64kB flash
   - Recommended against due to resource constraints, but will be supported for as long as is feasible
   - [$3 from RobotDyn](https://robotdyn.com/stm32f103-stm32-arm-mini-system-dev-board-stm-firmware.html)
-- STM32F4 Discovery board (STM32F407VG)
+- STM32F4 Discovery board (STM32F407VG) (aka `stm32f4_disco`)
   - 168MHz, 128kB RAM + 64kB CCM, 1MB flash
   - 2 USB controllers (currently only 1 can be used).
   - [~$22 from Digi-Key](https://www.digikey.com/en/products/detail/stmicroelectronics/STM32F407G-DISC1/5824404). Cheaper option should be available elsewhere.

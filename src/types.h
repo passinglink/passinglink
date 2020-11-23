@@ -140,6 +140,8 @@ struct span {
   const T* data() const { return ptr_; }
   size_t size() const { return length_; }
 
+  bool empty() const { return size() == 0; }
+
   void remove_prefix(size_t n) {
     assert(length_ >= n);
     ptr_ += n;

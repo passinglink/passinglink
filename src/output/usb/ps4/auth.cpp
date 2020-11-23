@@ -1,5 +1,6 @@
 #include "output/usb/ps4/auth.h"
 
+#include <assert.h>
 #include <zephyr.h>
 
 #include <kernel.h>
@@ -10,7 +11,7 @@
 #include <mbedtls/rsa.h>
 #include <mbedtls/sha256.h>
 
-#include "ds4.inl.h"
+#include "provisioning.h"
 
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(PS4Auth);
@@ -22,20 +23,6 @@ extern "C" K_THREAD_STACK_DEFINE(z_main_stack, CONFIG_MAIN_STACK_SIZE);
 #endif
 
 namespace ps4 {
-
-#if HAVE_DS4_KEY
-static mbedtls_rsa_context* ds4_key = const_cast<mbedtls_rsa_context*>(&__ds4_key);
-static const uint8_t* ds4_key_e = reinterpret_cast<const uint8_t*>(__ds4_key_e);
-static const uint8_t* ds4_key_n = reinterpret_cast<const uint8_t*>(__ds4_key_n);
-static const uint8_t* ds4_serial = reinterpret_cast<const uint8_t*>(__ds4_serial);
-static const uint8_t* ds4_signature = reinterpret_cast<const uint8_t*>(__ds4_signature);
-#else
-static mbedtls_rsa_context* ds4_key = nullptr;
-static const uint8_t* ds4_key_e = nullptr;
-static const uint8_t* ds4_key_n = nullptr;
-static const uint8_t* ds4_serial = nullptr;
-static const uint8_t* ds4_signature = nullptr;
-#endif
 
 static void sign_nonce(struct k_work*);
 
@@ -51,6 +38,7 @@ AuthState get_auth_state() {
 
 static void sign_nonce(struct k_work*) {
   LOG_INF("sign_nonce: started");
+  const ProvisioningData* pd = provisioning_data_get();
 
   AuthState current_state = auth_state.load();
   if (current_state.type != AuthStateType::WaitingToSign) {
@@ -76,9 +64,9 @@ static void sign_nonce(struct k_work*) {
     return;
   }
 
-  int rc =
-      mbedtls_rsa_rsassa_pss_sign(ds4_key, rng, nullptr, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256,
-                                  sizeof(hashed_nonce), hashed_nonce, nonce_signature);
+  int rc = mbedtls_rsa_rsassa_pss_sign(pd->ps4_key->rsa_context, rng, nullptr, MBEDTLS_RSA_PRIVATE,
+                                       MBEDTLS_MD_SHA256, sizeof(hashed_nonce), hashed_nonce,
+                                       nonce_signature);
 
   if (rc < 0) {
     LOG_ERR("sign_nonce: failed to sign: mbed error = %d", rc);
@@ -108,7 +96,13 @@ static void sign_nonce(struct k_work*) {
 }
 
 bool set_nonce(uint8_t nonce_id, uint8_t nonce_part, span<uint8_t> data) {
-  if (!ds4_key) {
+  const ProvisioningData* pd = provisioning_data_get();
+  if (!pd) {
+    LOG_ERR("set_nonce: provisioning partition not available");
+    return false;
+  }
+
+  if (!pd->ps4_key) {
     LOG_ERR("set_nonce: no signing key available");
     return false;
   }
@@ -162,28 +156,68 @@ bool set_nonce(uint8_t nonce_id, uint8_t nonce_part, span<uint8_t> data) {
   return true;
 }
 
-static const uint8_t padding[24] = {0};
+struct SignaturePart {
+  size_t length;
+  size_t (*function)(span<uint8_t> buf, size_t offset, const void* arg, size_t expected_size);
+  const void* arg;
+};
 
-#define SIGNATURE_BLOCKS()                         \
-  SIGNATURE_BLOCK(nonce_sig, 256, nonce_signature) \
-  SIGNATURE_BLOCK(serial, 16, ds4_serial)          \
-  SIGNATURE_BLOCK(n, 256, ds4_key_n)               \
-  SIGNATURE_BLOCK(e, 256, ds4_key_e)               \
-  SIGNATURE_BLOCK(key_sig, 256, ds4_signature)     \
-  SIGNATURE_BLOCK(padding, 24, padding)
+static size_t copy_generic(span<uint8_t> buf, size_t offset, const void* arg,
+                           size_t expected_size) {
+  size_t bytes = expected_size - offset;
+  if (bytes > buf.size()) {
+    bytes = buf.size();
+  }
+  memcpy(buf.data(), static_cast<const char*>(arg) + offset, bytes);
+  return bytes;
+}
 
-#define SIGNATURE_BLOCK(name, block_size, source)               \
-  static size_t copy_##name(span<uint8_t> buf, size_t offset) { \
-    size_t bytes = block_size - offset;                         \
-    if (bytes > buf.size()) {                                   \
-      bytes = buf.size();                                       \
-    }                                                           \
-    memcpy(buf.data(), (source) + offset, bytes);               \
-    return bytes;                                               \
+static size_t copy_mpi(span<uint8_t> buf, size_t offset, const void* arg, size_t expected_size) {
+  assert(expected_size == 256);
+  const mbedtls_mpi* mpi = static_cast<const mbedtls_mpi*>(arg);
+  unsigned char data[256];
+  if (mbedtls_mpi_write_binary(mpi, data, sizeof(data)) != 0) {
+    LOG_ERR("failed to write mbedtls_mpi");
+    k_panic();
+  }
+  return copy_generic(buf, offset, data, expected_size);
+}
+
+static void copy_signature(span<uint8_t> buf, size_t offset) {
+  static const uint8_t padding[24] = {0};
+  const ProvisioningData* pd = provisioning_data_get();
+  SignaturePart parts[] = {
+      {256, copy_generic, nonce_signature},          {16, copy_generic, pd->ps4_key->serial},
+      {256, copy_mpi, &pd->ps4_key->rsa_context->N}, {256, copy_mpi, &pd->ps4_key->rsa_context->E},
+      {256, copy_generic, pd->ps4_key->signature},   {24, copy_generic, padding},
+  };
+
+  LOG_DBG("copy_signature: buffer = %zu, offset = %zu", buf.size(), offset);
+
+  for (auto& part : parts) {
+    size_t number = &part - parts;
+    LOG_DBG("copy_signature: part %zu (%zu), offset is currently %zu", number, part.length, offset);
+    if (offset >= part.length) {
+      LOG_DBG("copy_signature: part %zu: skipping", number);
+      offset -= part.length;
+      continue;
+    }
+
+    size_t bytes_copied = part.function(buf, offset, part.arg, part.length);
+    LOG_DBG("copy_signature: part %zu: copied %zu bytes", number, bytes_copied);
+    buf.remove_prefix(bytes_copied);
+    offset = 0;
+
+    if (buf.empty()) {
+      break;
+    }
   }
 
-SIGNATURE_BLOCKS()
-#undef SIGNATURE_BLOCK
+  if (!buf.empty()) {
+    LOG_ERR("ran out of signature parts?");
+    k_panic();
+  }
+}
 
 bool get_next_signature_chunk(span<uint8_t> buf) {
   if (buf.size() != 56) {
@@ -202,25 +236,7 @@ bool get_next_signature_chunk(span<uint8_t> buf) {
     return false;
   }
 
-  while (buf.size() > 0) {
-    size_t prev_block_end = 0;
-    // clang-format off
-#define SIGNATURE_BLOCK(name, size, source)                  \
-    if (current_offset < prev_block_end + size) {            \
-      /* We have bytes left. */                              \
-      size_t block_offset = current_offset - prev_block_end; \
-      size_t bytes_copied = copy_##name(buf, block_offset);  \
-      buf.remove_prefix(bytes_copied);                       \
-      current_offset += bytes_copied;                        \
-      continue;                                              \
-    }                                                        \
-    prev_block_end += size;
-    // clang-format on
-
-    SIGNATURE_BLOCKS()
-
-#undef SIGNATURE_BLOCK
-  }
+  copy_signature(buf, current_offset);
 
   AuthState new_state = current_state;
   if (++new_state.next_part == 19) {
@@ -239,4 +255,4 @@ bool get_next_signature_chunk(span<uint8_t> buf) {
 
 }  // namespace ps4
 
-#endif
+#endif  // CONFIG_PASSINGLINK_OUTPUT_USB_PS4_AUTH

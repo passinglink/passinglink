@@ -21,7 +21,7 @@ manifest:
       path: modules/crypto/mbedtls
     - name: mbed_embed
       remote: passinglink
-      revision: master
+      revision: pl-v2.4-20201122
       path: tools/mbed_embed
     - name: pcb
       remote: passinglink

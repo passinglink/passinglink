@@ -12,6 +12,7 @@
 #include "bt/bt.h"
 #include "input/input.h"
 #include "output/output.h"
+#include "provisioning.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(main);
@@ -79,6 +80,7 @@ extern "C" void main(void) {
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 #endif
 
+  provisioning_init();
   input_init();
   output_init();
 

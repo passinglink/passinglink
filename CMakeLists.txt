@@ -14,6 +14,7 @@ list(APPEND app_sources
     src/arch.cpp
     src/main.cpp
     src/malloc.cpp
+    src/provisioning.cpp
     src/shell.cpp
     src/bt/bt.cpp
     src/input/input.cpp
