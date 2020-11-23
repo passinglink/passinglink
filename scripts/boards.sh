@@ -70,3 +70,8 @@ if [[ "$PL_MCUBOOT_SUPPORTED" == "1" ]]; then
 else
   echo "MCUboot not supported on board '$BOARD'"
 fi
+
+if ! pyocd list -t | egrep -q "^\s+$PL_PYOCD_TYPE\s"; then
+  echo "pyocd support missing for '$PL_PYOCD_TYPE': try \`pyocd pack --install $PL_PYOCD_TYPE\`?"
+  exit 1
+fi

@@ -16,6 +16,4 @@ mkdir -p "$BUILD_DIR"
 
 "$ROOT/tools/mbed_embed/mbed_embed" $PL_PROVISIONING_OFFSET $PL_PROVISIONING_SIZE "$1" "$2" "$3" "$4" > \
   "$BUILD_DIR/provisioning.bin"
-if ! pyocd flash -e sector -a $PL_PROVISIONING_OFFSET -t $PL_PYOCD_TYPE $BUILD_DIR/provisioning.bin; then
-  echo "Failed to flash: maybe try \`pyocd pack --install $PL_PYOCD_TYPE\`?"
-fi
+pyocd flash -e sector -a $PL_PROVISIONING_OFFSET -t $PL_PYOCD_TYPE $BUILD_DIR/provisioning.bin
