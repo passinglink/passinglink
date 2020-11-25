@@ -122,7 +122,6 @@ bool input_get_raw_state(RawInputState* out) {
     const char* device_name = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_CONTROLLER;                 \
     uint8_t device_index = gpio_indices[index];                                            \
     constexpr uint32_t flags = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_FLAGS;                     \
-    static_assert((flags & GPIO_ACTIVE_LOW) || (flags & GPIO_ACTIVE_HIGH));                \
     bool value = port_values[device_index] & (1U << DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_PIN); \
     if constexpr (flags & GPIO_ACTIVE_LOW) {                                               \
       out->gpio_name = !value;                                                             \
