@@ -1,5 +1,6 @@
 / {
   chosen {
+    zephyr,boot-partition = &boot_partition;
     zephyr,code-partition = &code_partition;
   };
 };
@@ -10,15 +11,29 @@
     #address-cells = <1>;
     #size-cells = <1>;
 
-    code_partition: partition@0 {
-      label = "code";
-      reg = <0x0 0xf8000>;
+    // STM32F407 has pages of different sizes:
+    //   4 - 16kB
+    //   1 - 64kB
+    //   7 - 128kB
+    boot_partition: partition@0 {
+      label = "mcuboot";
+      reg = <0x0 0xc000>;
     };
 
-    provisioning_partition: partition@f8000 {
+    provisioning_partition: partition@c000 {
       label = "provisioning";
-      reg = <0xf8000 0x8000>;
+      reg = <0xc000 0x4000>;
       read-only;
+    };
+
+    storage_partition: partition@10000 {
+      label = "storage";
+      reg = <0x10000 0x10000>;
+    };
+
+    code_partition: partition@20000 {
+      label = "image-0";
+      reg = <0x20000 0xe0000>;
     };
   };
 };

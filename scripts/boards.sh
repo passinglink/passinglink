@@ -49,7 +49,13 @@ elif [[ "$BOARD" == "pl_bluepill" ]]; then
 elif [[ "$BOARD" == "stm32f4_disco" ]]; then
   PL_PYOCD_TYPE=stm32f407vg
 
-  PL_MCUBOOT_SUPPORTED=0
+  PL_MCUBOOT_SUPPORTED=1
+  PL_MCUBOOT_OPTS="
+    -DCONFIG_LOG=n
+    -DCONFIG_BOOT_USB_DFU_GPIO=y
+    -DCONFIG_BOOT_USB_DFU_DETECT_PORT=\"GPIO_0\"
+    -DCONFIG_BOOT_USB_DFU_DETECT_PIN=0
+  "
 else
   echo "warning: unsupported board: \"$BOARD\" (edit scripts/boards.sh?)"
   PL_MCUBOOT_SUPPORTED=0
