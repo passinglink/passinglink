@@ -13,6 +13,7 @@
 #include "input/input.h"
 #include "output/output.h"
 #include "provisioning.h"
+#include "version.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(main);
@@ -67,8 +68,18 @@ static_assert(USB_RESET_PRIORITY < CONFIG_PINMUX_STM32_DEVICE_INITIALIZATION_PRI
 // or it'll be silently ignored.
 extern "C" void main(void) {
   auto kver = sys_kernel_version_get();
-  LOG_INF("passinglink v0.5.0 (kernel version %d.%d.%d) initializing", SYS_KERNEL_VER_MAJOR(kver),
-          SYS_KERNEL_VER_MINOR(kver), SYS_KERNEL_VER_PATCHLEVEL(kver));
+  const char *version1, *version2, *version3;
+  if (strlen(git_version) == 0) {
+    version1 = "unknown (";
+    version2 = git_commit;
+    version3 = ")";
+  } else {
+    version1 = git_version;
+    version2 = version3 = "";
+  }
+
+  LOG_INF("passinglink %s%s%s (kernel version %d.%d.%d) initializing", version1, version2, version3,
+          SYS_KERNEL_VER_MAJOR(kver), SYS_KERNEL_VER_MINOR(kver), SYS_KERNEL_VER_PATCHLEVEL(kver));
 
   if (init_error) {
     LOG_ERR("%s: rc = %d", init_error, init_rc);
