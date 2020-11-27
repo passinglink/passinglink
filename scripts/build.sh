@@ -23,7 +23,7 @@ if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
     -DCONFIG_USB_DEVICE_PRODUCT="\"Passing Link Bootloader\"" \
     $OVERLAY \
     ${PL_MCUBOOT_OPTS}
-  cp "$BUILD_DIR/mcuboot/zephyr/zephyr.bin" "$BUILD_DIR/mcuboot.bin"
+  cp "$BUILD_DIR/mcuboot/zephyr/zephyr.hex" "$BUILD_DIR/mcuboot.hex"
 fi
 
 if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
@@ -32,11 +32,11 @@ if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
     -DCONFIG_BOOTLOADER_MCUBOOT=y
 
   # Sign Passing Link.
-  "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.bin" "$BUILD_DIR/pl.bin"
+  "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
 else
   # Build Passing Link without MCUboot support.
   west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink"
 
   # Don't bother signing the image.
-  cp "$BUILD_DIR/pl/zephyr/zephyr.bin" "$BUILD_DIR/pl.bin"
+  cp "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
 fi
