@@ -15,10 +15,13 @@ struct LedState {
   const device* led_device;
   uint32_t led_pin;
   uint32_t counter;
-  bool on;
-  bool flashing;
+
   uint32_t duration_ticks;
   uint32_t interval_ticks;
+
+  bool initialized;
+  bool on;
+  bool flashing;
 
   size_t index() const;
 };
@@ -42,7 +45,9 @@ static void led_toggle(LedState& state) {
 }
 
 static void led_schedule_update(LedState& state) {
-  k_delayed_work_submit(&state.work, K_TICKS(state.interval_ticks));
+  if (state.initialized) {
+    k_delayed_work_submit(&state.work, K_TICKS(state.interval_ticks));
+  }
 }
 
 void led_update(k_work* work) {
@@ -65,11 +70,12 @@ void led_update(k_work* work) {
 }
 
 static void led_init(LedState& state, const char* device_name, uint32_t gpio_pin, uint32_t flags) {
-  k_delayed_work_init(&state.work, led_update);
   if (device_name) {
+    state.initialized = true;
     state.led_device = device_get_binding(device_name);
     state.led_pin = gpio_pin;
     gpio_pin_configure(state.led_device, gpio_pin, GPIO_OUTPUT_INACTIVE | flags);
+    k_delayed_work_init(&state.work, led_update);
   }
 }
 
