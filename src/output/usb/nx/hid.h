@@ -30,7 +30,7 @@ class Hid : public ::Hid {
     }
   }
 
-  virtual uint32_t ProbeDelay() override final { return k_ms_to_ticks_ceil32(1000); }
+  virtual k_timeout_t ProbeDelay() override final { return K_MSEC(1000); }
   virtual bool ProbeResult() override final { return input_halt_cleared_ && output_halt_cleared_; }
 
  private:

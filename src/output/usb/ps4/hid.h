@@ -22,7 +22,7 @@ class Hid : public ::Hid {
                          span<uint8_t> data) override final;
 
   // PS4 Hid is the last, and will always fail, but give it a delay to make the LED visible.
-  virtual uint32_t ProbeDelay() { return k_ms_to_ticks_ceil32(1000); }
+  virtual k_timeout_t ProbeDelay() { return K_MSEC(1000); }
 
  private:
   uint8_t last_report_counter_ = 0;

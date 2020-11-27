@@ -21,7 +21,7 @@ class Hid : public ::Hid {
 
   virtual void InterruptOut(span<uint8_t> buf) override final;
 
-  virtual uint32_t ProbeDelay() override final { return k_ms_to_ticks_ceil32(1000); }
+  virtual k_timeout_t ProbeDelay() override final { return K_MSEC(1000); }
   virtual bool ProbeResult() override final { return controller_number_ != 0xFF; }
 
  private:

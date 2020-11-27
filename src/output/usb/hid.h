@@ -27,9 +27,7 @@ class Hid {
 
   virtual void ClearHalt(uint8_t endpoint) {}
 
-  // Delay to wait in ticks before checking whether the Hid is successful.
-  virtual uint32_t ProbeDelay() { return 0; }
-
+  virtual k_timeout_t ProbeDelay() = 0;
   virtual bool ProbeResult() { return false; }
 };
 
