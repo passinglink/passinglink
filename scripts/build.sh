@@ -9,7 +9,7 @@ set -euxo pipefail
 
 mkdir -p "$BUILD_DIR"
 
-if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
+if [[ $PL_MCUBOOT_SUPPORTED == 1 && "${PL_SKIP_MCUBOOT-}" != 1 ]]; then
   # Build MCUboot.
   OVERLAY_FILE="$(realpath "$ROOT/passinglink/boards/$BOARD.overlay")"
   OVERLAY=""
@@ -26,17 +26,21 @@ if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
   cp "$BUILD_DIR/mcuboot/zephyr/zephyr.hex" "$BUILD_DIR/mcuboot.hex"
 fi
 
-if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
-  # Build Passing Link with MCUboot support.
-  west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink" -- \
-    -DCONFIG_BOOTLOADER_MCUBOOT=y
+if [[ "${PL_SKIP_PL-}" != 1 ]]; then
+  if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
+    # Build Passing Link with MCUboot support.
+    west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink" -- \
+      -DCONFIG_BOOTLOADER_MCUBOOT=y
 
-  # Sign Passing Link.
-  "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
-else
-  # Build Passing Link without MCUboot support.
-  west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink"
+    # Sign Passing Link.
+    # Create both .bin and .hex files, for dfu-util and pyocd respectively.
+    "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.bin" "$BUILD_DIR/pl.bin"
+    "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
+  else
+    # Build Passing Link without MCUboot support.
+    west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink"
 
-  # Don't bother signing the image.
-  cp "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
+    # Don't bother signing the image.
+    cp "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
+  fi
 fi

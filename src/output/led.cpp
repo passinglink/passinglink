@@ -4,6 +4,7 @@
 #include <logging/log.h>
 #include <types.h>
 
+#include <devicetree/gpio.h>
 #include <drivers/gpio.h>
 
 #define LOG_LEVEL LOG_LEVEL_INF
@@ -72,24 +73,26 @@ static void led_init(LedState& state, const char* device_name, uint32_t gpio_pin
   }
 }
 
+#define LED_NODE(name) DT_PATH(leds, name)
+
 void led_init() {
-#define LED_INIT(idx, led_name)                                         \
-  led_init(led_states[idx], DT_GPIO_LEDS_##led_name##_GPIOS_CONTROLLER, \
-           DT_GPIO_LEDS_##led_name##_GPIOS_PIN, DT_GPIO_LEDS_##led_name##_GPIOS_FLAGS)
-#if defined(DT_GPIO_LEDS_LED_0_GPIOS)
-  LED_INIT(0, LED_0);
+#define LED_INIT(idx, led_name)                                       \
+  led_init(led_states[idx], DT_GPIO_LABEL(LED_NODE(led_name), gpios), \
+           DT_GPIO_PIN(LED_NODE(led_name), gpios), DT_GPIO_FLAGS(LED_NODE(led_name), gpios))
+#if DT_NODE_HAS_STATUS(LED_NODE(led_0), okay)
+  LED_INIT(0, led_0);
 #endif
-#if defined(DT_GPIO_LEDS_LED_1_GPIOS)
-  LED_INIT(1, LED_1);
+#if DT_NODE_HAS_STATUS(LED_NODE(led_1), okay)
+  LED_INIT(1, led_1);
 #endif
-#if defined(DT_GPIO_LEDS_LED_2_GPIOS)
-  LED_INIT(2, LED_2);
+#if DT_NODE_HAS_STATUS(LED_NODE(led_2), okay)
+  LED_INIT(2, led_2);
 #endif
-#if defined(DT_GPIO_LEDS_LED_3_GPIOS)
-  LED_INIT(3, LED_3);
+#if DT_NODE_HAS_STATUS(LED_NODE(led_3), okay)
+  LED_INIT(3, led_3);
 #endif
-#if defined(DT_GPIO_LEDS_LED_4_GPIOS)
-  LED_INIT(4, LED_4);
+#if DT_NODE_HAS_STATUS(LED_NODE(led_4), okay)
+  LED_INIT(4, led_4);
 #endif
 }
 
