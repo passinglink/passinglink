@@ -213,6 +213,11 @@ static void usb_probe_start() {
     }
   }
 
+  led_off(Led::P1);
+  led_off(Led::P2);
+  led_off(Led::P3);
+  led_off(Led::P4);
+
   probe_led_counter = led_on(*ProbeTypeLed(*current_probe));
   Hid* current_hid = ProbeTypeHid(*current_probe);
   passinglink::usb_hid_init(current_hid);
