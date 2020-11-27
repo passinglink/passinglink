@@ -1,6 +1,6 @@
 
 ## Passing Link
-[![CircleCI](https://circleci.com/gh/passinglink/passinglink.svg?style=svg)](https://circleci.com/gh/passinglink/passinglink)
+[![build](https://github.com/passinglink/passinglink/workflows/build/badge.svg?branch=master)](https://github.com/passinglink/passinglink/actions?query=workflow%3Abuild+branch%3Amaster)
 
 Passing Link is an open source game controller firmware implementation focused on minimizing latency and supporting inexpensive development boards. Currently, the latency as measured by [WydD](https://twitter.com/wydd)'s [usblag](https://gitlab.com/loic.petit/usblag) project is around 0.95ms.
 
