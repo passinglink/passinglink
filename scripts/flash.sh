@@ -12,7 +12,7 @@ if ! pyocd list -t | egrep -q "^\s+$PL_PYOCD_TYPE\s"; then
   exit 1
 fi
 
-if [[ "${PL_SKIP_MCUBOOT-}" != 1 ]]; then
+if [[ ${PL_MCUBOOT_SUPPORTED} == 1 && "${PL_SKIP_MCUBOOT-}" != 1 ]]; then
   pyocd flash -e sector -t $PL_PYOCD_TYPE "$BUILD_DIR/mcuboot.hex"
 fi
 

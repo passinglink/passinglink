@@ -43,7 +43,7 @@ elif [[ "$BOARD" == "particle_xenon" ]]; then
     -DCONFIG_BOOT_USB_DFU_DETECT_PIN=11
   "
 elif [[ "$BOARD" == "pl_bluepill" ]]; then
-  PL_PYOCD_TYPE=stm32f103rc
+  PL_PYOCD_TYPE=stm32f103c8
 
   PL_MCUBOOT_SUPPORTED=0
 elif [[ "$BOARD" == "stm32f4_disco" ]]; then
