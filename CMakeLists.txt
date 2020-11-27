@@ -22,6 +22,7 @@ list(APPEND app_sources
     ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
 
     src/arch.cpp
+    src/bootloader.cpp
     src/main.cpp
     src/malloc.cpp
     src/provisioning.cpp

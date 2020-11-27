@@ -13,7 +13,7 @@ manifest:
       import: true
     - name: mcuboot
       remote: passinglink
-      revision: pl-v2.4-20201115
+      revision: pl-v2.4-20201127
       path: bootloader/mcuboot
     - name: mbedtls
       remote: passinglink

@@ -14,7 +14,20 @@
     zephyr,shell-uart = &uart0;
     zephyr,sram = &sram0;
     zephyr,flash = &flash0;
-		zephyr,code-partition = &slot0_partition;
+    zephyr,code-partition = &slot0_partition;
+    mcuboot,sram_warmboot = &sram1;
+  };
+
+  soc {
+    sram0: memory@20000000 {
+      compatible = "mmio-sram";
+      reg = <0x20000000 0x3fff8>;
+    };
+
+    sram1: memory@2003fff8 {
+      compatible = "mmio-sram";
+      reg = <0x2003fff8 8>;
+    };
   };
 
   leds {
