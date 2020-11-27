@@ -3,6 +3,7 @@
 #include <zephyr.h>
 
 #include <device.h>
+#include <devicetree/gpio.h>
 #include <drivers/gpio.h>
 #include <logging/log.h>
 
@@ -89,14 +90,20 @@ static uint8_t gpio_device_add(const struct device* device) {
 }
 
 static void input_gpio_init() {
-#define PL_GPIO(index, name, NAME)                                      \
-  {                                                                     \
-    const char* device_name = DT_GPIO_KEYS_##NAME##_GPIOS_CONTROLLER;   \
-    const struct device* device = device_get_binding(device_name);      \
-    gpio_pin_configure(device, DT_GPIO_KEYS_##NAME##_GPIOS_PIN,         \
-                       DT_GPIO_KEYS_##NAME##_GPIOS_FLAGS | GPIO_INPUT); \
-    uint8_t device_offset = gpio_device_add(device);                    \
-    gpio_indices[index] = device_offset;                                \
+#define PL_GPIO(index, name)                                                                    \
+  {                                                                                             \
+    const struct device* device = device_get_binding(PL_GPIO_LABEL(name));                      \
+    if (!device) {                                                                              \
+      LOG_ERR("failed to find gpio device %s", PL_GPIO_LABEL(name));                            \
+      k_panic();                                                                                \
+    }                                                                                           \
+    if (gpio_pin_configure(device, PL_GPIO_PIN(name), PL_GPIO_FLAGS(name) | GPIO_INPUT) != 0) { \
+      LOG_ERR("failed to configure gpio pin (device = %s, pin = %d)", PL_GPIO_LABEL(name),      \
+              PL_GPIO_PIN(name));                                                               \
+      k_panic();                                                                                \
+    };                                                                                          \
+    uint8_t device_offset = gpio_device_add(device);                                            \
+    gpio_indices[index] = device_offset;                                                        \
   }
   PL_GPIOS()
 #undef PL_GPIO
@@ -114,20 +121,21 @@ bool input_get_raw_state(RawInputState* out) {
 
   gpio_port_value_t port_values[GPIO_PORT_COUNT];
   for (size_t i = 0; i < gpio_device_count; ++i) {
-    gpio_port_get_raw(gpio_devices[i], &port_values[i]);
+    if (gpio_port_get_raw(gpio_devices[i], &port_values[i]) != 0) {
+      LOG_ERR("failed to get gpio values");
+      k_panic();
+    }
   }
 
-#define PL_GPIO(index, gpio_name, GPIO_NAME)                                               \
-  {                                                                                        \
-    const char* device_name = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_CONTROLLER;                 \
-    uint8_t device_index = gpio_indices[index];                                            \
-    constexpr uint32_t flags = DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_FLAGS;                     \
-    bool value = port_values[device_index] & (1U << DT_GPIO_KEYS_##GPIO_NAME##_GPIOS_PIN); \
-    if constexpr (flags & GPIO_ACTIVE_LOW) {                                               \
-      out->gpio_name = !value;                                                             \
-    } else {                                                                               \
-      out->gpio_name = value;                                                              \
-    }                                                                                      \
+#define PL_GPIO(index, name)                                            \
+  {                                                                     \
+    uint8_t device_index = gpio_indices[index];                         \
+    bool value = port_values[device_index] & (1U << PL_GPIO_PIN(name)); \
+    if constexpr (PL_GPIO_FLAGS(name) & GPIO_ACTIVE_LOW) {              \
+      out->name = !value;                                               \
+    } else {                                                            \
+      out->name = value;                                                \
+    }                                                                   \
   }
   PL_GPIOS()
 #undef PL_GPIO
@@ -222,15 +230,15 @@ bool input_parse(InputState* out, const RawInputState* in) {
   }
 
   enum class OutputMode {
-    MODE_DPAD,
-    MODE_LS,
-    MODE_RS,
+    mode_dpad,
+    mode_ls,
+    mode_rs,
   };
 
-  OutputMode output_mode = OutputMode::MODE_DPAD;
-#define PL_GPIO(index, mode, MODE)  \
+  OutputMode output_mode = OutputMode::mode_dpad;
+#define PL_GPIO(index, mode)        \
   else if (in->mode) {              \
-    output_mode = OutputMode::MODE; \
+    output_mode = OutputMode::mode; \
   }
   if (false) {
   }
@@ -244,16 +252,16 @@ bool input_parse(InputState* out, const RawInputState* in) {
   out->right_stick_y = 128;
 
   switch (output_mode) {
-    case OutputMode::MODE_DPAD:
+    case OutputMode::mode_dpad:
       out->dpad = stick_state_from_x_y(stick_horizontal, stick_vertical);
       break;
 
-    case OutputMode::MODE_LS:
+    case OutputMode::mode_ls:
       out->left_stick_x = stick_scale(stick_horizontal);
       out->left_stick_y = stick_scale(stick_vertical);
       break;
 
-    case OutputMode::MODE_RS:
+    case OutputMode::mode_rs:
       out->right_stick_x = stick_scale(stick_horizontal);
       out->right_stick_y = stick_scale(stick_vertical);
       break;

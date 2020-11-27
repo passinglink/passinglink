@@ -3,6 +3,7 @@
 #include <zephyr.h>
 
 #include <device.h>
+#include <devicetree/gpio.h>
 #include <drivers/gpio.h>
 #include <drivers/i2c.h>
 #include <logging/log.h>
@@ -15,6 +16,14 @@ LOG_MODULE_REGISTER(touchpad);
 #include "types.h"
 
 #define TP_I2C_ADDRESS 0x38
+#define TP_RST_NODE DT_PATH(gpio_keys, tp_rst)
+#if DT_NODE_HAS_STATUS(TP_RST_NODE, okay)
+#define TP_RST_LABEL DT_GPIO_LABEL(TP_RST_NODE, gpios)
+#define TP_RST_PIN DT_GPIO_PIN(TP_RST_NODE, gpios)
+#define TP_RST_FLAGS DT_GPIO_FLAGS(TP_RST_NODE, gpios)
+#else
+#error "Unsupported board; tp_rst not defined"
+#endif
 
 static const struct device* tp_i2c_device;
 static const struct device* tp_rst_device;
@@ -38,9 +47,9 @@ struct TouchpadOutput {
 
 static void tp_reset() {
   LOG_INF("resetting touchpad");
-  gpio_pin_set(tp_rst_device, DT_GPIO_KEYS_TP_RST_GPIOS_PIN, 0);
+  gpio_pin_set(tp_rst_device, TP_RST_PIN, 0);
   k_sleep(K_MSEC(10));
-  gpio_pin_set(tp_rst_device, DT_GPIO_KEYS_TP_RST_GPIOS_PIN, 1);
+  gpio_pin_set(tp_rst_device, TP_RST_PIN, 1);
   k_sleep(K_MSEC(10));
 }
 
@@ -106,10 +115,9 @@ void input_touchpad_poll() {
 }
 
 void input_touchpad_init() {
-  tp_i2c_device = device_get_binding(DT_ALIAS_TP_I2C_LABEL);
-  tp_rst_device = device_get_binding(DT_GPIO_KEYS_TP_RST_GPIOS_CONTROLLER);
-  gpio_pin_configure(tp_rst_device, DT_GPIO_KEYS_TP_RST_GPIOS_PIN,
-                     DT_GPIO_KEYS_TP_RST_GPIOS_FLAGS | GPIO_OUTPUT);
+  tp_i2c_device = device_get_binding(DT_PROP(DT_ALIAS(tp_i2c), label));
+  tp_rst_device = device_get_binding(TP_RST_LABEL);
+  gpio_pin_configure(tp_rst_device, TP_RST_PIN, TP_RST_FLAGS | GPIO_OUTPUT);
   tp_reset();
 
   touchpad_data.p1.unpressed = 1;

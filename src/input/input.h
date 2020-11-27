@@ -42,37 +42,43 @@ inline const char* to_string(StickState state) {
 
 static constexpr size_t PL_GPIO_COUNT = 23;
 
-#if defined(DT_GPIO_KEYS_MODE_LOCK_GPIOS)
+#define PL_GPIO_NODE(name) DT_PATH(gpio_keys, name)
+#define PL_GPIO_LABEL(name) DT_GPIO_LABEL(PL_GPIO_NODE(name), gpios)
+#define PL_GPIO_PIN(name) DT_GPIO_PIN(PL_GPIO_NODE(name), gpios)
+#define PL_GPIO_FLAGS(name) DT_GPIO_FLAGS(PL_GPIO_NODE(name), gpios)
+#define PL_GPIO_AVAILABLE(name) DT_NODE_HAS_STATUS(PL_GPIO_NODE(name), okay)
+
+#if PL_GPIO_AVAILABLE(mode_lock)
 #define PL_GPIO_MODE_LOCK_AVAILABLE 1
-#define PL_GPIO_MODE_LOCK(index) PL_GPIO(index, mode_lock, MODE_LOCK)
+#define PL_GPIO_MODE_LOCK(index) PL_GPIO(index, mode_lock)
 #else
 #define PL_GPIO_MODE_LOCK(index)
 #endif
 
-#if defined(DT_GPIO_KEYS_MODE_PS3_GPIOS)
+#if PL_GPIO_AVAILABLE(mode_ps3)
 #define PL_GPIO_MODE_PS3_AVAILABLE 1
-#define PL_GPIO_MODE_PS3(index) PL_GPIO(index, mode_ps3, MODE_PS3)
+#define PL_GPIO_MODE_PS3(index) PL_GPIO(index, mode_ps3)
 #else
 #define PL_GPIO_MODE_PS3(index)
 #endif
 
-#if defined(DT_GPIO_KEYS_MODE_DPAD_GPIOS)
+#if PL_GPIO_AVAILABLE(mode_dpad)
 #define PL_GPIO_MODE_DPAD_AVAILABLE 1
-#define PL_GPIO_MODE_DPAD(index) PL_GPIO(index, mode_dpad, MODE_DPAD)
+#define PL_GPIO_MODE_DPAD(index) PL_GPIO(index, mode_dpad)
 #else
 #define PL_GPIO_MODE_DPAD(index)
 #endif
 
-#if defined(DT_GPIO_KEYS_MODE_LS_GPIOS)
+#if PL_GPIO_AVAILABLE(mode_ls)
 #define PL_GPIO_MODE_LS_AVAILABLE 1
-#define PL_GPIO_MODE_LS(index) PL_GPIO(index, mode_ls, MODE_LS)
+#define PL_GPIO_MODE_LS(index) PL_GPIO(index, mode_ls)
 #else
 #define PL_GPIO_MODE_LS(index)
 #endif
 
-#if defined(DT_GPIO_KEYS_MODE_RS_GPIOS)
+#if PL_GPIO_AVAILABLE(mode_rs)
 #define PL_GPIO_MODE_RS_AVAILABLE 1
-#define PL_GPIO_MODE_RS(index) PL_GPIO(index, mode_rs, MODE_RS)
+#define PL_GPIO_MODE_RS(index) PL_GPIO(index, mode_rs)
 #else
 #define PL_GPIO_MODE_RS(index)
 #endif
@@ -82,31 +88,31 @@ static constexpr size_t PL_GPIO_COUNT = 23;
   PL_GPIO_MODE_LS(base_index + 1)        \
   PL_GPIO_MODE_RS(base_index + 2)
 
-#define PL_GPIOS()                              \
-  PL_GPIO(0, button_north, BUTTON_NORTH)        \
-  PL_GPIO(1, button_east, BUTTON_EAST)          \
-  PL_GPIO(2, button_south, BUTTON_SOUTH)        \
-  PL_GPIO(3, button_west, BUTTON_WEST)          \
-  PL_GPIO(4, button_l1, BUTTON_L1)              \
-  PL_GPIO(5, button_l2, BUTTON_L2)              \
-  PL_GPIO(6, button_l3, BUTTON_L3)              \
-  PL_GPIO(7, button_r1, BUTTON_R1)              \
-  PL_GPIO(8, button_r2, BUTTON_R2)              \
-  PL_GPIO(9, button_r3, BUTTON_R3)              \
-  PL_GPIO(10, button_select, BUTTON_SELECT)     \
-  PL_GPIO(11, button_start, BUTTON_START)       \
-  PL_GPIO(12, button_home, BUTTON_HOME)         \
-  PL_GPIO(13, button_touchpad, BUTTON_TOUCHPAD) \
-  PL_GPIO(14, stick_up, STICK_UP)               \
-  PL_GPIO(15, stick_down, STICK_DOWN)           \
-  PL_GPIO(16, stick_right, STICK_RIGHT)         \
-  PL_GPIO(17, stick_left, STICK_LEFT)           \
-  PL_GPIO_MODE_LOCK(18)                         \
-  PL_GPIO_MODE_PS3(19)                          \
+#define PL_GPIOS()             \
+  PL_GPIO(0, button_north)     \
+  PL_GPIO(1, button_east)      \
+  PL_GPIO(2, button_south)     \
+  PL_GPIO(3, button_west)      \
+  PL_GPIO(4, button_l1)        \
+  PL_GPIO(5, button_l2)        \
+  PL_GPIO(6, button_l3)        \
+  PL_GPIO(7, button_r1)        \
+  PL_GPIO(8, button_r2)        \
+  PL_GPIO(9, button_r3)        \
+  PL_GPIO(10, button_select)   \
+  PL_GPIO(11, button_start)    \
+  PL_GPIO(12, button_home)     \
+  PL_GPIO(13, button_touchpad) \
+  PL_GPIO(14, stick_up)        \
+  PL_GPIO(15, stick_down)      \
+  PL_GPIO(16, stick_right)     \
+  PL_GPIO(17, stick_left)      \
+  PL_GPIO_MODE_LOCK(18)        \
+  PL_GPIO_MODE_PS3(19)         \
   PL_GPIO_OUTPUT_MODES(20)
 
 struct RawInputState {
-#define PL_GPIO(index, name, NAME) uint32_t name : 1;
+#define PL_GPIO(index, name) uint32_t name : 1;
   PL_GPIOS()
 #undef PL_GPIO
 };
