@@ -11,11 +11,17 @@ mkdir -p "$BUILD_DIR"
 
 if [[ $PL_MCUBOOT_SUPPORTED == 1 ]]; then
   # Build MCUboot.
+  OVERLAY_FILE="$(realpath "$ROOT/passinglink/boards/$BOARD.overlay")"
+  OVERLAY=""
+  [[ -f "$OVERLAY_FILE" ]] && OVERLAY="-DDTC_OVERLAY_FILE=$OVERLAY_FILE"
+
   west build -p -d "$BUILD_DIR/mcuboot" -s "$ROOT/bootloader/mcuboot/boot/zephyr" -- \
     -DCONFIG_SINGLE_APPLICATION_SLOT=y \
     -DCONFIG_SIZE_OPTIMIZATIONS=y \
+    -DCONFIG_USB_DEVICE_STACK=y \
     -DCONFIG_USB_DEVICE_VID=1209 -DCONFIG_USB_DEVICE_PID=214d \
     -DCONFIG_USB_DEVICE_PRODUCT="\"Passing Link Bootloader\"" \
+    $OVERLAY \
     ${PL_MCUBOOT_OPTS}
   cp "$BUILD_DIR/mcuboot/zephyr/zephyr.bin" "$BUILD_DIR/mcuboot.bin"
 fi
