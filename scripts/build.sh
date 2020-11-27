@@ -41,6 +41,7 @@ if [[ "${PL_SKIP_PL-}" != 1 ]]; then
     west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink"
 
     # Don't bother signing the image.
+    cp "$BUILD_DIR/pl/zephyr/zephyr.bin" "$BUILD_DIR/pl.bin"
     cp "$BUILD_DIR/pl/zephyr/zephyr.hex" "$BUILD_DIR/pl.hex"
   fi
 fi

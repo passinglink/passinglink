@@ -1,0 +1,55 @@
+name: build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        board: [pl_e73, pl_dongle, pl_bluepill, stm32f4_disco]
+
+    env:
+      BOARD: ${{ matrix.board }}
+      ZEPHYR_SDK_VERSION: 0.11.4
+      ZEPHYR_TOOLCHAIN_VARIANT: zephyr
+      ZEPHYR_SDK_INSTALL_DIR: ${{ github.workspace }}/zephyr/sdk
+
+    steps:
+    - name: Cache Zephyr
+      uses: actions/cache@v2
+      env:
+        cache-name: zephyr
+      with:
+        path: zephyr
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ env.ZEPHYR_SDK_VERSION }}-0
+
+    - name: Install host dependencies
+      run: sudo apt-get install --no-install-recommends -y ninja-build device-tree-compiler
+
+    - name: Install Python dependencies
+      run: pip3 install west click cryptography cbor intelhex pyelftools && echo $HOME/.local/bin >> $GITHUB_PATH
+
+    - name: Install Zephyr SDK
+      run: "[[ -d zephyr/sdk ]] || (mkdir -p zephyr && wget -O /tmp/zephyr.sh https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v$ZEPHYR_SDK_VERSION/zephyr-sdk-$ZEPHYR_SDK_VERSION-setup.run && sh /tmp/zephyr.sh -- -d $ZEPHYR_SDK_INSTALL_DIR -y && cd $ZEPHYR_SDK_INSTALL_DIR && rm -rf {arc,nios2,riscv64,sparc,x86_64}-zephyr-elf sysroots xtensa)"
+
+    - uses: actions/checkout@v2
+      with:
+        path: zephyr/passinglink
+
+    - name: Initialize west repository
+      run: "[[ -d zephyr/.west ]] || (cd zephyr/passinglink && west init -l . && west update)"
+
+    - name: Sync sources
+      run: cd zephyr/passinglink && west update
+
+    - name: Build
+      run: cd zephyr/passinglink && ./scripts/build.sh
+
+    - name: Cleanup
+      run: mv zephyr/passinglink/build/${{ matrix.board }}/pl.bin ${{ matrix.board }}.bin && rm -rf zephyr/passinglink
+
+    - name: Archive binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.board }}
+        path: ${{ matrix.board }}.bin
