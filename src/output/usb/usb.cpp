@@ -144,18 +144,11 @@ void set_boot_probe(optional<ProbeType> probe) {
 #if PL_USB_OUTPUT_COUNT > 1
 static optional<ProbeType> current_probe;
 
-#if !defined(REBOOT_PROBE)
-static k_delayed_work probe_start_work;
-#endif
-
 static k_delayed_work probe_check_work;
-static void usb_probe_start(k_work*);
+static void usb_probe_start();
 static void usb_probe_check(k_work*);
 
 static int usb_probe() {
-#if !defined(REBOOT_PROBE)
-  k_delayed_work_init(&probe_start_work, usb_probe_start);
-#endif
   k_delayed_work_init(&probe_check_work, usb_probe_check);
 
   optional<ProbeType> probe;
@@ -207,11 +200,11 @@ static int usb_probe() {
   }
 
   current_probe = probe;
-  usb_probe_start(nullptr);
+  usb_probe_start();
   return 0;
 }
 
-static void usb_probe_start(k_work*) {
+static void usb_probe_start() {
   if (!current_probe) {
     current_probe = ProbeTypeFirst();
     if (!current_probe) {
@@ -266,7 +259,7 @@ static void usb_probe_check(k_work*) {
 #else
   passinglink::usb_hid_uninit();
   current_probe = next_probe;
-  usb_probe_start(nullptr);
+  usb_probe_start();
 #endif
 }
 #endif  // PL_USB_OUTPUT_COUNT > 1
