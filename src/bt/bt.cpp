@@ -36,6 +36,15 @@ static struct bt_conn_cb connection_cbs = {
             LOG_ERR("connection failed (err 0x%02x)", err);
           } else {
             LOG_INF("connection succeeded");
+            struct bt_le_conn_param param = {
+              .interval_min = 6,
+              .interval_max = 6,
+              .latency = 0,
+              .timeout = 3200,
+            };
+            if (bt_conn_le_param_update(conn, &param) != 0) {
+              LOG_WRN("failed to update bluetooth connection parameters");
+            }
           }
         },
     .disconnected =
