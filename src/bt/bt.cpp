@@ -13,6 +13,7 @@
 
 #include "input/input.h"
 #include "opt/gundam.h"
+#include "version.h"
 
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(bt);
@@ -80,6 +81,69 @@ void bluetooth_init() {
     return;
   }
 }
+
+static struct bt_uuid_128 bt_version_svc_uuid = BT_UUID_INIT_128(0x00, 0x00, PL_BT_UUID_PREFIX);
+
+static struct bt_uuid_128 bt_version_str_uuid = BT_UUID_INIT_128(0x01, 0x00, PL_BT_UUID_PREFIX);
+static struct bt_uuid_128 bt_version_branch_uuid = BT_UUID_INIT_128(0x02, 0x00, PL_BT_UUID_PREFIX);
+static struct bt_uuid_128 bt_version_commit_uuid = BT_UUID_INIT_128(0x03, 0x00, PL_BT_UUID_PREFIX);
+
+static ssize_t bt_version_str_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
+                               uint16_t len, uint16_t offset) {
+  const char* version = version_string();
+  return bt_gatt_attr_read(conn, attr, buf, len, offset, version, strlen(version));
+}
+
+static ssize_t bt_version_branch_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
+                               uint16_t len, uint16_t offset) {
+  return bt_gatt_attr_read(conn, attr, buf, len, offset, git_branch, strlen(git_branch));
+}
+
+static ssize_t bt_version_commit_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
+                               uint16_t len, uint16_t offset) {
+  return bt_gatt_attr_read(conn, attr, buf, len, offset, git_commit, strlen(git_commit));
+}
+
+// clang-format off
+BT_GATT_SERVICE_DEFINE(bt_version_svc,
+  BT_GATT_PRIMARY_SERVICE(&bt_version_svc_uuid),
+  BT_GATT_CHARACTERISTIC(
+    &bt_version_str_uuid.uuid,
+    BT_GATT_CHRC_READ,
+#if CONFIG_PASSINGLINK_BT_AUTHENTICATION
+    BT_GATT_PERM_READ_ENCRYPT,
+#else
+    BT_GATT_PERM_READ,
+#endif
+    bt_version_str_read,
+    nullptr,
+    nullptr
+  ),
+  BT_GATT_CHARACTERISTIC(
+    &bt_version_branch_uuid.uuid,
+    BT_GATT_CHRC_READ,
+#if CONFIG_PASSINGLINK_BT_AUTHENTICATION
+    BT_GATT_PERM_READ_ENCRYPT,
+#else
+    BT_GATT_PERM_READ,
+#endif
+    bt_version_branch_read,
+    nullptr,
+    nullptr
+  ),
+  BT_GATT_CHARACTERISTIC(
+    &bt_version_commit_uuid.uuid,
+    BT_GATT_CHRC_READ,
+#if CONFIG_PASSINGLINK_BT_AUTHENTICATION
+    BT_GATT_PERM_READ_ENCRYPT,
+#else
+    BT_GATT_PERM_READ,
+#endif
+    bt_version_commit_read,
+    nullptr,
+    nullptr
+  ),
+);
 
 #if defined(CONFIG_PASSINGLINK_BT_INPUT)
 static struct bt_uuid_128 bt_input_svc_uuid = BT_UUID_INIT_128(0x00, 0x01, PL_BT_UUID_PREFIX);
