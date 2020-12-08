@@ -20,7 +20,9 @@ if [[ $PL_MCUBOOT_SUPPORTED == 1 && "${PL_SKIP_MCUBOOT-}" != 1 ]]; then
     -DCONFIG_SIZE_OPTIMIZATIONS=y \
     -DCONFIG_USB_DEVICE_STACK=y \
     -DCONFIG_USB_DEVICE_VID=1209 -DCONFIG_USB_DEVICE_PID=214d \
+    -DCONFIG_USB_DEVICE_MANUFACTURER="\"Passing Link\"" \
     -DCONFIG_USB_DEVICE_PRODUCT="\"Passing Link Bootloader\"" \
+    -DCONFIG_USB_REQUEST_BUFFER_SIZE=32768 \
     $OVERLAY \
     ${PL_MCUBOOT_OPTS}
   cp "$BUILD_DIR/mcuboot/zephyr/zephyr.hex" "$BUILD_DIR/mcuboot.hex"
