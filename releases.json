@@ -1,0 +1,14 @@
+{
+  "releases": {
+    "1.0.0": {
+      "filename": "v1.0.0.bin",
+      "boards": ["pl_dongle", "pl_e73", "stm32f4_disco"]
+    }
+  },
+  "nightly": {
+    "version": "c5233b5",
+    "date": "2020-12-08",
+    "filename": "nightly-c5233b5.bin",
+    "boards": ["pl_dongle", "pl_e73", "stm32f4_disco"]
+  }
+}
