@@ -1,0 +1,16 @@
+name: Cache refresh
+on:
+  schedule:
+    - cron: '0 0 */6 * *'
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Cache Zephyr
+      uses: actions/cache@v2
+      env:
+        cache-name: zephyr
+      with:
+        path: zephyr
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ env.ZEPHYR_SDK_VERSION }}-0
