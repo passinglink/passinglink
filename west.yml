@@ -9,7 +9,7 @@ manifest:
   projects:
     - name: zephyr
       remote: passinglink
-      revision: pl-v2.4-20201208
+      revision: pl-v2.4-20201212
       import: true
     - name: mcuboot
       remote: passinglink
