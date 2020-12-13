@@ -11,7 +11,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND git describe --tags
+  COMMAND ${CMAKE_SOURCE_DIR}/scripts/version.sh
   OUTPUT_VARIABLE GIT_VERSION
   ERROR_QUIET
 )

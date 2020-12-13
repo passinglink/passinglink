@@ -54,3 +54,26 @@ jobs:
       with:
         name: ${{ matrix.board }}
         path: ${{ matrix.board }}.bin
+
+  deploy:
+    runs-on: ubuntu-20.04
+    needs: build
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: zephyr/passinglink
+        fetch-depth: 0
+
+    - uses: actions/checkout@v2
+      with:
+        path: gh-pages
+        ref: gh-pages
+        fetch-depth: 1
+
+    - uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+
+    - name: Deploy
+      run: zephyr/passinglink/scripts/deploy.sh
