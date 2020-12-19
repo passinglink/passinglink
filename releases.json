@@ -7,6 +7,15 @@
         "pl_e73",
         "stm32f4_disco"
       ]
+    },
+    "1.0.1": {
+      "date": "2020-12-19",
+      "filename": "v1.0.1.bin",
+      "boards": [
+        "pl_e73",
+        "pl_dongle",
+        "stm32f4_disco"
+      ]
     }
   },
   "nightly": {
