@@ -1,6 +1,7 @@
 {
   "releases": {
     "1.0.0": {
+      "date": "2020-12-08",
       "filename": "v1.0.0.bin",
       "boards": [
         "pl_dongle",
