@@ -10,9 +10,9 @@
     }
   },
   "nightly": {
-    "version": "v1.0.0-5-g55ce447",
+    "version": "v1.0.0-6-g9aa76ae",
     "date": "2020-12-19",
-    "filename": "nightly-55ce447.bin",
+    "filename": "nightly-9aa76ae.bin",
     "boards": [
       "pl_e73",
       "pl_dongle",
