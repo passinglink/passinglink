@@ -11,7 +11,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND ${CMAKE_SOURCE_DIR}/scripts/version.sh
+  COMMAND ${CMAKE_CURRENT_LIST_DIR}/scripts/version.sh
   OUTPUT_VARIABLE GIT_VERSION
   ERROR_QUIET
 )
