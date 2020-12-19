@@ -16,9 +16,29 @@ COMMIT=$(git -C $SCRIPT_PATH rev-parse --short HEAD)
 PAGES_DIR="gh-pages"
 
 if [[ "$TAG" != "$GITHUB_REF" ]]; then
-  echo "Branch '$TAG' pushed: version $VERSION"
-  echo "Unimplemented"
-  exit 0
+  if [[ "$TAG" != v* ]]; then
+    echo "Unexpected tag format, skipping"
+    exit 0
+  fi
+  echo "Tag '$TAG' pushed"
+  RAW_VERSION=${TAG#v}
+  FILENAME="$TAG.bin"
+  jq "
+    .releases += {
+      \"$RAW_VERSION\": {
+        \"date\": \"$(date -I)\",
+        \"filename\": \"$FILENAME\",
+        \"boards\": $BOARDS_JSON
+      }
+    }
+  " $PAGES_DIR/releases.json > $PAGES_DIR/releases.json.new
+  mv $PAGES_DIR/releases.json.new $PAGES_DIR/releases.json
+
+  for BOARD in ${BOARDS[@]}; do
+    cp artifacts/$BOARD/$BOARD.bin $PAGES_DIR/$BOARD/$FILENAME
+  done
+
+  COMMIT_MESSAGE="Update binaries for release $TAG"
 elif [[ "$BRANCH" != "$GITHUB_REF" ]]; then
   if [[ "$BRANCH" != "master" ]]; then
     echo "Pushed branch isn't master, aborting";
@@ -42,8 +62,10 @@ elif [[ "$BRANCH" != "$GITHUB_REF" ]]; then
     cp artifacts/$BOARD/$BOARD.bin $PAGES_DIR/$BOARD/$FILENAME
   done
 
-  git -C $PAGES_DIR config --local user.name "GitHub Actions"
-  git -C $PAGES_DIR add -A
-  git -C $PAGES_DIR commit -m "Update binaries for commit $COMMIT"
-  git -C $PAGES_DIR push origin HEAD:gh-pages
+  COMMIT_MESSAGE="Update binaries for commit $COMMIT"
 fi
+
+git -C $PAGES_DIR config --local user.name "GitHub Actions"
+git -C $PAGES_DIR add -A
+git -C $PAGES_DIR commit -m "$COMMIT_MESSAGE"
+git -C $PAGES_DIR push origin HEAD:gh-pages
