@@ -168,7 +168,7 @@
     };
 
     tp_rst {
-      gpios = <&gpio0 7 (GPIO_PUSH_PULL)>;
+      gpios = <&gpio0 4 (GPIO_PUSH_PULL)>;
       label = "Touchpad reset";
     };
   };
