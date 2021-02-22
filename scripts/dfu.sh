@@ -13,8 +13,12 @@ set -euxo pipefail
 BUILD_DIR="build_$BOARD"
 
 ## Build, sign, and flash Passing Link.
-west build -p -d "$BUILD_DIR/pl" -s "$ROOT/passinglink" -- \
-  -DCONFIG_BOOTLOADER_MCUBOOT=y
+if [ ! -d "$BUILD_DIR/pl" ]; then
+  west build --cmake-only -s "$ROOT/passinglink" -- \
+    -DCONFIG_BOOTLOADER_MCUBOOT=y
+fi
+
+west build -d "$BUILD_DIR/pl"
 "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.bin" "$BUILD_DIR/pl.bin"
 
 dfu-util --alt 0 --download "$BUILD_DIR/pl.bin"
