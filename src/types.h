@@ -192,8 +192,17 @@ struct span {
   span(const span& copy) = default;
   span(span&& move) = default;
 
+  span& operator=(const span& copy) = default;
+  span& operator=(span&& move) = default;
+
   template <size_t Length>
-  explicit span(const T (&array)[Length]) : span(&array, Length) {}
+  span(T (&array)[Length]) : span(&array[0], Length) {}
+
+  template <size_t Length>
+  /* implicit */ span(array<T, Length>& arr) : span(arr.data(), Length) {}
+
+  template <size_t Length>
+  span(array<T, Length>& arr, size_t length) : span(arr.data(), length) {}
 
   T& operator[](size_t offset) { return data()[offset]; }
   T* data() { return ptr_; }
@@ -202,15 +211,17 @@ struct span {
 
   bool empty() const { return size() == 0; }
 
-  void remove_prefix(size_t n) {
+  span& remove_prefix(size_t n) {
     assert(length_ >= n);
     ptr_ += n;
     length_ -= n;
+    return *this;
   }
 
-  void remove_suffix(size_t n) {
+  span& remove_suffix(size_t n) {
     assert(length_ >= n);
     length_ -= n;
+    return *this;
   }
 
  private:
