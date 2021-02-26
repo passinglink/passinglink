@@ -9,15 +9,15 @@ manifest:
   projects:
     - name: zephyr
       remote: passinglink
-      revision: pl-v2.4-20210220
+      revision: pl-v2.5-20210226
       import: true
     - name: mcuboot
       remote: passinglink
-      revision: pl-v2.4-20201127
+      revision: pl-v2.5-20210226
       path: bootloader/mcuboot
     - name: mbedtls
       remote: passinglink
-      revision: pl-v2.4-20201110
+      revision: pl-v2.5-20210226
       path: modules/crypto/mbedtls
     - name: mbed_embed
       remote: passinglink
