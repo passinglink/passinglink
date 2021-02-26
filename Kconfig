@@ -132,6 +132,25 @@ config PASSINGLINK_OUTPUT_USB_DEFERRED
 
 endmenu # Output methods
 
+menu "Display"
+
+config PASSINGLINK_DISPLAY
+  bool "Enable display output"
+  default n
+  help
+    Enable display output
+  select PASSINGLINK_DISPLAY_1306
+
+config PASSINGLINK_DISPLAY_SSD1306
+  bool "Enable SSD1306 display output"
+  default n
+  help
+    Enable I2C output to an SSD1306 OLED driver
+  select I2C
+  depends on PASSINGLINK_DISPLAY
+
+endmenu
+
 menu "Optional components"
 
 config PASSINGLINK_BT

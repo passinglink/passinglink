@@ -267,6 +267,14 @@ void swap(T& a, T& b) {
   b = tmp;
 }
 
+template <typename T>
+T min(T a, T b) {
+  if (a < b) {
+    return a;
+  }
+  return b;
+}
+
 template <typename Iterator, typename Comparator>
 Iterator min(Iterator begin, Iterator end, Comparator cmp) {
   Iterator min = begin;

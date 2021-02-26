@@ -49,6 +49,15 @@ target_sources_ifdef(CONFIG_PASSINGLINK_INPUT_TOUCHPAD_PANTHERA app PRIVATE
     src/input/touchpad/panthera.cpp
 )
 
+target_sources_ifdef(CONFIG_PASSINGLINK_DISPLAY app PRIVATE
+    src/display/display.cpp
+    src/display/menu.cpp
+)
+
+target_sources_ifdef(CONFIG_PASSINGLINK_DISPLAY_SSD1306 app PRIVATE
+    src/display/ssd1306.cpp
+)
+
 include_directories(
     src
     keys

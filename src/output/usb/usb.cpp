@@ -11,16 +11,24 @@
 #include <usb/usb_device.h>
 
 #include "arch.h"
+#include "display/display.h"
 #include "input/input.h"
 #include "output/led.h"
 #include "output/output.h"
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
+#include "output/usb/probe_type.h"
 #include "output/usb/ps3/hid.h"
 #include "output/usb/ps4/hid.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(usb);
+
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+#define DISPLAY_PROBE(probing, type) display_set_connection_type(probing, type)
+#else
+#define DISPLAY_PROBE(probing, type) (void)0
+#endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
 static nx::Hid nx_hid;
@@ -39,12 +47,6 @@ static ps4::Hid ps4_hid;
 #endif
 
 static uint32_t probe_led_counter;
-
-enum class ProbeType : uint64_t {
-  NX = 0xAAAAAAAAAAAAAAAA,
-  PS3 = 0xA0A0A0A0A0A0A0A0,
-  PS4 = 0x5555555555555555,
-};
 
 static optional<ProbeType> ProbeTypeFirst() {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH_PROBE)
@@ -172,6 +174,7 @@ static int usb_probe() {
 #if PL_GPIO_AVAILABLE(mode_ps3) && defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
       if (!input.mode_ps3) {
         LOG_WRN("PS4 mode switch set, selecting PS4");
+        DISPLAY_PROBE(false, ProbeType::PS4);
         return passinglink::usb_hid_init(&ps4_hid);
       }
 #endif
@@ -179,6 +182,7 @@ static int usb_probe() {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
       if (input.button_west) {
         LOG_WRN("Switch mode selected via button");
+        DISPLAY_PROBE(false, ProbeType::NX);
         return passinglink::usb_hid_init(&nx_hid);
       }
 #endif
@@ -186,6 +190,7 @@ static int usb_probe() {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
       if (input.button_north) {
         LOG_WRN("PS3 mode selected via button");
+        DISPLAY_PROBE(false, ProbeType::PS3);
         return passinglink::usb_hid_init(&ps3_hid);
       }
 #endif
@@ -193,6 +198,7 @@ static int usb_probe() {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
       if (input.button_r1) {
         LOG_WRN("PS4 mode selected via button");
+        DISPLAY_PROBE(false, ProbeType::PS4);
         return passinglink::usb_hid_init(&ps4_hid);
       }
 #endif
@@ -211,6 +217,7 @@ static void usb_probe_start() {
       LOG_ERR("no available USB HID implementations");
       return;
     }
+    DISPLAY_PROBE(true, *current_probe);
   }
 
   led_off(Led::P1);
@@ -234,6 +241,8 @@ static void usb_probe_selected() {
   led_flash(Led::P2, 1000, 300);
   led_flash(Led::P3, 1000, 300);
   led_flash(Led::P4, 1000, 300);
+
+  DISPLAY_PROBE(false, *current_probe);
 #if defined(REBOOT_PROBE)
   set_boot_probe({});
 #endif

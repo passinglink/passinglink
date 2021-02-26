@@ -10,6 +10,7 @@
 #endif
 
 #include "bt/bt.h"
+#include "display/display.h"
 #include "input/input.h"
 #include "output/output.h"
 #include "provisioning.h"
@@ -80,6 +81,10 @@ extern "C" void main(void) {
   // Enable the trace unit so we can get a cycle count.
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+#endif
+
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+  display_init();
 #endif
 
   provisioning_init();

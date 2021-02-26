@@ -5,6 +5,10 @@
   model = "Passing Link Dongle";
   compatible = "nordic,nrf52840-qiaa", "nordic,nrf52840";
 
+  aliases {
+    display-i2c = &i2c0;
+  };
+
   chosen {
     zephyr,console = &uart0;
     zephyr,shell-uart = &uart0;
@@ -65,6 +69,16 @@
   status = "okay";
   tx-pin = <20>;
   rx-pin = <19>;
+};
+
+&i2c0 {
+  compatible = "nordic,nrf-twim";
+  status = "okay";
+
+  zephyr,concat-buf-size = <2048>;
+  clock-frequency = <720000>;
+  scl-pin = <9>;
+  sda-pin = <10>;
 };
 
 &usbd {
