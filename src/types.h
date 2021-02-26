@@ -146,6 +146,45 @@ struct array {
   const T& operator[](size_t idx) const { return contents[idx]; }
 };
 
+template <typename T, size_t Capacity>
+struct stack {
+  size_t size() const {
+    return size_;
+  }
+
+  T& front() {
+    if (size_ == 0) {
+      PANIC("front called on empty stack");
+    }
+    return data_[size_ - 1];
+  }
+
+  T& push(T t) {
+    if (size_ == Capacity) {
+      PANIC("stack overflow");
+    }
+    return *new (&data_[size_++]) T(static_cast<T&&>(t));
+  }
+
+  void pop() {
+    if (size_ == 0) {
+      PANIC("stack underflow");
+    }
+    data_[--size_].~T();
+  }
+
+  bool empty() const { return size_ == 0; }
+
+  void clear() {
+    while (!empty()) {
+      pop();
+    }
+  }
+
+  size_t size_ = 0;
+  array<T, Capacity> data_;
+};
+
 template <typename T>
 struct span {
   span() : span(nullptr, 0) {}
