@@ -127,6 +127,25 @@ struct optional {
   alignas(T) char obj_[sizeof(T)];
 };
 
+template <typename T, size_t N>
+struct array {
+  T contents[N];
+
+  constexpr size_t size() const { return N; }
+
+  T* data() { return contents; }
+  const T* data() const { return contents; }
+
+  T& operator*() { return *contents; }
+  const T& operator*() const { return *contents; }
+
+  T& operator->() { return *contents; }
+  const T& operator->() const { return *contents; }
+
+  T& operator[](size_t idx) { return contents[idx]; }
+  const T& operator[](size_t idx) const { return contents[idx]; }
+};
+
 template <typename T>
 struct span {
   span() : span(nullptr, 0) {}
