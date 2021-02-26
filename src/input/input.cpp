@@ -13,6 +13,7 @@ LOG_MODULE_REGISTER(input);
 #include "arch.h"
 #include "input/queue.h"
 #include "input/touchpad.h"
+#include "panic.h"
 #include "profiling.h"
 
 TouchpadData touchpad_data;
@@ -80,8 +81,7 @@ static uint8_t gpio_device_add(const struct device* device) {
     }
   }
   if (gpio_device_count == GPIO_PORT_COUNT) {
-    LOG_ERR("ran out of cached GPIO device slots");
-    k_panic();
+    PANIC("ran out of cached GPIO device slots");
   }
 
   i = gpio_device_count++;
@@ -94,13 +94,11 @@ static void input_gpio_init() {
   {                                                                                             \
     const struct device* device = device_get_binding(PL_GPIO_LABEL(name));                      \
     if (!device) {                                                                              \
-      LOG_ERR("failed to find gpio device %s", PL_GPIO_LABEL(name));                            \
-      k_panic();                                                                                \
+      PANIC("failed to find gpio device %s", PL_GPIO_LABEL(name));                              \
     }                                                                                           \
     if (gpio_pin_configure(device, PL_GPIO_PIN(name), PL_GPIO_FLAGS(name) | GPIO_INPUT) != 0) { \
-      LOG_ERR("failed to configure gpio pin (device = %s, pin = %d)", PL_GPIO_LABEL(name),      \
-              PL_GPIO_PIN(name));                                                               \
-      k_panic();                                                                                \
+      PANIC("failed to configure gpio pin (device = %s, pin = %d)", PL_GPIO_LABEL(name),        \
+            PL_GPIO_PIN(name));                                                                 \
     };                                                                                          \
     uint8_t device_offset = gpio_device_add(device);                                            \
     gpio_indices[index] = device_offset;                                                        \
@@ -122,8 +120,7 @@ bool input_get_raw_state(RawInputState* out) {
   gpio_port_value_t port_values[GPIO_PORT_COUNT];
   for (size_t i = 0; i < gpio_device_count; ++i) {
     if (gpio_port_get_raw(gpio_devices[i], &port_values[i]) != 0) {
-      LOG_ERR("failed to get gpio values");
-      k_panic();
+      PANIC("failed to get gpio values");
     }
   }
 
@@ -166,7 +163,7 @@ static StickState stick_state_from_x_y(int horizontal, int vertical) {
     return StickState::Neutral;
   }
 
-  k_panic();
+  __builtin_unreachable();
 }
 
 // Scale {-1, 0, 1} to {-128, 0, 127}.

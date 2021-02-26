@@ -11,6 +11,7 @@
 #include <mbedtls/rsa.h>
 #include <mbedtls/sha256.h>
 
+#include "panic.h"
 #include "provisioning.h"
 
 #define LOG_LEVEL LOG_LEVEL_INF
@@ -177,8 +178,7 @@ static size_t copy_mpi(span<uint8_t> buf, size_t offset, const void* arg, size_t
   const mbedtls_mpi* mpi = static_cast<const mbedtls_mpi*>(arg);
   unsigned char data[256];
   if (mbedtls_mpi_write_binary(mpi, data, sizeof(data)) != 0) {
-    LOG_ERR("failed to write mbedtls_mpi");
-    k_panic();
+    PANIC("failed to write mbedtls_mpi");
   }
   return copy_generic(buf, offset, data, expected_size);
 }
@@ -214,8 +214,7 @@ static void copy_signature(span<uint8_t> buf, size_t offset) {
   }
 
   if (!buf.empty()) {
-    LOG_ERR("ran out of signature parts?");
-    k_panic();
+    PANIC("ran out of signature parts?");
   }
 }
 

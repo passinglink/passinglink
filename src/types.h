@@ -8,6 +8,8 @@
 
 #include <zephyr.h>
 
+#include "panic.h"
+
 // Placement new overload that normally comes from <new>.
 inline void* operator new(size_t size, void* ptr) {
   return ptr;
