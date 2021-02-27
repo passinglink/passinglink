@@ -251,8 +251,13 @@ struct Display {
     dirty_ = true;
 
     uint8_t* buf = current_buffer()->buffer;
-    for (size_t line_idx = 0; line_idx < 22; ++line_idx) {
-      size_t column_idx = line_idx * 6;
+
+    // We use 126 columns for the text, but the logo takes the full 128.
+    // Leave two empty columns at the beginning to approximately center things.
+    buf[row_idx] = 0;
+    buf[row_idx + 4] = 0;
+    for (size_t column_idx = 0; column_idx < 21; ++column_idx) {
+      size_t pixel_idx = column_idx * 6 + 2;
       char character = 0x20;
       if (line) {
         if (*line) {
@@ -268,14 +273,11 @@ struct Display {
 
       const uint8_t* data = &font[5 * (character - 0x20)];
       for (size_t i = 0; i < 5; ++i) {
-        buf[(column_idx + i) * 4 + row_idx] = data[i];
+        buf[(pixel_idx + i) * 4 + row_idx] = data[i];
       }
 
       // Space between columns.
-      buf[(column_idx + 5) * 4 + row_idx] = 0;
-    }
-    for (int i = 21 * 6; i < 128; ++i) {
-      buf[i * 4 + row_idx] = 0;
+      buf[(pixel_idx + 5) * 4 + row_idx] = 0;
     }
   }
 

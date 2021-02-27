@@ -19,7 +19,7 @@ static ProbeType status_probe_type;
 
 static void display_draw_status_line() {
   char buf[DISPLAY_WIDTH + 1];
-  static_assert(DISPLAY_WIDTH == 22);
+  static_assert(DISPLAY_WIDTH == 21);
   char* p = buf;
 
   memset(buf, ' ', sizeof(buf) - 1);

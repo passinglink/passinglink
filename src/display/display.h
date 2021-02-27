@@ -6,7 +6,7 @@
 #include "output/usb/probe_type.h"
 
 // Columns of text
-#define DISPLAY_WIDTH 22
+#define DISPLAY_WIDTH 21
 
 // Rows of text
 #define DISPLAY_ROWS 3
