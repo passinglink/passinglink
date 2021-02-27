@@ -177,11 +177,50 @@ static uint8_t stick_scale(int sign) {
   }
 }
 
+struct ButtonHistory {
+  bool state;
+
+  // The cycle on which it entered the state.
+  uint64_t tick;
+};
+
+struct {
+#define PL_GPIO(index, name) ButtonHistory name;
+  PL_GPIOS()
+#undef PL_GPIO
+} button_history;
+
+// Debounce a button input, given its history.
+// Updates ButtonHistory and returns the value that should be used.
+static bool input_debounce(bool current_state, ButtonHistory* button_history,
+                           uint64_t current_tick) {
+  if (current_state == button_history->state) {
+    return current_state;
+  }
+
+  // Only allow transitions every 5 milliseconds.
+  // TODO: Make configurable?
+  uint64_t duration_ticks = current_tick - button_history->tick;
+  constexpr uint64_t transition_time = k_ms_to_cyc_ceil64(5);
+  if (duration_ticks < transition_time) {
+    return !current_state;
+  }
+
+  button_history->state = current_state;
+  button_history->tick = current_tick;
+  return current_state;
+}
+
 bool input_parse(InputState* out, const RawInputState* in) {
   PROFILE("input_parse", 128);
 
   // Copy TouchpadData.
   out->touchpad_data = touchpad_data;
+
+  // Debounce inputs.
+#define PL_GPIO(index, name) out->name = input_debounce(button_history.name);
+  PL_GPIOS()
+#undef PL_GPIO
 
   // Assign buttons.
   out->button_north = in->button_north;
