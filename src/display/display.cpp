@@ -1,5 +1,8 @@
 #include "display/display.h"
 
+#include <stdio.h>
+
+#include "arch.h"
 #include "display/menu.h"
 #include "display/ssd1306.h"
 #include "types.h"
@@ -11,6 +14,7 @@ LOG_MODULE_REGISTER(display);
 
 static bool status_locked;
 static bool status_probing;
+static optional<uint32_t> status_latency;
 static ProbeType status_probe_type;
 
 static void display_draw_status_line() {
@@ -47,17 +51,24 @@ static void display_draw_status_line() {
     p = buf + 7;
   }
 
-  if (status_locked) {
+  if (status_locked || true) {
     memcpy(p, "LOCKED", strlen("LOCKED"));
   }
 
-  memcpy(buf + 16, "???us", strlen("???us"));
+  if (!status_latency) {
+    snprintf(buf + 15, 7, " ???us");
+  } else {
+    snprintf(buf + 15, 7, "%4uus", *status_latency);
+  }
+
   buf[DISPLAY_WIDTH] = '\0';
   display_set_line(DISPLAY_ROWS, buf);
 }
 
-void display_update_latency(uint32_t ticks) {
-  // TODO: Implement me.
+void display_update_latency(uint32_t cycles) {
+  status_latency.reset(static_cast<uint64_t>(cycles) * 1'000'000 / get_cpu_freq());
+  display_draw_status_line();
+  display_blit();
 }
 
 void display_set_locked(bool locked) {

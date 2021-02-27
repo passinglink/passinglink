@@ -26,9 +26,17 @@
 static uint32_t get_cycle_count() {
   return DWT->CYCCNT;
 }
+
+static uint32_t get_cpu_freq() {
+  return 64'000'000;
+}
 #else
 static uint32_t get_cycle_count() {
   return k_cycle_get_32();
+}
+
+static uint32_t get_cpu_freq() {
+  return sys_clock_hw_cycles_per_sec();
 }
 #endif
 

@@ -7,6 +7,7 @@
 #include <usb/usb_device.h>
 
 #include "input/touchpad.h"
+#include "metrics/metrics.h"
 #include "output/output.h"
 #include "output/usb/hid.h"
 #include "output/usb/nx/hid.h"
@@ -68,6 +69,8 @@ static void do_write() {
 }
 
 static void write_report(struct k_work* item) {
+  metrics_record_input_read();
+
   uint8_t report_buf[64];
 
   ssize_t report_size;
@@ -256,7 +259,11 @@ static const struct hid_ops ops = {
           // TODO: Write reports to interrupt endpoint.
           LOG_ERR("USB HID report 0x%02x idle", report_id);
         },
-    .int_in_ready = [](const struct device*) { do_write(); },
+    .int_in_ready =
+        [](const struct device*) {
+          metrics_record_usb_write();
+          do_write();
+        },
     .int_out_ready =
         [](const struct device*) {
           uint8_t input_buf[64];
