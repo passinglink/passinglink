@@ -48,6 +48,20 @@ static constexpr size_t PL_GPIO_COUNT = 23;
 #define PL_GPIO_FLAGS(name) DT_GPIO_FLAGS(PL_GPIO_NODE(name), gpios)
 #define PL_GPIO_AVAILABLE(name) DT_NODE_HAS_STATUS(PL_GPIO_NODE(name), okay)
 
+#if PL_GPIO_AVAILABLE(button_menu)
+#define PL_GPIO_MODE_RS_AVAILABLE 1
+#define PL_GPIO_MODE_RS(index) PL_GPIO(index, mode_rs)
+#else
+#define PL_GPIO_MODE_RS(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_menu)
+#define PL_GPIO_BUTTON_MENU_AVAILABLE 1
+#define PL_GPIO_BUTTON_MENU(index) PL_GPIO(index, button_menu)
+#else
+#define PL_GPIO_BUTTON_MENU(index)
+#endif
+
 #if PL_GPIO_AVAILABLE(mode_lock)
 #define PL_GPIO_MODE_LOCK_AVAILABLE 1
 #define PL_GPIO_MODE_LOCK(index) PL_GPIO(index, mode_lock)
@@ -107,9 +121,10 @@ static constexpr size_t PL_GPIO_COUNT = 23;
   PL_GPIO(15, stick_down)      \
   PL_GPIO(16, stick_right)     \
   PL_GPIO(17, stick_left)      \
-  PL_GPIO_MODE_LOCK(18)        \
-  PL_GPIO_MODE_PS3(19)         \
-  PL_GPIO_OUTPUT_MODES(20)
+  PL_GPIO_BUTTON_MENU(19)      \
+  PL_GPIO_MODE_LOCK(20)        \
+  PL_GPIO_MODE_PS3(21)         \
+  PL_GPIO_OUTPUT_MODES(22)
 
 struct RawInputState {
 #define PL_GPIO(index, name) uint32_t name : 1;
