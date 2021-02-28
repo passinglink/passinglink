@@ -43,8 +43,8 @@ struct Menu : public MenuBase {
 struct TextItem : public MenuBase {
   TextItem(const char* heading, const char* value) : heading_(heading), value_(value) {}
 
-  bool on_enter() override { return false; }
-  size_t render_text(span<char> buffer) override {
+  bool on_enter() final { return false; }
+  size_t render_text(span<char> buffer) final {
     size_t n = copy_text(buffer, heading_);
     size_t m = copy_text(buffer.remove_prefix(n), ": ");
     return n + m + copy_text(buffer.remove_prefix(m), value_);
@@ -57,8 +57,8 @@ struct TextItem : public MenuBase {
 struct DynamicTextItem : public MenuBase {
   DynamicTextItem(const char* heading, size_t (*fn)(span<char>)) : heading_(heading), fn_(fn) {}
 
-  bool on_enter() override { return false; }
-  size_t render_text(span<char> buffer) override {
+  bool on_enter() final { return false; }
+  size_t render_text(span<char> buffer) final {
     size_t n = copy_text(buffer, heading_);
     return n + fn_(buffer.remove_prefix(n));
   }
@@ -70,9 +70,9 @@ struct DynamicTextItem : public MenuBase {
 struct ExpandedTextItem : public MenuBase {
   ExpandedTextItem(const char* text) : text_(text) {}
 
-  bool on_enter() override { return false; }
-  size_t render_text(span<char> buffer) override { return copy_text(buffer, text_); }
-  bool show_caret() override { return false; }
+  bool on_enter() final { return false; }
+  size_t render_text(span<char> buffer) final { return copy_text(buffer, text_); }
+  bool show_caret() final { return false; }
 
   const char* text_;
 };
@@ -82,7 +82,7 @@ struct ExpandedTextMenu : public Menu {
                    const char* row3 = nullptr)
       : Menu(name), row1_(row1), row2_(row2), row3_(row3) {}
 
-  size_t menu_items(span<MenuBase*> buffer) override {
+  size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = &row1_;
     buffer[1] = &row2_;
     buffer[2] = &row3_;
@@ -97,12 +97,12 @@ struct ExpandedTextMenu : public Menu {
 struct ActionItem : public MenuBase {
   ActionItem(const char* name, void (*fn)()) : name_(name), fn_(fn) {}
 
-  bool on_enter() override {
+  bool on_enter() final {
     fn_();
     return false;
   }
 
-  size_t render_text(span<char> buffer) override { return copy_text(buffer, name_); }
+  size_t render_text(span<char> buffer) final { return copy_text(buffer, name_); }
 
   const char* name_;
   void (*fn_)();
@@ -254,7 +254,7 @@ struct SettingsMenu : public Menu {
 struct AboutMenu : public Menu {
   AboutMenu() : Menu("About"), version_("Version", version_string()) {}
 
-  size_t menu_items(span<MenuBase*> buffer) {
+  size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = &version_;
     return 1;
   }
@@ -268,7 +268,7 @@ struct MainMenu : public Menu {
         lock_("Lock", []() { input_set_locked(true); }),
         unlock_("Unlock", []() { input_set_locked(false); }) {}
 
-  size_t menu_items(span<MenuBase*> buffer) override {
+  size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = input_get_locked() ? &unlock_ : &lock_;
     buffer[1] = &settings_;
     buffer[2] = &about_;
