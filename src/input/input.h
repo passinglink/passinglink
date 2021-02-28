@@ -142,6 +142,9 @@ struct InputState {
 
 void input_init();
 
+bool input_get_locked();
+void input_set_locked(bool locked);
+
 // Get the raw state of the buttons, unaffected by SOCD cleaning, mode switches, etc.
 bool input_get_raw_state(RawInputState* out);
 

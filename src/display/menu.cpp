@@ -6,6 +6,7 @@
 
 #include "bootloader.h"
 #include "display/display.h"
+#include "input/input.h"
 #include "types.h"
 #include "util.h"
 #include "version.h"
@@ -34,10 +35,7 @@ struct Menu : public MenuBase {
   Menu(const char* name) : name_(name) {}
 
   bool on_enter() override { return true; }
-
-  size_t render_text(span<char> buffer) override {
-    return copy_text(buffer, name_);
-  }
+  size_t render_text(span<char> buffer) override { return copy_text(buffer, name_); }
 
   const char* name_;
 };
@@ -73,10 +71,7 @@ struct ExpandedTextItem : public MenuBase {
   ExpandedTextItem(const char* text) : text_(text) {}
 
   bool on_enter() override { return false; }
-  size_t render_text(span<char> buffer) override {
-    return copy_text(buffer, text_);
-  }
-
+  size_t render_text(span<char> buffer) override { return copy_text(buffer, text_); }
   bool show_caret() override { return false; }
 
   const char* text_;
@@ -107,17 +102,14 @@ struct ActionItem : public MenuBase {
     return false;
   }
 
-  size_t render_text(span<char> buffer) override {
-    return copy_text(buffer, name_);
-  }
+  size_t render_text(span<char> buffer) override { return copy_text(buffer, name_); }
 
   const char* name_;
   void (*fn_)();
 };
 
 struct SettingsMenu : public Menu {
-  SettingsMenu(): Menu("Settings"), dfu_("Firmware update", mcuboot_enter) {
-  }
+  SettingsMenu() : Menu("Settings"), dfu_("Firmware update", mcuboot_enter) {}
 
   size_t menu_items(span<MenuBase*> buffer) {
     buffer[0] = &dfu_;
@@ -139,14 +131,20 @@ struct AboutMenu : public Menu {
 };
 
 struct MainMenu : public Menu {
-  MainMenu() : Menu("Main menu") {}
+  MainMenu()
+      : Menu("Main menu"),
+        lock_("Lock", []() { input_set_locked(true); }),
+        unlock_("Unlock", []() { input_set_locked(false); }) {}
 
   size_t menu_items(span<MenuBase*> buffer) override {
-    buffer[0] = &settings_;
-    buffer[1] = &about_;
-    return 2;
+    buffer[0] = input_get_locked() ? &unlock_ : &lock_;
+    buffer[1] = &settings_;
+    buffer[2] = &about_;
+    return 3;
   }
 
+  ActionItem lock_;
+  ActionItem unlock_;
   SettingsMenu settings_;
   AboutMenu about_;
 };
@@ -188,9 +186,9 @@ static void menu_push(MenuBase* menu) {
   if (menu->on_enter()) {
     LOG_DBG("menu_push: menu");
     MenuLocation loc = {
-      .menu = menu,
-      .scroll_index = menu_scroll_index,
-      .selected_index = menu_selected_index,
+        .menu = menu,
+        .scroll_index = menu_scroll_index,
+        .selected_index = menu_selected_index,
     };
 
     menu_stack.push(loc);
@@ -200,6 +198,9 @@ static void menu_push(MenuBase* menu) {
     menu_selected_index = 0;
   } else {
     LOG_DBG("menu_push: non-menu");
+
+    // Refresh menu items: they might have changed as a result of an action.
+    menu_fetch_items();
   }
 }
 

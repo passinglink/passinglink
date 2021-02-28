@@ -51,7 +51,7 @@ static void display_draw_status_line() {
     p = buf + 7;
   }
 
-  if (status_locked || true) {
+  if (status_locked) {
     memcpy(p, "LOCKED", strlen("LOCKED"));
   }
 

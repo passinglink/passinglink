@@ -11,6 +11,7 @@
 LOG_MODULE_REGISTER(input);
 
 #include "arch.h"
+#include "display/display.h"
 #include "input/queue.h"
 #include "input/touchpad.h"
 #include "panic.h"
@@ -177,6 +178,21 @@ static uint8_t stick_scale(int sign) {
   }
 }
 
+static bool input_locked = false;
+bool input_get_locked() {
+  return input_locked;
+}
+
+void input_set_locked(bool locked) {
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+  if (locked != input_locked) {
+    display_set_locked(locked);
+  }
+#endif
+
+  input_locked = locked;
+}
+
 struct ButtonHistory {
   bool state;
 
@@ -211,16 +227,22 @@ static bool input_debounce(bool current_state, ButtonHistory* button_history,
   return current_state;
 }
 
-bool input_parse(InputState* out, const RawInputState* in) {
+static bool input_parse(InputState* out, RawInputState* in) {
   PROFILE("input_parse", 128);
 
   // Copy TouchpadData.
   out->touchpad_data = touchpad_data;
 
+  uint64_t current_tick = k_uptime_ticks();
   // Debounce inputs.
-#define PL_GPIO(index, name) out->name = input_debounce(button_history.name);
+#define PL_GPIO(index, name) \
+  in->name = input_debounce(in->name, &button_history.name, current_tick);
   PL_GPIOS()
 #undef PL_GPIO
+
+#if defined(PL_GPIO_MODE_LOCK_AVAILABLE)
+  input_set_locked(in->mode_lock);
+#endif
 
   // Assign buttons.
   out->button_north = in->button_north;
@@ -235,16 +257,9 @@ bool input_parse(InputState* out, const RawInputState* in) {
   out->button_r3 = in->button_r3;
   out->button_touchpad = in->button_touchpad;
 
-  out->button_select = in->button_select;
-  out->button_start = in->button_start;
-  out->button_home = in->button_home;
-#if defined(PL_GPIO_MODE_LOCK_AVAILABLE)
-  if (in->mode_lock) {
-    out->button_select = 0;
-    out->button_start = 0;
-    out->button_touchpad = 0;
-  }
-#endif
+  out->button_select = input_locked ? 0 : in->button_select;
+  out->button_start = input_locked ? 0 : in->button_start;
+  out->button_home = input_locked ? 0 : in->button_home;
 
   // Assign stick.
   int stick_vertical = 0;
