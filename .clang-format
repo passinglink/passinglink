@@ -2,6 +2,7 @@ BasedOnStyle: Google
 Standard: Cpp11
 AllowShortFunctionsOnASingleLine: Inline
 ColumnLimit: 100
+ContinuationIndentWidth: 2
 CommentPragmas: NOLINT:.*
 DerivePointerAlignment: false
 IncludeBlocks: Preserve

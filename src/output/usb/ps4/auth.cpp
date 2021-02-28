@@ -187,9 +187,9 @@ static void copy_signature(span<uint8_t> buf, size_t offset) {
   static const uint8_t padding[24] = {0};
   const ProvisioningData* pd = provisioning_data_get();
   SignaturePart parts[] = {
-      {256, copy_generic, nonce_signature},          {16, copy_generic, pd->ps4_key->serial},
-      {256, copy_mpi, &pd->ps4_key->rsa_context->N}, {256, copy_mpi, &pd->ps4_key->rsa_context->E},
-      {256, copy_generic, pd->ps4_key->signature},   {24, copy_generic, padding},
+    {256, copy_generic, nonce_signature},          {16, copy_generic, pd->ps4_key->serial},
+    {256, copy_mpi, &pd->ps4_key->rsa_context->N}, {256, copy_mpi, &pd->ps4_key->rsa_context->E},
+    {256, copy_generic, pd->ps4_key->signature},   {24, copy_generic, padding},
   };
 
   LOG_DBG("copy_signature: buffer = %zu, offset = %zu", buf.size(), offset);

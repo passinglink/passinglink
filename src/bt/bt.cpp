@@ -19,38 +19,36 @@
 LOG_MODULE_REGISTER(bt);
 
 static const struct bt_le_adv_param pl_bt_adv_params =
-    BT_LE_ADV_PARAM_INIT(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_NAME,
-                         BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, nullptr);
+  BT_LE_ADV_PARAM_INIT(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_NAME,
+                       BT_GAP_ADV_FAST_INT_MIN_2, BT_GAP_ADV_FAST_INT_MAX_2, nullptr);
 
 static const struct bt_data pl_bt_adv_data[] = {
-    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL, 0x00, 0x00, PL_BT_UUID_PREFIX),
+  BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
+  BT_DATA_BYTES(BT_DATA_UUID128_ALL, 0x00, 0x00, PL_BT_UUID_PREFIX),
 };
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 static struct bt_conn_cb connection_cbs = {
-    .connected =
-        [](struct bt_conn* conn, uint8_t err) {
-          if (err) {
-            LOG_ERR("connection failed (err 0x%02x)", err);
-          } else {
-            LOG_INF("connection succeeded");
-            struct bt_le_conn_param param = {
-              .interval_min = 6,
-              .interval_max = 6,
-              .latency = 0,
-              .timeout = 3200,
-            };
-            if (bt_conn_le_param_update(conn, &param) != 0) {
-              LOG_WRN("failed to update bluetooth connection parameters");
-            }
-          }
-        },
-    .disconnected =
-        [](struct bt_conn* conn, uint8_t reason) {
-          LOG_INF("connection terminated (reason 0x%02x)", reason);
-        },
+  .connected =
+    [](struct bt_conn* conn, uint8_t err) {
+      if (err) {
+        LOG_ERR("connection failed (err 0x%02x)", err);
+      } else {
+        LOG_INF("connection succeeded");
+        struct bt_le_conn_param param = {
+          .interval_min = 6,
+          .interval_max = 6,
+          .latency = 0,
+          .timeout = 3200,
+        };
+        if (bt_conn_le_param_update(conn, &param) != 0) {
+          LOG_WRN("failed to update bluetooth connection parameters");
+        }
+      }
+    },
+  .disconnected = [](struct bt_conn* conn,
+                     uint8_t reason) { LOG_INF("connection terminated (reason 0x%02x)", reason); },
 };
 #pragma GCC diagnostic pop
 
@@ -98,18 +96,18 @@ static struct bt_uuid_128 bt_version_branch_uuid = BT_UUID_INIT_128(0x02, 0x00, 
 static struct bt_uuid_128 bt_version_commit_uuid = BT_UUID_INIT_128(0x03, 0x00, PL_BT_UUID_PREFIX);
 
 static ssize_t bt_version_str_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
-                               uint16_t len, uint16_t offset) {
+                                   uint16_t len, uint16_t offset) {
   const char* version = version_string();
   return bt_gatt_attr_read(conn, attr, buf, len, offset, version, strlen(version));
 }
 
-static ssize_t bt_version_branch_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
-                               uint16_t len, uint16_t offset) {
+static ssize_t bt_version_branch_read(struct bt_conn* conn, const struct bt_gatt_attr* attr,
+                                      void* buf, uint16_t len, uint16_t offset) {
   return bt_gatt_attr_read(conn, attr, buf, len, offset, git_branch, strlen(git_branch));
 }
 
-static ssize_t bt_version_commit_read(struct bt_conn* conn, const struct bt_gatt_attr* attr, void* buf,
-                               uint16_t len, uint16_t offset) {
+static ssize_t bt_version_commit_read(struct bt_conn* conn, const struct bt_gatt_attr* attr,
+                                      void* buf, uint16_t len, uint16_t offset) {
   return bt_gatt_attr_read(conn, attr, buf, len, offset, git_commit, strlen(git_commit));
 }
 

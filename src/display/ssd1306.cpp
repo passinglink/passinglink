@@ -67,8 +67,8 @@ static constexpr array<uint8_t, 7> ssd1306_setup_horizontal_scroll(ScrollDirecti
 }
 
 static constexpr array<uint8_t, 7> ssd1306_setup_horizontal_vertical_scroll(
-    ScrollDirection direction, uint8_t start_page, uint8_t end_page, ScrollInterval interval,
-    uint8_t vertical_offset) {
+  ScrollDirection direction, uint8_t start_page, uint8_t end_page, ScrollInterval interval,
+  uint8_t vertical_offset) {
   return {static_cast<uint8_t>(direction == ScrollDirection::Right ? 0x29 : 0x2a),
           0,
           start_page,

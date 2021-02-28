@@ -18,7 +18,7 @@ void metrics_record_usb_write() {}
 constexpr uint64_t REPORT_INTERVAL = 1024;
 optional<uint32_t> input_cycle;
 
-template<typename T, size_t alpha_num, size_t alpha_denom>
+template <typename T, size_t alpha_num, size_t alpha_denom>
 struct moving_average {
   static_assert(alpha_denom > alpha_num);
 
@@ -32,13 +32,9 @@ struct moving_average {
     ++reports_;
   }
 
-  T get() {
-    return *average_;
-  }
+  T get() { return *average_; }
 
-  size_t reports() {
-    return reports_;
-  }
+  size_t reports() { return reports_; }
 
   size_t reports_ = 0;
   optional<T> average_;

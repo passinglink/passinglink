@@ -148,9 +148,7 @@ struct array {
 
 template <typename T, size_t Capacity>
 struct stack {
-  size_t size() const {
-    return size_;
-  }
+  size_t size() const { return size_; }
 
   T& front() {
     if (size_ == 0) {

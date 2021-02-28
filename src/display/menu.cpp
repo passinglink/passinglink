@@ -186,9 +186,9 @@ static void menu_push(MenuBase* menu) {
   if (menu->on_enter()) {
     LOG_DBG("menu_push: menu");
     MenuLocation loc = {
-        .menu = menu,
-        .scroll_index = menu_scroll_index,
-        .selected_index = menu_selected_index,
+      .menu = menu,
+      .scroll_index = menu_scroll_index,
+      .selected_index = menu_selected_index,
     };
 
     menu_stack.push(loc);
