@@ -145,18 +145,18 @@ void input_init();
 bool input_get_locked();
 void input_set_locked(bool locked);
 
-enum class SOCDType {
+enum class SOCDType : size_t {
   // Neutral.
-  Neutral,
+  Neutral = 0,
 
   // Last input wins.
-  Last,
-
-  // Positive input (down, right) wins.
-  Positive,
+  Last = 1,
 
   // Negative input (up, left) wins
-  Negative,
+  Negative = 2,
+
+  // Positive input (down, right) wins.
+  Positive = 3,
 };
 
 SOCDType input_get_x_socd_type();

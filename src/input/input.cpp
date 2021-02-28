@@ -252,6 +252,7 @@ struct SOCDInputs {
   bool overrides = false;
 };
 
+// TODO: Store these in flash.
 static SOCDType input_socd_type_x = SOCDType::Neutral;
 static SOCDType input_socd_type_y = SOCDType::Negative;
 

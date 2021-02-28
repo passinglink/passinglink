@@ -108,14 +108,146 @@ struct ActionItem : public MenuBase {
   void (*fn_)();
 };
 
+struct RadioOption {
+  const char* name;
+  void (*is_selected)();
+  void (*on_select)();
+};
+
+struct RadioMenu;
+struct RadioMenuItem : public MenuBase {
+  RadioMenuItem(RadioMenu* parent, size_t index) : parent_(parent), index_(index) {}
+
+  bool on_enter() final;
+  size_t render_text(span<char> buffer) final;
+
+  RadioMenu* parent_;
+  size_t index_;
+};
+
+struct RadioMenu : public MenuBase {
+  RadioMenu(const char* name) : name_(name) {}
+
+  bool on_enter() final { return true; }
+
+  size_t render_text(span<char> buffer) final {
+    size_t n = copy_text(buffer, name_);
+    size_t m = copy_text(buffer.remove_prefix(n), ": ");
+    return n + m + copy_text(buffer.remove_prefix(m), get_option_name(get_selected_option()));
+  }
+
+  size_t menu_items(span<MenuBase*> buffer) final {
+    size_t count = get_option_count();
+
+    if (!initialized_) {
+      initialized_ = true;
+      for (size_t i = 0; i < count; ++i) {
+        menu_items_[i] = RadioMenuItem(this, i);
+      }
+    }
+
+    for (size_t i = 0; i < count; ++i) {
+      buffer[i] = menu_items_[i].get();
+    }
+
+    return count;
+  }
+
+  virtual size_t get_selected_option() = 0;
+  virtual size_t get_option_count() = 0;
+  virtual const char* get_option_name(size_t index) = 0;
+  virtual void on_option_selected(size_t index) = 0;
+
+  const char* name_;
+
+  bool initialized_ = false;
+  array<optional<RadioMenuItem>, 8> menu_items_;
+};
+
+bool RadioMenuItem::on_enter() {
+  parent_->on_option_selected(index_);
+  return false;
+}
+
+size_t RadioMenuItem::render_text(span<char> buffer) {
+  size_t n = 0;
+  if (parent_->get_selected_option() == index_) {
+    n = copy_text(buffer, "[*] ");
+  } else {
+    n = copy_text(buffer, "[ ] ");
+  }
+
+  return n + copy_text(buffer.remove_prefix(n), parent_->get_option_name(index_));
+}
+
+struct SOCDRadioMenu : public RadioMenu {
+  SOCDRadioMenu(bool x) : RadioMenu(x ? "X axis" : "Y axis"), x_(x) {}
+
+  SOCDType get_socd_type() {
+    if (x_) {
+      return input_get_x_socd_type();
+    } else {
+      return input_get_y_socd_type();
+    }
+  }
+
+  void set_socd_type(SOCDType type) {
+    if (x_) {
+      input_set_x_socd_type(type);
+    } else {
+      input_set_y_socd_type(type);
+    }
+  }
+
+  size_t get_selected_option() final { return static_cast<size_t>(get_socd_type()); }
+  size_t get_option_count() final { return 4; }
+  void on_option_selected(size_t index) final { set_socd_type(static_cast<SOCDType>(index)); }
+
+  const char* get_option_name(size_t index) final {
+    switch (static_cast<SOCDType>(index)) {
+      case SOCDType::Neutral:
+        return "Neutral";
+
+      case SOCDType::Last:
+        return "Last wins";
+
+      case SOCDType::Negative:
+        return x_ ? "Left wins" : "Up wins";
+
+      case SOCDType::Positive:
+        return x_ ? "Right wins" : "Down wins";
+
+      default:
+        return "unreachable";
+    }
+  }
+
+  bool x_;
+};
+
+struct SOCDMenu : public Menu {
+  SOCDMenu() : Menu("SOCD Cleaning"), x(true), y(false) {}
+
+  size_t menu_items(span<MenuBase*> buffer) final {
+    buffer[0] = &x;
+    buffer[1] = &y;
+    return 2;
+  }
+
+  SOCDRadioMenu x;
+  SOCDRadioMenu y;
+};
+
 struct SettingsMenu : public Menu {
   SettingsMenu() : Menu("Settings"), dfu_("Firmware update", mcuboot_enter) {}
 
-  size_t menu_items(span<MenuBase*> buffer) {
-    buffer[0] = &dfu_;
-    return 1;
+  size_t menu_items(span<MenuBase*> buffer) final {
+    buffer[0] = &socd_;
+    buffer[1] = &dfu_;
+    return 2;
   }
 
+  SOCDMenu socd_;
   ActionItem dfu_;
 };
 
