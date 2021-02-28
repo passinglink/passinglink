@@ -145,6 +145,26 @@ void input_init();
 bool input_get_locked();
 void input_set_locked(bool locked);
 
+enum class SOCDType {
+  // Neutral.
+  Neutral,
+
+  // Last input wins.
+  Last,
+
+  // Positive input (down, right) wins.
+  Positive,
+
+  // Negative input (up, left) wins
+  Negative,
+};
+
+SOCDType input_get_x_socd_type();
+void input_set_x_socd_type(SOCDType type);
+
+SOCDType input_get_y_socd_type();
+void input_set_y_socd_type(SOCDType type);
+
 // Get the raw state of the buttons, unaffected by SOCD cleaning, mode switches, etc.
 bool input_get_raw_state(RawInputState* out);
 

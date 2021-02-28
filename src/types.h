@@ -89,15 +89,24 @@ struct optional {
   }
 
   operator bool() const { return valid_; }
+  bool valid() const { return valid_; }
 
   T* get() {
-    if (!valid_) return nullptr;
+    if (!valid()) return nullptr;
     return ptr();
   }
 
   const T* get() const {
-    if (!valid_) return nullptr;
+    if (!valid()) return nullptr;
     return ptr();
+  }
+
+  T get_or(T other) {
+    if (valid()) {
+      return *ptr();
+    } else {
+      return other;
+    }
   }
 
   T* operator->() { return get(); }
@@ -208,6 +217,9 @@ struct span {
   size_t size() const { return length_; }
 
   bool empty() const { return size() == 0; }
+
+  T* begin() { return ptr_; }
+  T* end() { return ptr_ + length_; }
 
   span& remove_prefix(size_t n) {
     assert(length_ >= n);
