@@ -139,7 +139,6 @@ config PASSINGLINK_DISPLAY
   default n
   help
     Enable display output
-  select PASSINGLINK_DISPLAY_1306
 
 config PASSINGLINK_DISPLAY_SSD1306
   bool "Enable SSD1306 display output"
