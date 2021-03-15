@@ -3,22 +3,17 @@
 SCRIPT_PATH=$(dirname "$(realpath -s "$BASH_SOURCE")")
 ROOT="$SCRIPT_PATH/../.."
 
-if [ -z "$BOARD" ]; then
-  echo \$BOARD must be set.
+. "$SCRIPT_PATH/boards.sh"
+
+if [ "$PL_MCUBOOT_SUPPORTED" != "1"]; then
+  echo "Board '$BOARD' doesn't support MCUboot"
   exit 1
 fi
 
 set -euxo pipefail
 
-BUILD_DIR="build_$BOARD"
+PL_SKIP_MCUBOOT=1 PL_SKIP_PL=0 "$SCRIPT_PATH/build.sh"
 
-## Build, sign, and flash Passing Link.
-if [ ! -d "$BUILD_DIR/pl" ]; then
-  west build --cmake-only -s "$ROOT/passinglink" -- \
-    -DCONFIG_BOOTLOADER_MCUBOOT=y
-fi
-
-west build -d "$BUILD_DIR/pl"
 "$SCRIPT_PATH/sign.sh" "$BUILD_DIR/pl/zephyr/zephyr.bin" "$BUILD_DIR/pl.bin"
 
 dfu-util --alt 0 --download "$BUILD_DIR/pl.bin"
