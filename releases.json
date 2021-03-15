@@ -29,9 +29,9 @@
     }
   },
   "nightly": {
-    "version": "v1.1.0-1-gf5835ae",
-    "date": "2021-02-26",
-    "filename": "nightly-f5835ae.bin",
+    "version": "v1.1.0-14-g82de594",
+    "date": "2021-03-15",
+    "filename": "nightly-82de594.bin",
     "boards": [
       "pl_e73",
       "pl_dongle",
