@@ -335,7 +335,7 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
       } else if (newest_negative.valid()) {
         return StickOutput::Axis {
           .value = -1,
-          .tick = *newest_positive,
+          .tick = *newest_negative,
         };
       } else {
         return StickOutput::Axis {
@@ -348,9 +348,9 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
       if (newest_negative.valid()) {
         return StickOutput::Axis {
           .value = -1,
-          .tick = *newest_positive,
+          .tick = *newest_negative,
         };
-      } if (newest_positive.valid()) {
+      } else if (newest_positive.valid()) {
         return StickOutput::Axis {
           .value = 1,
           .tick = *newest_positive,
