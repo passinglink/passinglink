@@ -29,9 +29,9 @@
     }
   },
   "nightly": {
-    "version": "v1.1.0-17-g6d38c63",
-    "date": "2021-03-16",
-    "filename": "nightly-6d38c63.bin",
+    "version": "v1.1.0-20-g8f72441",
+    "date": "2021-03-17",
+    "filename": "nightly-8f72441.bin",
     "boards": [
       "pl_e73",
       "pl_dongle",
