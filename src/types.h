@@ -133,7 +133,7 @@ struct optional {
   const T* ptr() const { return reinterpret_cast<const T*>(&obj_); }
 
   bool valid_ = false;
-  alignas(T) char obj_[sizeof(T)];
+  alignas(T) char obj_[sizeof(T)] = {};
 };
 
 template <typename T, size_t N>

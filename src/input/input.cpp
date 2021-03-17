@@ -381,8 +381,6 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
   for (auto& x : results) {
     if (!x.tick) continue;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
     if (!newest_tick || *newest_tick < *x.tick) {
       newest_tick = *x.tick;
       newest_value.reset(x.value);
@@ -393,7 +391,6 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
     .value = newest_value.get_or(0),
     .tick = newest_tick.get_or(0),
   };
-#pragma GCC diagnostic pop
 }
 
 static StickOutput::Axis input_socd_x(const RawInputState* in) {
