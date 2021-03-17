@@ -418,11 +418,14 @@ static StickOutput input_socd(const RawInputState* in) {
   };
 }
 
+static bool menu_opened = false;
+
 static bool input_parse_menu(const RawInputState* in, StickOutput stick, uint64_t current_tick) {
 #if defined(PL_GPIO_BUTTON_MENU_AVAILABLE)
-  if (!button_history.button_menu.value) {
-    if (button_history.button_menu.tick == current_tick) {
+  if (!button_history.button_menu.state) {
+    if (menu_opened) {
       menu_close();
+      menu_opened = false;
     }
     return false;
   }
@@ -433,8 +436,14 @@ static bool input_parse_menu(const RawInputState* in, StickOutput stick, uint64_
     if (current_tick - button_history.button_menu.tick < k_ms_to_ticks_ceil64(2000)) {
       return false;
     } else if (input_lock_tick < button_history.button_menu.tick) {
-      menu_open();
+      if (!menu_opened) {
+        menu_opened = true;
+        menu_open();
+      }
     }
+  } else if (!menu_opened) {
+    menu_opened = true;
+    menu_open();
   }
 
   if (stick.x.value != 0 && stick.x.tick == current_tick) {
@@ -454,6 +463,8 @@ static bool input_parse_menu(const RawInputState* in, StickOutput stick, uint64_
     }
     return true;
   }
+
+  return true;
 #endif
 
   return false;
@@ -462,8 +473,13 @@ static bool input_parse_menu(const RawInputState* in, StickOutput stick, uint64_
 static bool input_parse(InputState* out, RawInputState* in) {
   PROFILE("input_parse", 128);
 
-  // Copy TouchpadData.
-  out->touchpad_data = touchpad_data;
+  // Initialize to neutral.
+  memset(out, 0, sizeof(*out));
+  out->dpad = StickState::Neutral;
+  out->left_stick_x = 128;
+  out->left_stick_y = 128;
+  out->right_stick_x = 128;
+  out->right_stick_y = 128;
 
   uint64_t current_tick = k_uptime_ticks();
   // Debounce inputs.
@@ -481,6 +497,9 @@ static bool input_parse(InputState* out, RawInputState* in) {
     return true;
   }
 
+  // Copy TouchpadData.
+  out->touchpad_data = touchpad_data;
+
   // Assign buttons.
   out->button_north = in->button_north;
   out->button_east = in->button_east;
@@ -497,12 +516,6 @@ static bool input_parse(InputState* out, RawInputState* in) {
   out->button_select = input_locked ? 0 : in->button_select;
   out->button_start = input_locked ? 0 : in->button_start;
   out->button_home = input_locked ? 0 : in->button_home;
-
-  out->dpad = StickState::Neutral;
-  out->left_stick_x = 128;
-  out->left_stick_y = 128;
-  out->right_stick_x = 128;
-  out->right_stick_y = 128;
 
   enum class OutputMode {
     mode_dpad,
