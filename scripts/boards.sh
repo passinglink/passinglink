@@ -15,7 +15,18 @@ BUILD_DIR="build/$BOARD"
 unset PL_MCUBOOT_SUPPORTED PL_MCUBOOT_OPTS
 
 # TODO: Figure out the provisioning partition offset/size from the dts directly.
-if [[ "$BOARD" == "pl_e73" ]]; then
+if [[ "$BOARD" == "microdash" ]]; then
+  PL_PYOCD_TYPE=nrf52840
+
+  PL_MCUBOOT_SUPPORTED=1
+  PL_MCUBOOT_OPTS="
+    -DCONFIG_I2C=y
+    -DCONFIG_PASSINGLINK_DISPLAY_SSD1306=y
+    -DCONFIG_BOOT_USB_DFU_GPIO=y
+    -DCONFIG_BOOT_USB_DFU_DETECT_PORT=\"GPIO_0\"
+    -DCONFIG_BOOT_USB_DFU_DETECT_PIN=13
+  "
+elif [[ "$BOARD" == "pl_e73" ]]; then
   PL_PYOCD_TYPE=nrf52840
 
   PL_MCUBOOT_SUPPORTED=1

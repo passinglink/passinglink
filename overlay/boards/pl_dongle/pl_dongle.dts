@@ -77,8 +77,8 @@
 
   zephyr,concat-buf-size = <2048>;
   clock-frequency = <720000>;
-  scl-pin = <9>;
-  sda-pin = <10>;
+  scl-pin = <2>;
+  sda-pin = <3>;
 };
 
 &usbd {

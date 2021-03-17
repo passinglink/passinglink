@@ -1,0 +1,3 @@
+config BOARD_MICRODASH
+  bool "microdash"
+  depends on SOC_NRF52840_QIAA

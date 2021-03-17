@@ -12,6 +12,7 @@ LOG_MODULE_REGISTER(input);
 
 #include "arch.h"
 #include "display/display.h"
+#include "display/menu.h"
 #include "input/queue.h"
 #include "input/touchpad.h"
 #include "panic.h"
@@ -397,6 +398,12 @@ static StickOutput::Axis input_socd_x(const RawInputState* in) {
   SOCDInputs inputs[] = {
     {in->stick_left, button_history.stick_left.tick, SOCDButtonType::Negative},
     {in->stick_right, button_history.stick_right.tick, SOCDButtonType::Positive},
+#if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
+    {in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative, true},
+#endif
+#if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
+    {in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Positive, true},
+#endif
   };
 
   return input_socd_generic(input_socd_type_x, inputs);
@@ -406,6 +413,15 @@ static StickOutput::Axis input_socd_y(const RawInputState* in) {
   SOCDInputs inputs[] = {
     {in->stick_up, button_history.stick_up.tick, SOCDButtonType::Negative},
     {in->stick_down, button_history.stick_down.tick, SOCDButtonType::Positive},
+#if defined(PL_GPIO_BUTTON_W_AVAILABLE)
+    {in->button_w, button_history.button_w.tick, SOCDButtonType::Negative},
+#endif
+#if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
+    {in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Neutral, true},
+#endif
+#if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
+    {in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Neutral, true},
+#endif
   };
 
   return input_socd_generic(input_socd_type_y, inputs);
@@ -507,13 +523,26 @@ static bool input_parse(InputState* out, RawInputState* in) {
   out->button_west = in->button_west;
   out->button_l1 = in->button_l1;
   out->button_l2 = in->button_l2;
-  out->button_l3 = in->button_l3;
+
   out->button_r1 = in->button_r1;
   out->button_r2 = in->button_r2;
-  out->button_r3 = in->button_r3;
-  out->button_touchpad = in->button_touchpad;
 
+#if defined(PL_GPIO_BUTTON_L3_AVAILABLE)
+  out->button_l3 = in->button_l3;
+#endif
+
+#if defined(PL_GPIO_BUTTON_R3_AVAILABLE)
+  out->button_r3 = in->button_r3;
+#endif
+
+#if defined(PL_GPIO_BUTTON_TOUCHPAD_AVAILABLE)
+  out->button_touchpad = in->button_touchpad;
+#endif
+
+#if defined(PL_GPIO_BUTTON_SELECT_AVAILABLE)
   out->button_select = input_locked ? 0 : in->button_select;
+#endif
+
   out->button_start = input_locked ? 0 : in->button_start;
   out->button_home = input_locked ? 0 : in->button_home;
 

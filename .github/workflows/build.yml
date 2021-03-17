@@ -6,7 +6,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [pl_e73, pl_dongle, pl_bluepill, stm32f4_disco]
+        board: [microdash, pl_e73, pl_dongle, pl_bluepill, stm32f4_disco]
 
     env:
       BOARD: ${{ matrix.board }}

@@ -40,13 +40,62 @@ inline const char* to_string(StickState state) {
   return "<invalid>";
 }
 
-static constexpr size_t PL_GPIO_COUNT = 24;
+static constexpr size_t PL_GPIO_COUNT = 27;
 
 #define PL_GPIO_NODE(name) DT_PATH(gpio_keys, name)
 #define PL_GPIO_LABEL(name) DT_GPIO_LABEL(PL_GPIO_NODE(name), gpios)
 #define PL_GPIO_PIN(name) DT_GPIO_PIN(PL_GPIO_NODE(name), gpios)
 #define PL_GPIO_FLAGS(name) DT_GPIO_FLAGS(PL_GPIO_NODE(name), gpios)
 #define PL_GPIO_AVAILABLE(name) DT_NODE_HAS_STATUS(PL_GPIO_NODE(name), okay)
+
+#if PL_GPIO_AVAILABLE(button_l3)
+#define PL_GPIO_BUTTON_L3_AVAILABLE 1
+#define PL_GPIO_BUTTON_L3(index) PL_GPIO(index, button_l3)
+#else
+#define PL_GPIO_BUTTON_L3(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_r3)
+#define PL_GPIO_BUTTON_R3_AVAILABLE 1
+#define PL_GPIO_BUTTON_R3(index) PL_GPIO(index, button_r3)
+#else
+#define PL_GPIO_BUTTON_R3(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_select)
+#define PL_GPIO_BUTTON_SELECT_AVAILABLE 1
+#define PL_GPIO_BUTTON_SELECT(index) PL_GPIO(index, button_select)
+#else
+#define PL_GPIO_BUTTON_SELECT(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_touchpad)
+#define PL_GPIO_BUTTON_TOUCHPAD_AVAILABLE 1
+#define PL_GPIO_BUTTON_TOUCHPAD(index) PL_GPIO(index, button_touchpad)
+#else
+#define PL_GPIO_BUTTON_TOUCHPAD(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_w)
+#define PL_GPIO_BUTTON_W_AVAILABLE 1
+#define PL_GPIO_BUTTON_W(index) PL_GPIO(index, button_w)
+#else
+#define PL_GPIO_BUTTON_W(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_thumb_left)
+#define PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE 1
+#define PL_GPIO_BUTTON_THUMB_LEFT(index) PL_GPIO(index, button_thumb_left)
+#else
+#define PL_GPIO_BUTTON_THUMB_LEFT(index)
+#endif
+
+#if PL_GPIO_AVAILABLE(button_thumb_right)
+#define PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE 1
+#define PL_GPIO_BUTTON_THUMB_RIGHT(index) PL_GPIO(index, button_thumb_right)
+#else
+#define PL_GPIO_BUTTON_THUMB_RIGHT(index)
+#endif
 
 #if PL_GPIO_AVAILABLE(button_menu)
 #define PL_GPIO_BUTTON_MENU_AVAILABLE 1
@@ -95,29 +144,32 @@ static constexpr size_t PL_GPIO_COUNT = 24;
   PL_GPIO_MODE_LS(base_index + 1)        \
   PL_GPIO_MODE_RS(base_index + 2)
 
-#define PL_GPIOS()             \
-  PL_GPIO(0, button_north)     \
-  PL_GPIO(1, button_east)      \
-  PL_GPIO(2, button_south)     \
-  PL_GPIO(3, button_west)      \
-  PL_GPIO(4, button_l1)        \
-  PL_GPIO(5, button_l2)        \
-  PL_GPIO(6, button_l3)        \
-  PL_GPIO(7, button_r1)        \
-  PL_GPIO(8, button_r2)        \
-  PL_GPIO(9, button_r3)        \
-  PL_GPIO(10, button_select)   \
-  PL_GPIO(11, button_start)    \
-  PL_GPIO(12, button_home)     \
-  PL_GPIO(13, button_touchpad) \
-  PL_GPIO(14, stick_up)        \
-  PL_GPIO(15, stick_down)      \
-  PL_GPIO(16, stick_right)     \
-  PL_GPIO(17, stick_left)      \
-  PL_GPIO_BUTTON_MENU(18)      \
-  PL_GPIO_MODE_LOCK(19)        \
-  PL_GPIO_MODE_PS3(20)         \
-  PL_GPIO_OUTPUT_MODES(21)
+#define PL_GPIOS()               \
+  PL_GPIO(0, button_north)       \
+  PL_GPIO(1, button_east)        \
+  PL_GPIO(2, button_south)       \
+  PL_GPIO(3, button_west)        \
+  PL_GPIO(4, button_l1)          \
+  PL_GPIO(5, button_l2)          \
+  PL_GPIO(6, button_r1)          \
+  PL_GPIO(7, button_r2)          \
+  PL_GPIO(8, button_start)       \
+  PL_GPIO(9, button_home)        \
+  PL_GPIO(10, stick_up)          \
+  PL_GPIO(11, stick_down)        \
+  PL_GPIO(12, stick_right)       \
+  PL_GPIO(13, stick_left)        \
+  PL_GPIO_BUTTON_L3(14)          \
+  PL_GPIO_BUTTON_R3(15)          \
+  PL_GPIO_BUTTON_SELECT(16)      \
+  PL_GPIO_BUTTON_TOUCHPAD(17)    \
+  PL_GPIO_BUTTON_W(18)           \
+  PL_GPIO_BUTTON_THUMB_LEFT(19)  \
+  PL_GPIO_BUTTON_THUMB_RIGHT(20) \
+  PL_GPIO_BUTTON_MENU(21)        \
+  PL_GPIO_MODE_LOCK(22)          \
+  PL_GPIO_MODE_PS3(23)           \
+  PL_GPIO_OUTPUT_MODES(24)
 
 struct RawInputState {
 #define PL_GPIO(index, name) uint32_t name : 1;
