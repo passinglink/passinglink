@@ -339,6 +339,7 @@ bool ssd1306_init() {
       ssd1306_set_precharge_period(1, 15),
       ssd1306_set_enable_charge_pump(true),
       ssd1306_set_memory_addressing_mode(MemoryAddressingMode::Vertical),
+      ssd1306_set_contrast(0xff),
       ssd1306_set_column_address(0, 127),
       ssd1306_set_page_address(0, 3)
     );
