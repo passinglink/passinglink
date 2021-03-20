@@ -324,7 +324,7 @@ bool ssd1306_init() {
   initialized = false;
   bool result;
 
-  for (int i = 0; i < 20; ++i) {
+  for (int i = 0; i < 50; ++i) {
     // clang-format off
     initialized = ssd1306_command(
       ssd1306_set_multiplex_ratio(32),
