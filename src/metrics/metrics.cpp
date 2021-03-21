@@ -47,7 +47,9 @@ moving_average<uint64_t, 2, 2048> averager;
 #endif
 
 void metrics_record_input_read() {
-  input_tick = k_uptime_ticks();
+  if (!input_tick) {
+    input_tick = k_uptime_ticks();
+  }
 }
 
 void metrics_record_usb_write() {
