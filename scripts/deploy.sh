@@ -5,8 +5,8 @@ SCRIPT_PATH=$(dirname "$(realpath -s "$BASH_SOURCE")")
 set -euo pipefail
 
 
-BOARDS=(pl_e73 pl_dongle stm32f4_disco)
-BOARDS_JSON='["pl_e73", "pl_dongle", "stm32f4_disco"]'
+BOARDS=(microdash pl_e73 pl_dongle stm32f4_disco)
+BOARDS_JSON='["microdash", "pl_e73", "pl_dongle", "stm32f4_disco"]'
 
 TAG=${GITHUB_REF#refs/tags/}
 BRANCH=${GITHUB_REF#refs/heads/}
@@ -58,7 +58,8 @@ elif [[ "$BRANCH" != "$GITHUB_REF" ]]; then
   mv $PAGES_DIR/releases.json.new $PAGES_DIR/releases.json
 
   for BOARD in ${BOARDS[@]}; do
-    rm $PAGES_DIR/$BOARD/nightly-*.bin
+    mkdir -p $PAGES_DIR/$BOARD
+    rm -f $PAGES_DIR/$BOARD/nightly-*.bin
     cp artifacts/$BOARD/$BOARD.bin $PAGES_DIR/$BOARD/$FILENAME
   done
 
