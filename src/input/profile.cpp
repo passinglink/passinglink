@@ -3,14 +3,263 @@
 #include "display/menu.h"
 #include "input/input.h"
 #include "input/socd.h"
+#include "types.h"
 
 void input_profile_init() {}
+
+#define MAPPED_BUTTONS()       \
+  MAPPED_BUTTON(button_north)  \
+  MAPPED_BUTTON(button_east)   \
+  MAPPED_BUTTON(button_south)  \
+  MAPPED_BUTTON(button_west)   \
+  MAPPED_BUTTON(button_l1)     \
+  MAPPED_BUTTON(button_l2)     \
+  MAPPED_BUTTON(button_l3)     \
+  MAPPED_BUTTON(button_r1)     \
+  MAPPED_BUTTON(button_r2)     \
+  MAPPED_BUTTON(button_r3)     \
+  MAPPED_BUTTON(button_select) \
+  MAPPED_BUTTON(button_start)  \
+  MAPPED_BUTTON(button_home)   \
+  MAPPED_BUTTON(button_touchpad)
+
+// Mapping from InputState button.
+//
+// This could be a function in each Profile, but to more easily support custom profiles,
+// track these mappings as data instead.
+struct ButtonMapping {
+// TODO: Remove ifdefs in RawInputState so mappings are consistent across boards?
+#define MAPPED_BUTTON(name) uint8_t name;
+  MAPPED_BUTTONS()
+#undef MAPPED_BUTTON
+};
+
+struct RawInputStateOffsets {
+#define PL_GPIO(index, name) static constexpr size_t name = __COUNTER__;
+  PL_GPIOS()
+#undef PL_GPIO
+};
+
+struct Profile {
+  virtual const char* name() = 0;
+  virtual const ButtonMapping* button_mapping() = 0;
+  virtual size_t socd_x(span<SOCDInputs> out, const RawInputState* in) = 0;
+  virtual size_t socd_y(span<SOCDInputs> out, const RawInputState* in) = 0;
+};
+
+static constexpr ButtonMapping base_mapping() {
+  ButtonMapping result = {};
+#define MAP(name) result.name = RawInputStateOffsets::name
+  MAP(button_north);
+  MAP(button_south);
+  MAP(button_east);
+  MAP(button_west);
+  MAP(button_l1);
+  MAP(button_r1);
+  MAP(button_l2);
+  MAP(button_r2);
+
+  MAP(button_start);
+  MAP(button_home);
+
+#if PL_GPIO_AVAILABLE(button_l3)
+  MAP(button_l3);
+#else
+  result.button_l3 = 0xff;
+#endif
+
+#if PL_GPIO_AVAILABLE(button_r3)
+  MAP(button_r3);
+#else
+  result.button_r3 = 0xff;
+#endif
+
+#if PL_GPIO_AVAILABLE(button_select)
+  MAP(button_select);
+#else
+  result.button_select = 0xff;
+#endif
+
+#if PL_GPIO_AVAILABLE(button_touchpad)
+  MAP(button_touchpad);
+#else
+  result.button_touchpad = 0xff;
+#endif
+
+  return result;
+}
+
+static constexpr ButtonMapping default_mapping() {
+  ButtonMapping result = base_mapping();
+#if defined(CONFIG_BOARD_MICRODASH)
+  result.button_l3 = RawInputStateOffsets::button_thumb_left;
+  result.button_r3 = RawInputStateOffsets::button_thumb_right;
+#endif
+  return result;
+}
+
+static size_t default_socd_x(span<SOCDInputs> out, const RawInputState* in) {
+  size_t i = 0;
+  out[i++] = { in->stick_left, button_history.stick_left.tick, SOCDButtonType::Negative };
+  out[i++] = { in->stick_right, button_history.stick_right.tick, SOCDButtonType::Positive };
+  return i;
+}
+
+static size_t default_socd_y(span<SOCDInputs> out, const RawInputState* in) {
+  size_t i = 0;
+  out[i++] = { in->stick_up, button_history.stick_up.tick, SOCDButtonType::Negative };
+  out[i++] = { in->stick_down, button_history.stick_down.tick, SOCDButtonType::Positive };
+#if PL_GPIO_AVAILABLE(button_w)
+  out[i++] = { in->button_w, button_history.button_w.tick, SOCDButtonType::Negative };
+#endif
+  return i;
+}
+
+static struct DefaultProfile : Profile {
+  const char* name() final { return "Default"; }
+
+  const ButtonMapping* button_mapping() final { return &mapping; }
+
+  size_t socd_x(span<SOCDInputs> out, const RawInputState* in) final {
+    return default_socd_x(out, in);
+  }
+
+  size_t socd_y(span<SOCDInputs> out, const RawInputState* in) final {
+    return default_socd_y(out, in);
+  }
+
+  static constexpr ButtonMapping mapping = default_mapping();
+} default_profile;
+
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+
+static size_t dashblock_socd_x(span<SOCDInputs> out, const RawInputState* in) {
+  size_t n = default_socd_x(out, in);
+#if PL_GPIO_AVAILABLE(button_thumb_left)
+  out[n++] = { in->button_thumb_left, button_history.button_thumb_left.tick,
+               SOCDButtonType::Negative, true };
+#endif
+#if PL_GPIO_AVAILABLE(button_thumb_right)
+  out[n++] = { in->button_thumb_right, button_history.button_thumb_right.tick,
+               SOCDButtonType::Positive, true };
+#endif
+  return n;
+}
+
+static size_t dashblock_socd_y(span<SOCDInputs> out, const RawInputState* in) {
+  size_t n = default_socd_y(out, in);
+#if PL_GPIO_AVAILABLE(button_thumb_left)
+  out[n++] = { in->button_thumb_left, button_history.button_thumb_left.tick,
+               SOCDButtonType::Neutral, true };
+#endif
+#if PL_GPIO_AVAILABLE(button_thumb_right)
+  out[n++] = { in->button_thumb_right, button_history.button_thumb_right.tick,
+               SOCDButtonType::Neutral, true };
+#endif
+  return n;
+}
+
+static struct DashblockProfile : Profile {
+  const char* name() final { return "Dashblock"; }
+
+  const ButtonMapping* button_mapping() final { return &mapping; }
+
+  size_t socd_x(span<SOCDInputs> out, const RawInputState* in) final {
+    return dashblock_socd_x(out, in);
+  }
+
+  size_t socd_y(span<SOCDInputs> out, const RawInputState* in) final {
+    return dashblock_socd_y(out, in);
+  }
+
+  static constexpr ButtonMapping mapping = base_mapping();
+} dashblock_profile;
+
+static size_t tigerknee_socd_x(span<SOCDInputs> out, const RawInputState* in) {
+  size_t n = default_socd_x(out, in);
+#if PL_GPIO_AVAILABLE(button_thumb_left)
+  out[n++] = { in->button_thumb_left, button_history.button_thumb_left.tick,
+               SOCDButtonType::Negative, true };
+#endif
+#if PL_GPIO_AVAILABLE(button_thumb_right)
+  out[n++] = { in->button_thumb_right, button_history.button_thumb_right.tick,
+               SOCDButtonType::Positive, true };
+#endif
+  return n;
+}
+
+static size_t tigerknee_socd_y(span<SOCDInputs> out, const RawInputState* in) {
+  size_t n = default_socd_y(out, in);
+#if PL_GPIO_AVAILABLE(button_thumb_left)
+  out[n++] = { in->button_thumb_left, button_history.button_thumb_left.tick,
+               SOCDButtonType::Negative, true };
+#endif
+#if PL_GPIO_AVAILABLE(button_thumb_right)
+  out[n++] = { in->button_thumb_right, button_history.button_thumb_right.tick,
+               SOCDButtonType::Negative, true };
+#endif
+  return n;
+}
+
+static struct TigerKneeProfile : Profile {
+  const char* name() final { return "Tigerknee"; }
+
+  const ButtonMapping* button_mapping() final { return &mapping; }
+
+  size_t socd_x(span<SOCDInputs> out, const RawInputState* in) final {
+    return tigerknee_socd_x(out, in);
+  }
+
+  size_t socd_y(span<SOCDInputs> out, const RawInputState* in) final {
+    return tigerknee_socd_y(out, in);
+  }
+
+  static constexpr ButtonMapping mapping = base_mapping();
+} tigerknee_profile;
+#endif  // defined(CONFIG_PASSINGLINK_DISPLAY)
+
+// TODO: Support custom profiles.
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+static const array<Profile*, 3> profiles = { &default_profile, &dashblock_profile,
+                                             &tigerknee_profile };
+#else
+static const array<Profile*, 1> profiles = { &default_profile };
+#endif
+
+// TODO: Save active profile.
+static size_t active_profile_idx = 0;
+
+size_t input_profile_count() {
+  return profiles.size();
+}
+
+const char* input_profile_get_name(size_t idx) {
+  return profiles[idx]->name();
+}
+
+size_t input_profile_get_active() {
+  return active_profile_idx;
+}
+
+void input_profile_activate(size_t idx) {
+  active_profile_idx = idx;
+}
+
+static Profile* active_profile() {
+  return profiles[active_profile_idx];
+}
 
 static ButtonHistory::Button* input_profile_menu_button() {
 #if defined(PL_GPIO_BUTTON_MENU_AVAILABLE)
   return &button_history.button_menu;
 #endif
   return nullptr;
+}
+
+static bool get_bit(const void* ptr, size_t idx) {
+  auto p = static_cast<const char*>(ptr);
+  char byte = p[idx / 8];
+  return byte & 1 << (idx % 8);
 }
 
 bool input_profile_parse_menu(const RawInputState* in, StickOutput stick, uint64_t current_tick) {
@@ -68,71 +317,45 @@ bool input_profile_parse_menu(const RawInputState* in, StickOutput stick, uint64
 }
 
 void input_profile_assign_buttons(InputState* out, const RawInputState* in) {
-  out->button_north = in->button_north;
-  out->button_east = in->button_east;
-  out->button_south = in->button_south;
-  out->button_west = in->button_west;
-  out->button_l1 = in->button_l1;
-  out->button_l2 = in->button_l2;
+  Profile* profile = active_profile();
+  const ButtonMapping* mapping = profile->button_mapping();
 
-  out->button_r1 = in->button_r1;
-  out->button_r2 = in->button_r2;
+#define MAPPED_BUTTON(name)                   \
+  {                                           \
+    if (mapping->name != 0xff) {              \
+      out->name = get_bit(in, mapping->name); \
+    } else {                                  \
+      out->name = 0;                          \
+    }                                         \
+  }
 
-#if defined(PL_GPIO_BUTTON_L3_AVAILABLE)
-  out->button_l3 = in->button_l3;
-#endif
-
-#if defined(PL_GPIO_BUTTON_R3_AVAILABLE)
-  out->button_r3 = in->button_r3;
-#endif
-
-#if defined(PL_GPIO_BUTTON_TOUCHPAD_AVAILABLE)
-  out->button_touchpad = in->button_touchpad;
-#endif
+  MAPPED_BUTTONS();
 
   bool input_locked = input_get_lock_tick();
-
-#if defined(PL_GPIO_BUTTON_SELECT_AVAILABLE)
-  out->button_select = input_locked ? 0 : in->button_select;
-#endif
-
-  out->button_start = input_locked ? 0 : in->button_start;
-  out->button_home = input_locked ? 0 : in->button_home;
+  if (input_locked) {
+    out->button_select = 0;
+    out->button_start = 0;
+    out->button_home = 0;
+  }
 }
 
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+static SOCDInputs socd_buf[32];
+#else
+static SOCDInputs socd_buf[2];
+#endif
+
 StickOutput::Axis input_profile_socd_x(const RawInputState* in) {
-  SOCDInputs inputs[] = {
-    { in->stick_left, button_history.stick_left.tick, SOCDButtonType::Negative },
-    { in->stick_right, button_history.stick_right.tick, SOCDButtonType::Positive },
-#if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
-    { in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative,
-      true },
-#endif
-#if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
-    { in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Positive,
-      true },
-#endif
-  };
+  Profile* profile = active_profile();
+  size_t n = profile->socd_x(socd_buf, in);
+  span<SOCDInputs> inputs(socd_buf, n);
 
   return input_socd_parse(input_socd_get_x_type(), inputs);
 }
 
 StickOutput::Axis input_profile_socd_y(const RawInputState* in) {
-  SOCDInputs inputs[] = {
-    { in->stick_up, button_history.stick_up.tick, SOCDButtonType::Negative },
-    { in->stick_down, button_history.stick_down.tick, SOCDButtonType::Positive },
-#if defined(PL_GPIO_BUTTON_W_AVAILABLE)
-    { in->button_w, button_history.button_w.tick, SOCDButtonType::Negative },
-#endif
-#if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
-    { in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative,
-      true },
-#endif
-#if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
-    { in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Negative,
-      true },
-#endif
-  };
-
+  Profile* profile = active_profile();
+  size_t n = profile->socd_y(socd_buf, in);
+  span<SOCDInputs> inputs(socd_buf, n);
   return input_socd_parse(input_socd_get_y_type(), inputs);
 }

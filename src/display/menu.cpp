@@ -7,6 +7,7 @@
 #include "bootloader.h"
 #include "display/display.h"
 #include "input/input.h"
+#include "input/profile.h"
 #include "input/socd.h"
 #include "types.h"
 #include "util.h"
@@ -226,6 +227,18 @@ struct SOCDRadioMenu : public RadioMenu {
   bool x_;
 };
 
+struct ProfileMenu : public RadioMenu {
+  ProfileMenu() : RadioMenu("Profile") {}
+
+  size_t get_selected_option() final { return input_profile_get_active(); }
+  size_t get_option_count() final { return input_profile_count(); }
+  void on_option_selected(size_t index) final { input_profile_activate(index); }
+
+  const char* get_option_name(size_t index) final {
+    return input_profile_get_name(index);
+  }
+};
+
 struct SOCDMenu : public Menu {
   SOCDMenu() : Menu("SOCD Cleaning"), x(true), y(false) {}
 
@@ -243,11 +256,13 @@ struct SettingsMenu : public Menu {
   SettingsMenu() : Menu("Settings"), dfu_("Firmware update", mcuboot_enter) {}
 
   size_t menu_items(span<MenuBase*> buffer) final {
-    buffer[0] = &socd_;
-    buffer[1] = &dfu_;
-    return 2;
+    buffer[0] = &profile_;
+    buffer[1] = &socd_;
+    buffer[2] = &dfu_;
+    return 3;
   }
 
+  ProfileMenu profile_;
   SOCDMenu socd_;
   ActionItem dfu_;
 };
