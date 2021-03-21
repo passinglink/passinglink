@@ -23,6 +23,8 @@
 #endif
 
 #if defined(NRF52840)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static uint32_t get_cycle_count() {
   return DWT->CYCCNT;
 }
@@ -38,6 +40,7 @@ static uint32_t get_cycle_count() {
 static uint32_t get_cpu_freq() {
   return sys_clock_hw_cycles_per_sec();
 }
+#pragma GCC diagnostic pop
 #endif
 
 #if defined(__arm__)
