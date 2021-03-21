@@ -38,10 +38,11 @@
     }
   },
   "nightly": {
-    "version": "v1.1.0-31-g26aaeaa",
+    "version": "v1.1.1-1-g015e936",
     "date": "2021-03-21",
-    "filename": "nightly-26aaeaa.bin",
+    "filename": "nightly-015e936.bin",
     "boards": [
+      "microdash",
       "pl_e73",
       "pl_dongle",
       "stm32f4_disco"
