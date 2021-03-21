@@ -7,6 +7,7 @@
 #include "bootloader.h"
 #include "display/display.h"
 #include "input/input.h"
+#include "input/socd.h"
 #include "types.h"
 #include "util.h"
 #include "version.h"
@@ -185,17 +186,17 @@ struct SOCDRadioMenu : public RadioMenu {
 
   SOCDType get_socd_type() {
     if (x_) {
-      return input_get_x_socd_type();
+      return input_socd_get_x_type();
     } else {
-      return input_get_y_socd_type();
+      return input_socd_get_y_type();
     }
   }
 
   void set_socd_type(SOCDType type) {
     if (x_) {
-      input_set_x_socd_type(type);
+      input_socd_set_x_type(type);
     } else {
-      input_set_y_socd_type(type);
+      input_socd_set_y_type(type);
     }
   }
 
@@ -295,7 +296,7 @@ struct MainMenu : public Menu {
         unlock_("Unlock", []() { input_set_locked(false); }) {}
 
   size_t menu_items(span<MenuBase*> buffer) final {
-    buffer[0] = input_get_locked() ? &unlock_ : &lock_;
+    buffer[0] = input_get_lock_tick() ? &unlock_ : &lock_;
     buffer[1] = &output_mode_;
     buffer[2] = &settings_;
     buffer[3] = &about_;

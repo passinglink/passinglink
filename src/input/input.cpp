@@ -12,8 +12,9 @@ LOG_MODULE_REGISTER(input);
 
 #include "arch.h"
 #include "display/display.h"
-#include "display/menu.h"
+#include "input/profile.h"
 #include "input/queue.h"
+#include "input/socd.h"
 #include "input/touchpad.h"
 #include "panic.h"
 #include "profiling.h"
@@ -25,6 +26,7 @@ static void input_gpio_init();
 
 void input_init() {
   input_gpio_init();
+  input_profile_init();
   input_touchpad_init();
 }
 
@@ -191,8 +193,11 @@ void input_set_output_mode(OutputMode mode) {
 
 static bool input_locked = false;
 static uint64_t input_lock_tick;
-bool input_get_locked() {
-  return input_locked;
+optional<uint64_t> input_get_lock_tick() {
+  if (input_locked) {
+    return input_locked;
+  }
+  return {};
 }
 
 static void input_set_locked(bool locked, uint64_t tick) {
@@ -210,22 +215,11 @@ void input_set_locked(bool locked) {
   input_set_locked(locked, k_uptime_ticks());
 }
 
-struct ButtonHistory {
-  bool state;
-
-  // The cycle on which it entered the state.
-  uint64_t tick;
-};
-
-struct {
-#define PL_GPIO(index, name) ButtonHistory name;
-  PL_GPIOS()
-#undef PL_GPIO
-} button_history;
+ButtonHistory button_history;
 
 // Debounce a button input, given its history.
-// Updates ButtonHistory and returns the value that should be used.
-static bool input_debounce(bool current_state, ButtonHistory* button_history,
+// Updates history and returns the value that should be used.
+static bool input_debounce(bool current_state, ButtonHistory::Button* button_history,
                            uint64_t current_tick) {
   if (current_state == button_history->state) {
     return current_state;
@@ -244,259 +238,11 @@ static bool input_debounce(bool current_state, ButtonHistory* button_history,
   return current_state;
 }
 
-struct StickOutput {
-  struct Axis {
-    // -1 to 1
-    int value;
-
-    uint64_t tick;
-  };
-
-  Axis x;
-  Axis y;
-};
-
-enum class SOCDButtonType : int {
-  // Down, right
-  Positive = 1,
-
-  // Neutral.
-  Neutral = 0,
-
-  // Up, left
-  Negative = -1,
-};
-
-struct SOCDInputs {
-  // bool, but bitfields make it so a cast would be needed to silence warnings.
-  uint32_t input_value;
-  uint64_t input_tick;
-  SOCDButtonType button_type;
-  bool overrides = false;
-};
-
-// TODO: Store these in flash.
-static SOCDType input_socd_type_x = SOCDType::Neutral;
-static SOCDType input_socd_type_y = SOCDType::Negative;
-
-SOCDType input_get_x_socd_type() {
-  return input_socd_type_x;
-}
-
-void input_set_x_socd_type(SOCDType type) {
-  input_socd_type_x = type;
-}
-
-SOCDType input_get_y_socd_type() {
-  return input_socd_type_y;
-}
-
-void input_set_y_socd_type(SOCDType type) {
-  input_socd_type_y = type;
-}
-
-StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
-  optional<uint64_t> newest_positive;
-  optional<uint64_t> newest_neutral;
-  optional<uint64_t> newest_negative;
-
-  for (auto& input : inputs) {
-    if (input.input_value) {
-      if (input.overrides) {
-        return StickOutput::Axis {
-          .value = static_cast<int>(input.button_type),
-          .tick = input.input_tick,
-        };
-      }
-      optional<uint64_t>* target = nullptr;
-      switch (input.button_type) {
-        case SOCDButtonType::Positive:
-          target = &newest_positive;
-          break;
-
-        case SOCDButtonType::Neutral:
-          target = &newest_neutral;
-          break;
-
-        case SOCDButtonType::Negative:
-          target = &newest_negative;
-          break;
-      }
-
-      if (!*target || **target < input.input_tick) {
-        target->reset(input.input_tick);
-      }
-    }
-  }
-
-  switch (type) {
-    case SOCDType::Neutral:
-      return StickOutput::Axis {
-        .value = newest_positive.valid() - newest_negative.valid(),
-        .tick = max(newest_positive.get_or(0), newest_negative.get_or(0)),
-      };
-
-    case SOCDType::Positive:
-      if (newest_positive.valid()) {
-        return StickOutput::Axis {
-          .value = 1,
-          .tick = *newest_positive,
-        };
-      } else if (newest_negative.valid()) {
-        return StickOutput::Axis {
-          .value = -1,
-          .tick = *newest_negative,
-        };
-      } else {
-        return StickOutput::Axis {
-          .value = 0,
-          .tick = 0,
-        };
-      }
-
-    case SOCDType::Negative:
-      if (newest_negative.valid()) {
-        return StickOutput::Axis {
-          .value = -1,
-          .tick = *newest_negative,
-        };
-      } else if (newest_positive.valid()) {
-        return StickOutput::Axis {
-          .value = 1,
-          .tick = *newest_positive,
-        };
-      } else {
-        return StickOutput::Axis {
-          .value = 0,
-          .tick = 0,
-        };
-      }
-
-    case SOCDType::Last:
-      break;
-  }
-
-  struct {
-    optional<uint64_t> tick;
-    int value;
-  } results[] = {
-    { newest_positive, 1 },
-    { newest_neutral, 0 },
-    { newest_negative, -1 },
-  };
-
-  optional<uint64_t> newest_tick;
-  optional<int> newest_value;
-
-  for (auto& x : results) {
-    if (!x.tick) continue;
-
-    if (!newest_tick || *newest_tick < *x.tick) {
-      newest_tick = *x.tick;
-      newest_value.reset(x.value);
-    }
-  }
-
-  return StickOutput::Axis {
-    .value = newest_value.get_or(0),
-    .tick = newest_tick.get_or(0),
-  };
-}
-
-static StickOutput::Axis input_socd_x(const RawInputState* in) {
-  SOCDInputs inputs[] = {
-    { in->stick_left, button_history.stick_left.tick, SOCDButtonType::Negative },
-    { in->stick_right, button_history.stick_right.tick, SOCDButtonType::Positive },
-#if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
-    { in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative,
-      true },
-#endif
-#if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
-    { in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Positive,
-      true },
-#endif
-  };
-
-  return input_socd_generic(input_socd_type_x, inputs);
-}
-
-static StickOutput::Axis input_socd_y(const RawInputState* in) {
-  SOCDInputs inputs[] = {
-    { in->stick_up, button_history.stick_up.tick, SOCDButtonType::Negative },
-    { in->stick_down, button_history.stick_down.tick, SOCDButtonType::Positive },
-#if defined(PL_GPIO_BUTTON_W_AVAILABLE)
-    { in->button_w, button_history.button_w.tick, SOCDButtonType::Negative },
-#endif
-#if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
-    { in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative,
-      true },
-#endif
-#if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
-    { in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Negative,
-      true },
-#endif
-  };
-
-  return input_socd_generic(input_socd_type_y, inputs);
-}
-
 static StickOutput input_socd(const RawInputState* in) {
   return StickOutput {
-    .x = input_socd_x(in),
-    .y = input_socd_y(in),
+    .x = input_profile_socd_x(in),
+    .y = input_profile_socd_y(in),
   };
-}
-
-static bool menu_opened = false;
-
-static bool input_parse_menu(const RawInputState* in, StickOutput stick, uint64_t current_tick) {
-#if defined(PL_GPIO_BUTTON_MENU_AVAILABLE)
-  if (!button_history.button_menu.state) {
-    if (menu_opened) {
-      menu_close();
-      menu_opened = false;
-    }
-    return false;
-  }
-
-  if (input_locked) {
-    // TODO: Make timeout configurable.
-    // TODO: Display progress bar.
-    if (current_tick - button_history.button_menu.tick < k_ms_to_ticks_ceil64(2000)) {
-      return false;
-    } else if (input_lock_tick < button_history.button_menu.tick) {
-      if (!menu_opened) {
-        menu_opened = true;
-        menu_open();
-      }
-    }
-  } else if (!menu_opened) {
-    menu_opened = true;
-    menu_open();
-  }
-
-  if (stick.x.value != 0 && stick.x.tick == current_tick) {
-    if (stick.x.value == -1) {
-      menu_input(MenuInput::Left);
-    } else {
-      menu_input(MenuInput::Right);
-    }
-    return true;
-  }
-
-  if (stick.y.value != 0 && stick.y.tick == current_tick) {
-    if (stick.y.value == -1) {
-      menu_input(MenuInput::Up);
-    } else {
-      menu_input(MenuInput::Down);
-    }
-    return true;
-  }
-
-  return true;
-#endif
-
-  return false;
 }
 
 static void input_parse_mode(RawInputState* in) {
@@ -540,42 +286,14 @@ static bool input_parse(InputState* out, RawInputState* in) {
   input_parse_mode(in);
 
   StickOutput stick_output = input_socd(in);
-  if (input_parse_menu(in, stick_output, current_tick)) {
+  if (input_profile_parse_menu(in, stick_output, current_tick)) {
     return true;
   }
 
   // Copy TouchpadData.
   out->touchpad_data = touchpad_data;
 
-  // Assign buttons.
-  out->button_north = in->button_north;
-  out->button_east = in->button_east;
-  out->button_south = in->button_south;
-  out->button_west = in->button_west;
-  out->button_l1 = in->button_l1;
-  out->button_l2 = in->button_l2;
-
-  out->button_r1 = in->button_r1;
-  out->button_r2 = in->button_r2;
-
-#if defined(PL_GPIO_BUTTON_L3_AVAILABLE)
-  out->button_l3 = in->button_l3;
-#endif
-
-#if defined(PL_GPIO_BUTTON_R3_AVAILABLE)
-  out->button_r3 = in->button_r3;
-#endif
-
-#if defined(PL_GPIO_BUTTON_TOUCHPAD_AVAILABLE)
-  out->button_touchpad = in->button_touchpad;
-#endif
-
-#if defined(PL_GPIO_BUTTON_SELECT_AVAILABLE)
-  out->button_select = input_locked ? 0 : in->button_select;
-#endif
-
-  out->button_start = input_locked ? 0 : in->button_start;
-  out->button_home = input_locked ? 0 : in->button_home;
+  input_profile_assign_buttons(out, in);
 
   OutputMode output_mode = input_get_output_mode();
   switch (output_mode) {

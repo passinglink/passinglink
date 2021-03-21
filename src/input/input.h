@@ -171,6 +171,21 @@ static constexpr size_t PL_GPIO_COUNT = 27;
   PL_GPIO_MODE_PS3(23)           \
   PL_GPIO_OUTPUT_MODES(24)
 
+struct ButtonHistory {
+  struct Button {
+    bool state;
+
+    // The cycle on which it entered the state.
+    uint64_t tick;
+  };
+
+#define PL_GPIO(index, name) Button name;
+  PL_GPIOS()
+#undef PL_GPIO
+};
+
+extern ButtonHistory button_history;
+
 struct RawInputState {
 #define PL_GPIO(index, name) uint32_t name : 1;
   PL_GPIOS()
@@ -202,28 +217,8 @@ struct InputState {
 
 void input_init();
 
-bool input_get_locked();
+optional<uint64_t> input_get_lock_tick();
 void input_set_locked(bool locked);
-
-enum class SOCDType : size_t {
-  // Neutral.
-  Neutral = 0,
-
-  // Last input wins.
-  Last = 1,
-
-  // Negative input (up, left) wins
-  Negative = 2,
-
-  // Positive input (down, right) wins.
-  Positive = 3,
-};
-
-SOCDType input_get_x_socd_type();
-void input_set_x_socd_type(SOCDType type);
-
-SOCDType input_get_y_socd_type();
-void input_set_y_socd_type(SOCDType type);
 
 enum class OutputMode {
   mode_dpad,

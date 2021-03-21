@@ -29,7 +29,9 @@ list(APPEND app_sources
     src/shell.cpp
     src/bt/bt.cpp
     src/input/input.cpp
+    src/input/profile.cpp
     src/input/queue.cpp
+    src/input/socd.cpp
     src/metrics/metrics.cpp
     src/output/led.cpp
     src/output/output.cpp
