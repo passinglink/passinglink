@@ -12,16 +12,25 @@ fi
 
 set -euxo pipefail
 
-DTS_HEADER="$BUILD_DIR/pl/zephyr/include/generated/devicetree_legacy_unfixed.h"
+DTS_HEADER="$BUILD_DIR/pl/zephyr/include/generated/devicetree_unfixed.h"
 if [[ ! -f "$DTS_HEADER" ]]; then
   echo "Building $BOARD to generate DTS header..."
   $SCRIPT_PATH/build.sh
 fi
 
-OFFSET_PARTS=( $(grep "#define DT_FLASH_AREA_PROVISIONING_OFFSET_0" $DTS_HEADER) )
-SIZE_PARTS=( $(grep "#define DT_FLASH_AREA_PROVISIONING_SIZE_0" $DTS_HEADER) )
-OFFSET=${OFFSET_PARTS[2]}
-SIZE=${SIZE_PARTS[2]}
+HEADER="#include <devicetree.h>\n"
+HEADER="$HEADER\n#define addr DT_REG_ADDR(DT_NODELABEL(provisioning_partition))"
+HEADER="$HEADER\n#define size DT_REG_SIZE(DT_NODELABEL(provisioning_partition))"
+HEADER="$HEADER\naddr size"
+
+PARTS=($(
+  echo -e "$HEADER" |
+  cpp -I "$BUILD_DIR/pl/zephyr/include/generated" -I "$ROOT/zephyr/include" -w - |
+  tail -n 1
+))
+
+OFFSET=${PARTS[0]}
+SIZE=${PARTS[1]}
 
 if ! pyocd list -t | egrep -q "^\s+$PL_PYOCD_TYPE\s"; then
   echo "pyocd support missing for '$PL_PYOCD_TYPE': try \`pyocd pack --install $PL_PYOCD_TYPE\`?"
