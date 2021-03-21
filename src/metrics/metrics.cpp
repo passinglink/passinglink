@@ -16,7 +16,7 @@ void metrics_record_usb_write() {}
 #else
 
 constexpr uint64_t REPORT_INTERVAL = 1024;
-optional<uint32_t> input_cycle;
+optional<uint32_t> input_tick;
 
 template <typename T, size_t alpha_num, size_t alpha_denom>
 struct moving_average {
@@ -47,16 +47,16 @@ moving_average<uint64_t, 2, 2048> averager;
 #endif
 
 void metrics_record_input_read() {
-  input_cycle = get_cycle_count();
+  input_tick = k_uptime_ticks();
 }
 
 void metrics_record_usb_write() {
-  if (input_cycle) {
-    uint32_t diff = get_cycle_count() - *input_cycle;
-    input_cycle = {};
+  if (input_tick) {
+    uint32_t diff = k_uptime_ticks() - *input_tick;
+    input_tick = {};
     averager.add(diff);
     if (averager.reports() % REPORT_INTERVAL == 0) {
-      display_update_latency(static_cast<uint64_t>(averager.get()) * 1'000'000 / get_cpu_freq());
+      display_update_latency(k_ticks_to_us_ceil32(1) * averager.get());
     }
   }
 }
