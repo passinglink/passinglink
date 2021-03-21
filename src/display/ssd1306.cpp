@@ -322,7 +322,6 @@ bool ssd1306_init() {
   i2c_device = device_get_binding(DT_LABEL(DT_ALIAS(display_i2c)));
 
   initialized = false;
-  bool result;
 
   for (int i = 0; i < 50; ++i) {
     // clang-format off
