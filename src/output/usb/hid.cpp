@@ -24,7 +24,10 @@ static Hid* hid;
 static const struct device* usb_hid_device;
 
 static optional<int64_t> suspend_timestamp;
+
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
 static struct k_delayed_work delayed_write_work;
+#endif
 
 // USB transfers works on a host-polled basis: we put data into registers for
 // the hardware to send to the host. When this data gets succesfully sent, we
@@ -50,15 +53,27 @@ static_assert(k_ticks_to_us_ceil32(HID_REPORT_INTERVAL_TICKS) == 702);
 
 static void write_report(struct k_work* item = nullptr);
 
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED_WORK_QUEUE)
+struct k_work_q hid_work_q;
+K_THREAD_STACK_DEFINE(hid_work_q_stack, 2048);
+#endif
+
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
 static void submit_write() {
   {
     ScopedIRQLock lock;
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED_WORK_QUEUE)
+    k_delayed_work_submit_to_queue(&hid_work_q, &delayed_write_work,
+                                   K_TICKS(HID_REPORT_INTERVAL_TICKS));
+#else
     k_delayed_work_submit(&delayed_write_work, K_TICKS(HID_REPORT_INTERVAL_TICKS));
+#endif
   }
 
   // Immediately do a touchpad read after submitting, since it's slow.
   input_touchpad_poll();
 }
+#endif
 
 static void do_write() {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
@@ -85,8 +100,12 @@ static void write_report(struct k_work* item) {
   size_t bytes_written = 0;
   int rc = hid_int_ep_write(usb_hid_device, report_buf, report_size, &bytes_written);
   if (rc < 0) {
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
     LOG_ERR("USB write failed, requeuing: rc = %d", rc);
     submit_write();
+#else
+    return write_report(item);
+#endif
   } else if (bytes_written != static_cast<size_t>(report_size)) {
     LOG_WRN("wrote fewer bytes (%d) than expected (%d): buffer full?", bytes_written, report_size);
   }
@@ -280,7 +299,18 @@ static const struct hid_ops ops = {
 namespace passinglink {
 
 int usb_hid_init(Hid* hid_impl) {
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED_WORK_QUEUE)
+  static bool hid_work_q_running = false;
+  if (!hid_work_q_running) {
+    k_work_q_start(&hid_work_q, hid_work_q_stack, K_THREAD_STACK_SIZEOF(hid_work_q_stack),
+                   -CONFIG_NUM_COOP_PRIORITIES);
+    hid_work_q_running = true;
+  }
+#endif
+
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
   k_delayed_work_init(&delayed_write_work, write_report);
+#endif
 
   hid = hid_impl;
 
@@ -316,7 +346,10 @@ int usb_hid_init(Hid* hid_impl) {
 }
 
 void usb_hid_uninit() {
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
   k_delayed_work_cancel(&delayed_write_work);
+#endif
+
   usb_disable();
   usb_hid_unregister_device(usb_hid_device);
 }

@@ -130,6 +130,13 @@ config PASSINGLINK_OUTPUT_USB_DEFERRED
   bool "Defer USB writes for better latency"
   default y
 
+config PASSINGLINK_OUTPUT_USB_DEFERRED_WORK_QUEUE
+  bool "Move deferred USB writes to their own work queue for better latency"
+  default y
+  depends on PASSINGLINK_OUTPUT_DEFERRED
+  help
+    Move USB HID handling to a separate maximum-priority work queue.
+
 endmenu # Output methods
 
 menu "Display"
