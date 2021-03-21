@@ -250,7 +250,7 @@ static Profile* active_profile() {
 }
 
 static ButtonHistory::Button* input_profile_menu_button() {
-#if defined(PL_GPIO_BUTTON_MENU_AVAILABLE)
+#if PL_GPIO_AVAILABLE(button_menu)
   return &button_history.button_menu;
 #endif
   return nullptr;

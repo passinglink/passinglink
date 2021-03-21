@@ -49,91 +49,78 @@ static constexpr size_t PL_GPIO_COUNT = 27;
 #define PL_GPIO_AVAILABLE(name) DT_NODE_HAS_STATUS(PL_GPIO_NODE(name), okay)
 
 #if PL_GPIO_AVAILABLE(button_l3)
-#define PL_GPIO_BUTTON_L3_AVAILABLE 1
 #define PL_GPIO_BUTTON_L3(index) PL_GPIO(index, button_l3)
 #else
 #define PL_GPIO_BUTTON_L3(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_r3)
-#define PL_GPIO_BUTTON_R3_AVAILABLE 1
 #define PL_GPIO_BUTTON_R3(index) PL_GPIO(index, button_r3)
 #else
 #define PL_GPIO_BUTTON_R3(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_select)
-#define PL_GPIO_BUTTON_SELECT_AVAILABLE 1
 #define PL_GPIO_BUTTON_SELECT(index) PL_GPIO(index, button_select)
 #else
 #define PL_GPIO_BUTTON_SELECT(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_touchpad)
-#define PL_GPIO_BUTTON_TOUCHPAD_AVAILABLE 1
 #define PL_GPIO_BUTTON_TOUCHPAD(index) PL_GPIO(index, button_touchpad)
 #else
 #define PL_GPIO_BUTTON_TOUCHPAD(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_w)
-#define PL_GPIO_BUTTON_W_AVAILABLE 1
 #define PL_GPIO_BUTTON_W(index) PL_GPIO(index, button_w)
 #else
 #define PL_GPIO_BUTTON_W(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_thumb_left)
-#define PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE 1
 #define PL_GPIO_BUTTON_THUMB_LEFT(index) PL_GPIO(index, button_thumb_left)
 #else
 #define PL_GPIO_BUTTON_THUMB_LEFT(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_thumb_right)
-#define PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE 1
 #define PL_GPIO_BUTTON_THUMB_RIGHT(index) PL_GPIO(index, button_thumb_right)
 #else
 #define PL_GPIO_BUTTON_THUMB_RIGHT(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(button_menu)
-#define PL_GPIO_BUTTON_MENU_AVAILABLE 1
 #define PL_GPIO_BUTTON_MENU(index) PL_GPIO(index, button_menu)
 #else
 #define PL_GPIO_BUTTON_MENU(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(mode_lock)
-#define PL_GPIO_MODE_LOCK_AVAILABLE 1
 #define PL_GPIO_MODE_LOCK(index) PL_GPIO(index, mode_lock)
 #else
 #define PL_GPIO_MODE_LOCK(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(mode_ps3)
-#define PL_GPIO_MODE_PS3_AVAILABLE 1
 #define PL_GPIO_MODE_PS3(index) PL_GPIO(index, mode_ps3)
 #else
 #define PL_GPIO_MODE_PS3(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(mode_dpad)
-#define PL_GPIO_MODE_DPAD_AVAILABLE 1
 #define PL_GPIO_MODE_DPAD(index) PL_GPIO(index, mode_dpad)
 #else
 #define PL_GPIO_MODE_DPAD(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(mode_ls)
-#define PL_GPIO_MODE_LS_AVAILABLE 1
 #define PL_GPIO_MODE_LS(index) PL_GPIO(index, mode_ls)
 #else
 #define PL_GPIO_MODE_LS(index)
 #endif
 
 #if PL_GPIO_AVAILABLE(mode_rs)
-#define PL_GPIO_MODE_RS_AVAILABLE 1
 #define PL_GPIO_MODE_RS(index) PL_GPIO(index, mode_rs)
 #else
 #define PL_GPIO_MODE_RS(index)
