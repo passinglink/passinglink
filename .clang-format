@@ -4,9 +4,11 @@ AllowShortFunctionsOnASingleLine: Inline
 ColumnLimit: 100
 ContinuationIndentWidth: 2
 CommentPragmas: NOLINT:.*
+Cpp11BracedListStyle: false
 DerivePointerAlignment: false
 IncludeBlocks: Preserve
 IndentWidth: 2
 PointerAlignment: Left
+SpaceBeforeCpp11BracedList: true
 TabWidth: 2
 UseTab: Never

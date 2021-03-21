@@ -305,7 +305,7 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
       if (input.overrides) {
         return StickOutput::Axis {
           .value = static_cast<int>(input.button_type),
-          .tick = input.input_tick
+          .tick = input.input_tick,
         };
       }
       optional<uint64_t>* target = nullptr;
@@ -380,9 +380,9 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
     optional<uint64_t> tick;
     int value;
   } results[] = {
-    {newest_positive, 1},
-    {newest_neutral, 0},
-    {newest_negative, -1},
+    { newest_positive, 1 },
+    { newest_neutral, 0 },
+    { newest_negative, -1 },
   };
 
   optional<uint64_t> newest_tick;
@@ -405,13 +405,15 @@ StickOutput::Axis input_socd_generic(SOCDType type, span<SOCDInputs> inputs) {
 
 static StickOutput::Axis input_socd_x(const RawInputState* in) {
   SOCDInputs inputs[] = {
-    {in->stick_left, button_history.stick_left.tick, SOCDButtonType::Negative},
-    {in->stick_right, button_history.stick_right.tick, SOCDButtonType::Positive},
+    { in->stick_left, button_history.stick_left.tick, SOCDButtonType::Negative },
+    { in->stick_right, button_history.stick_right.tick, SOCDButtonType::Positive },
 #if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
-    {in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative, true},
+    { in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative,
+      true },
 #endif
 #if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
-    {in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Positive, true},
+    { in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Positive,
+      true },
 #endif
   };
 
@@ -420,16 +422,18 @@ static StickOutput::Axis input_socd_x(const RawInputState* in) {
 
 static StickOutput::Axis input_socd_y(const RawInputState* in) {
   SOCDInputs inputs[] = {
-    {in->stick_up, button_history.stick_up.tick, SOCDButtonType::Negative},
-    {in->stick_down, button_history.stick_down.tick, SOCDButtonType::Positive},
+    { in->stick_up, button_history.stick_up.tick, SOCDButtonType::Negative },
+    { in->stick_down, button_history.stick_down.tick, SOCDButtonType::Positive },
 #if defined(PL_GPIO_BUTTON_W_AVAILABLE)
-    {in->button_w, button_history.button_w.tick, SOCDButtonType::Negative},
+    { in->button_w, button_history.button_w.tick, SOCDButtonType::Negative },
 #endif
 #if defined(PL_GPIO_BUTTON_THUMB_LEFT_AVAILABLE)
-    {in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Neutral, true},
+    { in->button_thumb_left, button_history.button_thumb_left.tick, SOCDButtonType::Negative,
+      true },
 #endif
 #if defined(PL_GPIO_BUTTON_THUMB_RIGHT_AVAILABLE)
-    {in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Neutral, true},
+    { in->button_thumb_right, button_history.button_thumb_right.tick, SOCDButtonType::Negative,
+      true },
 #endif
   };
 
@@ -437,7 +441,7 @@ static StickOutput::Axis input_socd_y(const RawInputState* in) {
 }
 
 static StickOutput input_socd(const RawInputState* in) {
-  return StickOutput{
+  return StickOutput {
     .x = input_socd_x(in),
     .y = input_socd_y(in),
   };

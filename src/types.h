@@ -124,7 +124,7 @@ struct optional {
 
   void reset(T value) {
     reset();
-    new (obj_) T{static_cast<T&&>(value)};
+    new (obj_) T { static_cast<T&&>(value) };
     valid_ = true;
   }
 
@@ -285,7 +285,7 @@ T min(T a, T b) {
   return b;
 }
 
-template<typename T>
+template <typename T>
 T max(T a, T b) {
   if (a > b) {
     return a;

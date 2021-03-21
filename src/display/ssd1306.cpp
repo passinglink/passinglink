@@ -21,19 +21,19 @@ static const struct device* i2c_device;
 static constexpr uint8_t display_addr = 0x3c;
 
 static constexpr array<uint8_t, 2> ssd1306_set_contrast(uint8_t contrast) {
-  return {0x81, contrast};
+  return { 0x81, contrast };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_set_entire_display_on(bool on) {
-  return {static_cast<uint8_t>(on ? 0xa5 : 0xa4)};
+  return { static_cast<uint8_t>(on ? 0xa5 : 0xa4) };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_set_inverse(bool inverse) {
-  return {static_cast<uint8_t>(inverse ? 0xa7 : 0xa6)};
+  return { static_cast<uint8_t>(inverse ? 0xa7 : 0xa6) };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_set_display_on(bool on) {
-  return {static_cast<uint8_t>(on ? 0xaf : 0xae)};
+  return { static_cast<uint8_t>(on ? 0xaf : 0xae) };
 }
 
 // Scrolling commands
@@ -57,46 +57,46 @@ static constexpr array<uint8_t, 7> ssd1306_setup_horizontal_scroll(ScrollDirecti
                                                                    uint8_t start_page,
                                                                    uint8_t end_page,
                                                                    ScrollInterval interval) {
-  return {static_cast<uint8_t>(direction == ScrollDirection::Right ? 0x26 : 0x27),
-          0,
-          start_page,
-          static_cast<uint8_t>(interval),
-          end_page,
-          0,
-          0xff};
+  return { static_cast<uint8_t>(direction == ScrollDirection::Right ? 0x26 : 0x27),
+           0,
+           start_page,
+           static_cast<uint8_t>(interval),
+           end_page,
+           0,
+           0xff };
 }
 
 static constexpr array<uint8_t, 7> ssd1306_setup_horizontal_vertical_scroll(
   ScrollDirection direction, uint8_t start_page, uint8_t end_page, ScrollInterval interval,
   uint8_t vertical_offset) {
-  return {static_cast<uint8_t>(direction == ScrollDirection::Right ? 0x29 : 0x2a),
-          0,
-          start_page,
-          static_cast<uint8_t>(interval),
-          end_page,
-          0,
-          vertical_offset};
+  return { static_cast<uint8_t>(direction == ScrollDirection::Right ? 0x29 : 0x2a),
+           0,
+           start_page,
+           static_cast<uint8_t>(interval),
+           end_page,
+           0,
+           vertical_offset };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_deactivate_scroll() {
-  return {0x2e};
+  return { 0x2e };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_activate_scroll() {
-  return {0x2f};
+  return { 0x2f };
 }
 
 static constexpr array<uint8_t, 3> ssd1306_set_vertical_scroll_area(uint8_t top, uint8_t rows) {
-  return {0xa3, top, rows};
+  return { 0xa3, top, rows };
 }
 
 // Addressing
 static constexpr array<uint8_t, 1> ssd1306_set_column_start_address_lower(uint8_t nybble) {
-  return {static_cast<uint8_t>(nybble & 0b1111)};
+  return { static_cast<uint8_t>(nybble & 0b1111) };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_set_column_start_address_upper(uint8_t nybble) {
-  return {static_cast<uint8_t>(0x10 | (nybble & 0b1111))};
+  return { static_cast<uint8_t>(0x10 | (nybble & 0b1111)) };
 }
 
 enum class MemoryAddressingMode : uint8_t {
@@ -106,41 +106,41 @@ enum class MemoryAddressingMode : uint8_t {
 };
 
 static constexpr array<uint8_t, 2> ssd1306_set_memory_addressing_mode(MemoryAddressingMode mode) {
-  return {0x20, static_cast<uint8_t>(mode)};
+  return { 0x20, static_cast<uint8_t>(mode) };
 }
 
 static constexpr array<uint8_t, 3> ssd1306_set_column_address(uint8_t start, uint8_t end) {
-  return {0x21, start, end};
+  return { 0x21, start, end };
 }
 
 static constexpr array<uint8_t, 3> ssd1306_set_page_address(uint8_t start, uint8_t end) {
-  return {0x22, start, end};
+  return { 0x22, start, end };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_set_page_start_address(uint8_t address) {
-  return {static_cast<uint8_t>(0xb0 | (address & 0b111))};
+  return { static_cast<uint8_t>(0xb0 | (address & 0b111)) };
 }
 
 // Hardware configuration
 static constexpr array<uint8_t, 1> ssd1306_set_display_start_line(uint8_t line) {
-  return {static_cast<uint8_t>(0x40 | (line & 0b111111))};
+  return { static_cast<uint8_t>(0x40 | (line & 0b111111)) };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_set_segment_remap(bool remap) {
-  return {static_cast<uint8_t>(0xa0 | remap)};
+  return { static_cast<uint8_t>(0xa0 | remap) };
 }
 
 // ratio must be >= 15
 static constexpr array<uint8_t, 2> ssd1306_set_multiplex_ratio(uint8_t ratio) {
-  return {0xa8, static_cast<uint8_t>((ratio - 1) & 0b111111)};
+  return { 0xa8, static_cast<uint8_t>((ratio - 1) & 0b111111) };
 }
 
 static constexpr array<uint8_t, 2> ssd1306_set_com_output_scan_direction(bool remapped) {
-  return {static_cast<uint8_t>(0xc0 | remapped << 3)};
+  return { static_cast<uint8_t>(0xc0 | remapped << 3) };
 }
 
 static constexpr array<uint8_t, 2> ssd1306_set_display_offset(uint8_t offset) {
-  return {0xd3, offset};
+  return { 0xd3, offset };
 }
 
 enum class PinConfiguration {
@@ -161,37 +161,37 @@ static constexpr array<uint8_t, 2> ssd1306_set_com_pins(PinConfiguration pin, Le
   if (lr == LeftRightRemap::Enabled) {
     arg |= 1 << 5;
   }
-  return {0xda, arg};
+  return { 0xda, arg };
 }
 
 // Timing and driving
 static constexpr array<uint8_t, 2> ssd1306_set_display_clock(uint8_t divide_ratio, uint8_t freq) {
-  return {0xd5, static_cast<uint8_t>(((divide_ratio - 1) & 0b111) | (freq & 0b1111) << 4)};
+  return { 0xd5, static_cast<uint8_t>(((divide_ratio - 1) & 0b111) | (freq & 0b1111) << 4) };
 }
 
 static constexpr array<uint8_t, 2> ssd1306_set_precharge_period(uint8_t phase1, uint8_t phase2) {
-  return {0xd9, static_cast<uint8_t>((phase1 & 0b1111) | (phase2 & 0b1111) << 4)};
+  return { 0xd9, static_cast<uint8_t>((phase1 & 0b1111) | (phase2 & 0b1111) << 4) };
 }
 
 // 0 = 0.65 * VCC
 // 2 = 0.77 * VCC
 // 3 = 0.83 * VCC
 static constexpr array<uint8_t, 2> ssd1306_set_vcom_dselect_level(uint8_t level) {
-  return {0xdb, static_cast<uint8_t>((level & 0b111) << 4)};
+  return { 0xdb, static_cast<uint8_t>((level & 0b111) << 4) };
 }
 
 static constexpr array<uint8_t, 1> ssd1306_nop() {
-  return {0xe3};
+  return { 0xe3 };
 }
 
 // Charge pump
 static constexpr array<uint8_t, 2> ssd1306_set_enable_charge_pump(bool enable) {
-  return {0x8d, static_cast<uint8_t>(0b00010000 | enable << 2)};
+  return { 0x8d, static_cast<uint8_t>(0b00010000 | enable << 2) };
 }
 
 // Data write
 static constexpr array<uint8_t, 2> ssd1306_write_byte(uint8_t byte) {
-  return {0x40, byte};
+  return { 0x40, byte };
 }
 
 template <size_t N>
