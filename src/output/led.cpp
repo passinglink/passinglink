@@ -10,6 +10,25 @@
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(led);
 
+#if !defined(CONFIG_PASSINGLINK_LED)
+
+void led_init() {}
+uint32_t led_set(Led led, bool value, optional<uint32_t> expected_counter) {
+  return 0;
+}
+
+uint32_t led_on(Led led, optional<uint32_t> expected_counter) {
+  return 0;
+}
+
+uint32_t led_off(Led led, optional<uint32_t> expected_counter) {
+  return 0;
+}
+
+void led_flash(Led led, uint32_t duration_ms, uint32_t interval_ms) {}
+
+#else
+
 struct LedState {
   k_delayed_work work;
   const device* led_device;
@@ -134,3 +153,5 @@ void led_flash(Led led, uint32_t duration_ms, uint32_t interval_ms) {
   state.interval_ticks = k_ms_to_ticks_ceil32(interval_ms);
   led_schedule_update(state);
 }
+
+#endif

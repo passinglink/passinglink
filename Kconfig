@@ -134,6 +134,12 @@ endmenu # Output methods
 
 menu "Display"
 
+config PASSINGLINK_LED
+  bool "LED output"
+  default y
+  help
+    Enable LED management
+
 config PASSINGLINK_DISPLAY
   bool "Enable display output"
   default n
