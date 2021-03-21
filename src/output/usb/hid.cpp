@@ -39,14 +39,14 @@ static struct k_delayed_work delayed_write_work;
 //       interrupt which is far more precise?
 #if defined(STM32)
 constexpr uint32_t HID_REPORT_INTERVAL_US = 700;
-#elif defined(NRF52840)
-constexpr uint32_t HID_REPORT_INTERVAL_US = 600;
-#else
-#warning HID_REPORT_INTERVAL_US unset, defaulting to 0
-constexpr uint32_t HID_REPORT_INTERVAL_US = 0;
-#endif
-
 constexpr uint32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
+#elif defined(NRF52840)
+// ~702 us
+constexpr uint32_t HID_REPORT_INTERVAL_TICKS = 23;
+static_assert(k_ticks_to_us_ceil32(HID_REPORT_INTERVAL_TICKS) == 702);
+#else
+#error HID_REPORT_INTERVAL_US unset
+#endif
 
 static void write_report(struct k_work* item = nullptr);
 
