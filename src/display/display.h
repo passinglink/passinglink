@@ -8,6 +8,6 @@
 
 void display_init();
 
-void display_update_latency(uint32_t ticks);
+void display_update_latency(uint32_t us);
 void display_set_locked(bool locked);
 void display_set_connection_type(bool probing, ProbeType type);

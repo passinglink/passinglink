@@ -65,8 +65,8 @@ static void display_draw_status_line() {
   display_set_line(DISPLAY_ROWS, buf);
 }
 
-void display_update_latency(uint32_t cycles) {
-  status_latency.reset(static_cast<uint64_t>(cycles) * 1'000'000 / get_cpu_freq());
+void display_update_latency(uint32_t us) {
+  status_latency.reset(us);
   display_draw_status_line();
   display_blit();
 }

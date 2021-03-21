@@ -56,7 +56,7 @@ void metrics_record_usb_write() {
     input_cycle = {};
     averager.add(diff);
     if (averager.reports() % REPORT_INTERVAL == 0) {
-      display_update_latency(averager.get());
+      display_update_latency(static_cast<uint64_t>(averager.get()) * 1'000'000 / get_cpu_freq());
     }
   }
 }
