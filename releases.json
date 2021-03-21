@@ -26,6 +26,15 @@
         "pl_dongle",
         "stm32f4_disco"
       ]
+    },
+    "1.1.1": {
+      "date": "2021-03-21",
+      "filename": "v1.1.1.bin",
+      "boards": [
+        "pl_e73",
+        "pl_dongle",
+        "stm32f4_disco"
+      ]
     }
   },
   "nightly": {
