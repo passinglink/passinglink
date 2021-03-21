@@ -262,6 +262,32 @@ struct AboutMenu : public Menu {
   ExpandedTextMenu version_;
 };
 
+struct OutputModeRadioMenu : public RadioMenu {
+  OutputModeRadioMenu() : RadioMenu("Mode") {}
+
+  size_t get_selected_option() final { return static_cast<size_t>(input_get_output_mode()); }
+  size_t get_option_count() final { return 3; }
+  void on_option_selected(size_t index) final {
+    input_set_output_mode(static_cast<OutputMode>(index));
+  }
+
+  const char* get_option_name(size_t index) final {
+    switch (static_cast<OutputMode>(index)) {
+      case OutputMode::mode_dpad:
+        return "DPad";
+
+      case OutputMode::mode_ls:
+        return "Left stick";
+
+      case OutputMode::mode_rs:
+        return "Right stick";
+
+      default:
+        return "unreachable";
+    }
+  }
+};
+
 struct MainMenu : public Menu {
   MainMenu()
       : Menu("Main menu"),
@@ -270,13 +296,15 @@ struct MainMenu : public Menu {
 
   size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = input_get_locked() ? &unlock_ : &lock_;
-    buffer[1] = &settings_;
-    buffer[2] = &about_;
-    return 3;
+    buffer[1] = &output_mode_;
+    buffer[2] = &settings_;
+    buffer[3] = &about_;
+    return 4;
   }
 
   ActionItem lock_;
   ActionItem unlock_;
+  OutputModeRadioMenu output_mode_;
   SettingsMenu settings_;
   AboutMenu about_;
 };

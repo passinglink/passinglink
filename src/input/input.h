@@ -225,6 +225,15 @@ void input_set_x_socd_type(SOCDType type);
 SOCDType input_get_y_socd_type();
 void input_set_y_socd_type(SOCDType type);
 
+enum class OutputMode {
+  mode_dpad,
+  mode_ls,
+  mode_rs,
+};
+
+OutputMode input_get_output_mode();
+void input_set_output_mode(OutputMode mode);
+
 // Get the raw state of the buttons, unaffected by SOCD cleaning, mode switches, etc.
 bool input_get_raw_state(RawInputState* out);
 

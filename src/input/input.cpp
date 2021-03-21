@@ -180,6 +180,15 @@ static uint8_t stick_scale(int sign) {
   }
 }
 
+static OutputMode input_output_mode = OutputMode::mode_dpad;
+OutputMode input_get_output_mode() {
+  return input_output_mode;
+}
+
+void input_set_output_mode(OutputMode mode) {
+  input_output_mode = mode;
+}
+
 static bool input_locked = false;
 static uint64_t input_lock_tick;
 bool input_get_locked() {
@@ -486,6 +495,22 @@ static bool input_parse_menu(const RawInputState* in, StickOutput stick, uint64_
   return false;
 }
 
+static void input_parse_mode(RawInputState* in) {
+  bool have_mode = false;
+#define PL_GPIO(index, mode)                 \
+  if (in->mode) {                            \
+    input_set_output_mode(OutputMode::mode); \
+    return;                                  \
+  } else {                                   \
+    have_mode = true;                        \
+  }
+  PL_GPIO_OUTPUT_MODES()
+#undef PL_GPIO
+  if (have_mode) {
+    input_set_output_mode(OutputMode::mode_dpad);
+  }
+}
+
 static bool input_parse(InputState* out, RawInputState* in) {
   PROFILE("input_parse", 128);
 
@@ -507,6 +532,8 @@ static bool input_parse(InputState* out, RawInputState* in) {
 #if defined(PL_GPIO_MODE_LOCK_AVAILABLE)
   input_set_locked(in->mode_lock, current_tick);
 #endif
+
+  input_parse_mode(in);
 
   StickOutput stick_output = input_socd(in);
   if (input_parse_menu(in, stick_output, current_tick)) {
@@ -546,22 +573,7 @@ static bool input_parse(InputState* out, RawInputState* in) {
   out->button_start = input_locked ? 0 : in->button_start;
   out->button_home = input_locked ? 0 : in->button_home;
 
-  enum class OutputMode {
-    mode_dpad,
-    mode_ls,
-    mode_rs,
-  };
-
-  OutputMode output_mode = OutputMode::mode_dpad;
-#define PL_GPIO(index, mode)        \
-  else if (in->mode) {              \
-    output_mode = OutputMode::mode; \
-  }
-  if (false) {
-  }
-  PL_GPIO_OUTPUT_MODES();
-#undef PL_GPIO
-
+  OutputMode output_mode = input_get_output_mode();
   switch (output_mode) {
     case OutputMode::mode_dpad:
       out->dpad = stick_state_from_x_y(stick_output.x.value, stick_output.y.value);
