@@ -95,19 +95,21 @@ static uint8_t gpio_device_add(const struct device* device) {
 }
 
 static void input_gpio_init() {
-#define PL_GPIO(index, name)                                                                    \
-  {                                                                                             \
-    const struct device* device = device_get_binding(PL_GPIO_LABEL(name));                      \
-    if (!device) {                                                                              \
-      PANIC("failed to find gpio device %s", PL_GPIO_LABEL(name));                              \
-    }                                                                                           \
-    if (gpio_pin_configure(device, PL_GPIO_PIN(name), PL_GPIO_FLAGS(name) | GPIO_INPUT) != 0) { \
-      PANIC("failed to configure gpio pin (device = %s, pin = %d)", PL_GPIO_LABEL(name),        \
-            PL_GPIO_PIN(name));                                                                 \
-    };                                                                                          \
-    uint8_t device_offset = gpio_device_add(device);                                            \
-    gpio_indices[index] = device_offset;                                                        \
-  }
+#define PL_GPIO(index, name, available)                                                           \
+  COND_CODE_1(                                                                                    \
+    available, ({                                                                                 \
+      const struct device* device = device_get_binding(PL_GPIO_LABEL(name));                      \
+      if (!device) {                                                                              \
+        PANIC("failed to find gpio device %s", PL_GPIO_LABEL(name));                              \
+      }                                                                                           \
+      if (gpio_pin_configure(device, PL_GPIO_PIN(name), PL_GPIO_FLAGS(name) | GPIO_INPUT) != 0) { \
+        PANIC("failed to configure gpio pin (device = %s, pin = %d)", PL_GPIO_LABEL(name),        \
+              PL_GPIO_PIN(name));                                                                 \
+      };                                                                                          \
+      uint8_t device_offset = gpio_device_add(device);                                            \
+      gpio_indices[index] = device_offset;                                                        \
+    }),                                                                                           \
+    ())
   PL_GPIOS()
 #undef PL_GPIO
 }
@@ -129,58 +131,23 @@ bool input_get_raw_state(RawInputState* out) {
     }
   }
 
-#define PL_GPIO(index, name)                                            \
-  {                                                                     \
-    uint8_t device_index = gpio_indices[index];                         \
-    bool value = port_values[device_index] & (1U << PL_GPIO_PIN(name)); \
-    if constexpr (PL_GPIO_FLAGS(name) & GPIO_ACTIVE_LOW) {              \
-      out->name = !value;                                               \
-    } else {                                                            \
-      out->name = value;                                                \
-    }                                                                   \
-  }
+#define PL_GPIO(index, name, available)                                             \
+  COND_CODE_1(available, ({                                                         \
+                uint8_t device_index = gpio_indices[index];                         \
+                bool value = port_values[device_index] & (1U << PL_GPIO_PIN(name)); \
+                if constexpr (PL_GPIO_FLAGS(name) & GPIO_ACTIVE_LOW) {              \
+                  out->name = !value;                                               \
+                } else {                                                            \
+                  out->name = value;                                                \
+                }                                                                   \
+              }),                                                                   \
+              ())
   PL_GPIOS()
 #undef PL_GPIO
 
   return true;
 }
 #endif
-
-// Convert ({-1, 0, 1}, {-1, 0, 1}) to a StickState.
-static StickState stick_state_from_x_y(int horizontal, int vertical) {
-  if (vertical == -1 && horizontal == 0) {
-    return StickState::North;
-  } else if (vertical == -1 && horizontal == 1) {
-    return StickState::NorthEast;
-  } else if (vertical == 0 && horizontal == 1) {
-    return StickState::East;
-  } else if (vertical == 1 && horizontal == 1) {
-    return StickState::SouthEast;
-  } else if (vertical == 1 && horizontal == 0) {
-    return StickState::South;
-  } else if (vertical == 1 && horizontal == -1) {
-    return StickState::SouthWest;
-  } else if (vertical == 0 && horizontal == -1) {
-    return StickState::West;
-  } else if (vertical == -1 && horizontal == -1) {
-    return StickState::NorthWest;
-  } else {
-    return StickState::Neutral;
-  }
-
-  __builtin_unreachable();
-}
-
-// Scale {-1, 0, 1} to {-128, 0, 127}.
-static uint8_t stick_scale(int sign) {
-  if (sign < 0) {
-    return 0x00;
-  } else if (sign == 0) {
-    return 0x80;
-  } else {
-    return 0xFF;
-  }
-}
 
 static OutputMode input_output_mode = OutputMode::mode_dpad;
 OutputMode input_get_output_mode() {
@@ -238,22 +205,16 @@ static bool input_debounce(bool current_state, ButtonHistory::Button* button_his
   return current_state;
 }
 
-static StickOutput input_socd(const RawInputState* in) {
-  return StickOutput {
-    .x = input_profile_socd_x(in),
-    .y = input_profile_socd_y(in),
-  };
-}
-
 static void input_parse_mode(RawInputState* in) {
   bool have_mode = false;
-#define PL_GPIO(index, mode)                 \
-  if (in->mode) {                            \
-    input_set_output_mode(OutputMode::mode); \
-    return;                                  \
-  } else {                                   \
-    have_mode = true;                        \
-  }
+#define PL_GPIO(index, mode, available)                    \
+  COND_CODE_1(available,                                   \
+              (                                            \
+                if (in->mode) {                            \
+                  input_set_output_mode(OutputMode::mode); \
+                  return;                                  \
+                } else { have_mode = true; }),             \
+              ())
   PL_GPIO_OUTPUT_MODES()
 #undef PL_GPIO
   if (have_mode) {
@@ -274,8 +235,9 @@ static bool input_parse(InputState* out, RawInputState* in) {
 
   uint64_t current_tick = k_uptime_ticks();
   // Debounce inputs.
-#define PL_GPIO(index, name) \
-  in->name = input_debounce(in->name, &button_history.name, current_tick);
+#define PL_GPIO(index, name, available) \
+  COND_CODE_1(available,                \
+              (in->name = input_debounce(in->name, &button_history.name, current_tick);), ())
   PL_GPIOS()
 #undef PL_GPIO
 
@@ -285,32 +247,10 @@ static bool input_parse(InputState* out, RawInputState* in) {
 
   input_parse_mode(in);
 
-  StickOutput stick_output = input_socd(in);
-  if (input_profile_parse_menu(in, stick_output, current_tick)) {
-    return true;
-  }
-
   // Copy TouchpadData.
   out->touchpad_data = touchpad_data;
 
-  input_profile_assign_buttons(out, in);
-
-  OutputMode output_mode = input_get_output_mode();
-  switch (output_mode) {
-    case OutputMode::mode_dpad:
-      out->dpad = stick_state_from_x_y(stick_output.x.value, stick_output.y.value);
-      break;
-
-    case OutputMode::mode_ls:
-      out->left_stick_x = stick_scale(stick_output.x.value);
-      out->left_stick_y = stick_scale(stick_output.y.value);
-      break;
-
-    case OutputMode::mode_rs:
-      out->right_stick_x = stick_scale(stick_output.x.value);
-      out->right_stick_y = stick_scale(stick_output.y.value);
-      break;
-  }
+  input_profile_parse(out, in, current_tick);
 
   return true;
 }

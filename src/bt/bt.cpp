@@ -151,6 +151,7 @@ BT_GATT_SERVICE_DEFINE(bt_version_svc,
     nullptr
   ),
 );
+// clang-format on
 
 #if defined(CONFIG_PASSINGLINK_BT_INPUT)
 static struct bt_uuid_128 bt_input_svc_uuid = BT_UUID_INIT_128(0x00, 0x01, PL_BT_UUID_PREFIX);
@@ -177,9 +178,9 @@ static ssize_t bt_input_write(struct bt_conn* conn, const struct bt_gatt_attr* a
   memcpy(&state, buf, sizeof(state));
 
   LOG_INF("input: write");
-#define PL_GPIO(id, name) \
-  if (state.name) {       \
-    LOG_INF(#name);       \
+#define PL_GPIO(id, name, available) \
+  if (state.name) {                  \
+    LOG_INF(#name);                  \
   }
   PL_GPIOS()
 #undef PL_GPIO

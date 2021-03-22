@@ -5,37 +5,17 @@
 #include "input/socd.h"
 #include "types.h"
 
-void input_profile_init() {}
-
-#define MAPPED_BUTTONS()       \
-  MAPPED_BUTTON(button_north)  \
-  MAPPED_BUTTON(button_east)   \
-  MAPPED_BUTTON(button_south)  \
-  MAPPED_BUTTON(button_west)   \
-  MAPPED_BUTTON(button_l1)     \
-  MAPPED_BUTTON(button_l2)     \
-  MAPPED_BUTTON(button_l3)     \
-  MAPPED_BUTTON(button_r1)     \
-  MAPPED_BUTTON(button_r2)     \
-  MAPPED_BUTTON(button_r3)     \
-  MAPPED_BUTTON(button_select) \
-  MAPPED_BUTTON(button_start)  \
-  MAPPED_BUTTON(button_home)   \
-  MAPPED_BUTTON(button_touchpad)
-
-// Mapping from InputState button.
+// Struct representing button remapping in a profile.
+//
+// If ButtonMapping::button_foo == RawInputState::button_baz_offset, then when
+// the physical button_baz is pressed, it is interpreted as button_foo.
+//
+// 0xFF is treated specially as a nonexistent button.
 //
 // This could be a function in each Profile, but to more easily support custom profiles,
 // track these mappings as data instead.
 struct ButtonMapping {
-// TODO: Remove ifdefs in RawInputState so mappings are consistent across boards?
-#define MAPPED_BUTTON(name) uint8_t name;
-  MAPPED_BUTTONS()
-#undef MAPPED_BUTTON
-};
-
-struct RawInputStateOffsets {
-#define PL_GPIO(index, name) static constexpr size_t name = __COUNTER__;
+#define PL_GPIO(index, name, available) uint8_t name;
   PL_GPIOS()
 #undef PL_GPIO
 };
@@ -49,42 +29,10 @@ struct Profile {
 
 static constexpr ButtonMapping base_mapping() {
   ButtonMapping result = {};
-#define MAP(name) result.name = RawInputStateOffsets::name
-  MAP(button_north);
-  MAP(button_south);
-  MAP(button_east);
-  MAP(button_west);
-  MAP(button_l1);
-  MAP(button_r1);
-  MAP(button_l2);
-  MAP(button_r2);
-
-  MAP(button_start);
-  MAP(button_home);
-
-#if PL_GPIO_AVAILABLE(button_l3)
-  MAP(button_l3);
-#else
-  result.button_l3 = 0xff;
-#endif
-
-#if PL_GPIO_AVAILABLE(button_r3)
-  MAP(button_r3);
-#else
-  result.button_r3 = 0xff;
-#endif
-
-#if PL_GPIO_AVAILABLE(button_select)
-  MAP(button_select);
-#else
-  result.button_select = 0xff;
-#endif
-
-#if PL_GPIO_AVAILABLE(button_touchpad)
-  MAP(button_touchpad);
-#else
-  result.button_touchpad = 0xff;
-#endif
+#define PL_GPIO(index, name, available) \
+  COND_CODE_1(available, (result.name = index;), (result.name = 0xff;))
+  PL_GPIOS()
+#undef PL_GPIO
 
   return result;
 }
@@ -92,8 +40,8 @@ static constexpr ButtonMapping base_mapping() {
 static constexpr ButtonMapping default_mapping() {
   ButtonMapping result = base_mapping();
 #if defined(CONFIG_BOARD_MICRODASH)
-  result.button_l3 = RawInputStateOffsets::button_thumb_left;
-  result.button_r3 = RawInputStateOffsets::button_thumb_right;
+  result.button_l3 = RawInputState::button_thumb_left_offset;
+  result.button_r3 = RawInputState::button_thumb_right_offset;
 #endif
   return result;
 }
@@ -249,11 +197,22 @@ static Profile* active_profile() {
   return profiles[active_profile_idx];
 }
 
-static ButtonHistory::Button* input_profile_menu_button() {
-#if PL_GPIO_AVAILABLE(button_menu)
-  return &button_history.button_menu;
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+static SOCDInputs socd_buf[32];
+#else
+static SOCDInputs socd_buf[2];
 #endif
-  return nullptr;
+
+static StickOutput::Axis input_profile_socd_x(Profile* profile, const RawInputState* in) {
+  size_t n = profile->socd_x(socd_buf, in);
+  span<SOCDInputs> inputs(socd_buf, n);
+  return input_socd_parse(input_socd_get_x_type(), inputs);
+}
+
+static StickOutput::Axis input_profile_socd_y(Profile* profile, const RawInputState* in) {
+  size_t n = profile->socd_y(socd_buf, in);
+  span<SOCDInputs> inputs(socd_buf, n);
+  return input_socd_parse(input_socd_get_y_type(), inputs);
 }
 
 static bool get_bit(const void* ptr, size_t idx) {
@@ -262,74 +221,151 @@ static bool get_bit(const void* ptr, size_t idx) {
   return byte & 1 << (idx % 8);
 }
 
-bool input_profile_parse_menu(const RawInputState* in, StickOutput stick, uint64_t current_tick) {
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+bool input_profile_parse_menu(const RawInputState* in, ButtonHistory::Button* menu_button,
+                              StickOutput stick, uint64_t current_tick) {
   static bool menu_opened = false;
 
-#if defined(CONFIG_PASSINGLINK_DISPLAY)
-  if (ButtonHistory::Button* menu_button = input_profile_menu_button()) {
-    if (!menu_button->state) {
-      if (menu_opened) {
-        menu_close();
-        menu_opened = false;
-      }
+  if (!menu_button->state) {
+    if (menu_opened) {
+      menu_close();
+      menu_opened = false;
+    }
+    return false;
+  }
+
+  if (optional<uint64_t> lock_tick = input_get_lock_tick()) {
+    // TODO: Make timeout configurable.
+    // TODO: Display progress bar.
+    if (current_tick - menu_button->tick < k_ms_to_ticks_ceil64(2000)) {
       return false;
-    }
-
-    if (optional<uint64_t> lock_tick = input_get_lock_tick()) {
-      // TODO: Make timeout configurable.
-      // TODO: Display progress bar.
-      if (current_tick - menu_button->tick < k_ms_to_ticks_ceil64(2000)) {
-        return false;
-      } else if (*lock_tick < menu_button->tick) {
-        if (!menu_opened) {
-          menu_opened = true;
-          menu_open();
-        }
+    } else if (*lock_tick < menu_button->tick) {
+      if (!menu_opened) {
+        menu_opened = true;
+        menu_open();
       }
-    } else if (!menu_opened) {
-      menu_opened = true;
-      menu_open();
     }
+  } else if (!menu_opened) {
+    menu_opened = true;
+    menu_open();
+  }
 
-    if (stick.x.value != 0 && stick.x.tick == current_tick) {
-      if (stick.x.value == -1) {
-        menu_input(MenuInput::Left);
-      } else {
-        menu_input(MenuInput::Right);
-      }
-      return true;
+  if (stick.x.value != 0 && stick.x.tick == current_tick) {
+    if (stick.x.value == -1) {
+      menu_input(MenuInput::Left);
+    } else {
+      menu_input(MenuInput::Right);
     }
-
-    if (stick.y.value != 0 && stick.y.tick == current_tick) {
-      if (stick.y.value == -1) {
-        menu_input(MenuInput::Up);
-      } else {
-        menu_input(MenuInput::Down);
-      }
-      return true;
-    }
-
     return true;
   }
+
+  if (stick.y.value != 0 && stick.y.tick == current_tick) {
+    if (stick.y.value == -1) {
+      menu_input(MenuInput::Up);
+    } else {
+      menu_input(MenuInput::Down);
+    }
+    return true;
+  }
+
+  return true;
+}
 #endif
 
-  return false;
+// Convert ({-1, 0, 1}, {-1, 0, 1}) to a StickState.
+static StickState stick_state_from_x_y(int horizontal, int vertical) {
+  if (vertical == -1 && horizontal == 0) {
+    return StickState::North;
+  } else if (vertical == -1 && horizontal == 1) {
+    return StickState::NorthEast;
+  } else if (vertical == 0 && horizontal == 1) {
+    return StickState::East;
+  } else if (vertical == 1 && horizontal == 1) {
+    return StickState::SouthEast;
+  } else if (vertical == 1 && horizontal == 0) {
+    return StickState::South;
+  } else if (vertical == 1 && horizontal == -1) {
+    return StickState::SouthWest;
+  } else if (vertical == 0 && horizontal == -1) {
+    return StickState::West;
+  } else if (vertical == -1 && horizontal == -1) {
+    return StickState::NorthWest;
+  } else {
+    return StickState::Neutral;
+  }
+
+  __builtin_unreachable();
 }
 
-void input_profile_assign_buttons(InputState* out, const RawInputState* in) {
+// Scale {-1, 0, 1} to {-128, 0, 127}.
+static uint8_t stick_scale(int sign) {
+  if (sign < 0) {
+    return 0x00;
+  } else if (sign == 0) {
+    return 0x80;
+  } else {
+    return 0xFF;
+  }
+}
+
+static StickOutput input_socd(Profile* profile, const RawInputState* in) {
+  return StickOutput {
+    .x = input_profile_socd_x(profile, in),
+    .y = input_profile_socd_y(profile, in),
+  };
+}
+
+void input_profile_parse(InputState* out, const RawInputState* in, uint64_t current_tick) {
   Profile* profile = active_profile();
   const ButtonMapping* mapping = profile->button_mapping();
 
-#define MAPPED_BUTTON(name)                   \
-  {                                           \
-    if (mapping->name != 0xff) {              \
-      out->name = get_bit(in, mapping->name); \
-    } else {                                  \
-      out->name = 0;                          \
-    }                                         \
-  }
+  StickOutput stick_output = input_socd(profile, in);
 
-  MAPPED_BUTTONS();
+#if defined(CONFIG_PASSINGLINK_DISPLAY)
+  if (mapping->button_menu != 0xff) {
+    if (input_profile_parse_menu(in, &button_history.values[mapping->button_menu], stick_output,
+                                 current_tick)) {
+      return;
+    }
+  }
+#endif
+
+#define BUTTONS()       \
+  BUTTON(button_north)  \
+  BUTTON(button_east)   \
+  BUTTON(button_south)  \
+  BUTTON(button_west)   \
+  BUTTON(button_l1)     \
+  BUTTON(button_l2)     \
+  BUTTON(button_l3)     \
+  BUTTON(button_r1)     \
+  BUTTON(button_r2)     \
+  BUTTON(button_r3)     \
+  BUTTON(button_select) \
+  BUTTON(button_start)  \
+  BUTTON(button_home)   \
+  BUTTON(button_touchpad)
+#define BUTTON(name) out->name = (mapping->name == 0xff) ? 0 : get_bit(in, mapping->name);
+  BUTTONS();
+#undef BUTTON
+#undef BUTTONS
+
+  OutputMode output_mode = input_get_output_mode();
+  switch (output_mode) {
+    case OutputMode::mode_dpad:
+      out->dpad = stick_state_from_x_y(stick_output.x.value, stick_output.y.value);
+      break;
+
+    case OutputMode::mode_ls:
+      out->left_stick_x = stick_scale(stick_output.x.value);
+      out->left_stick_y = stick_scale(stick_output.y.value);
+      break;
+
+    case OutputMode::mode_rs:
+      out->right_stick_x = stick_scale(stick_output.x.value);
+      out->right_stick_y = stick_scale(stick_output.y.value);
+      break;
+  }
 
   bool input_locked = input_get_lock_tick();
   if (input_locked) {
@@ -339,23 +375,4 @@ void input_profile_assign_buttons(InputState* out, const RawInputState* in) {
   }
 }
 
-#if defined(CONFIG_PASSINGLINK_DISPLAY)
-static SOCDInputs socd_buf[32];
-#else
-static SOCDInputs socd_buf[2];
-#endif
-
-StickOutput::Axis input_profile_socd_x(const RawInputState* in) {
-  Profile* profile = active_profile();
-  size_t n = profile->socd_x(socd_buf, in);
-  span<SOCDInputs> inputs(socd_buf, n);
-
-  return input_socd_parse(input_socd_get_x_type(), inputs);
-}
-
-StickOutput::Axis input_profile_socd_y(const RawInputState* in) {
-  Profile* profile = active_profile();
-  size_t n = profile->socd_y(socd_buf, in);
-  span<SOCDInputs> inputs(socd_buf, n);
-  return input_socd_parse(input_socd_get_y_type(), inputs);
-}
+void input_profile_init() {}

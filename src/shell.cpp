@@ -22,7 +22,7 @@ static bool parse_button(RawInputState* state, const char* arg) {
     ++arg;
   }
 
-#define PL_GPIO(_, name)                                           \
+#define PL_GPIO(_, name, available)                                \
   {                                                                \
     const char* short_name = shorten(#name);                       \
     if (strcmp(arg, #name) == 0 || strcmp(arg, short_name) == 0) { \
