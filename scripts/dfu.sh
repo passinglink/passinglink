@@ -5,7 +5,7 @@ ROOT="$SCRIPT_PATH/../.."
 
 . "$SCRIPT_PATH/boards.sh"
 
-if [ "$PL_MCUBOOT_SUPPORTED" != "1"]; then
+if [ "$PL_MCUBOOT_SUPPORTED" != "1" ]; then
   echo "Board '$BOARD' doesn't support MCUboot"
   exit 1
 fi
