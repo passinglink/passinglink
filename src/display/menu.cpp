@@ -237,13 +237,11 @@ struct ProfileMenu : public RadioMenu {
   size_t get_option_count() final { return input_profile_count(); }
   void on_option_selected(size_t index) final { input_profile_activate(index); }
 
-  const char* get_option_name(size_t index) final {
-    return input_profile_get_name(index);
-  }
+  const char* get_option_name(size_t index) final { return input_profile_get_name(index); }
 };
 
 struct SOCDMenu : public Menu {
-  SOCDMenu() : Menu("SOCD Cleaning"), x(true), y(false) {}
+  SOCDMenu() : Menu("SOCD cleaning"), x(true), y(false) {}
 
   size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = &x;
