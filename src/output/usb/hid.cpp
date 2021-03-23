@@ -43,8 +43,8 @@ static struct k_delayed_work delayed_write_work;
 #if defined(STM32)
 constexpr uint32_t DEFAULT_HID_REPORT_DELAY_TICKS = k_us_to_ticks_ceil32(700);
 #elif defined(NRF52840)
-constexpr uint32_t DEFAULT_HID_REPORT_DELAY_TICKS = 23;
-static_assert(k_ticks_to_us_ceil32(DEFAULT_HID_REPORT_DELAY_TICKS) == 702);
+constexpr uint32_t DEFAULT_HID_REPORT_DELAY_TICKS = 22;
+static_assert(k_ticks_to_us_ceil32(DEFAULT_HID_REPORT_DELAY_TICKS) == 672);
 #else
 #error HID_REPORT_DELAY_US unset
 #endif
