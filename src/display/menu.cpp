@@ -20,6 +20,9 @@
 #define LOG_LEVEL LOG_LEVEL_INF
 LOG_MODULE_REGISTER(menu);
 
+// TODO: Store on flash.
+static bool keep_menu_spot = true;
+
 // Menu items:
 struct MenuBase {
   uint8_t selected_item;
@@ -230,6 +233,32 @@ struct SOCDRadioMenu : public RadioMenu {
   bool x_;
 };
 
+struct OutputModeRadioMenu : public RadioMenu {
+  OutputModeRadioMenu() : RadioMenu("Mode") {}
+
+  size_t get_selected_option() final { return static_cast<size_t>(input_get_output_mode()); }
+  size_t get_option_count() final { return 3; }
+  void on_option_selected(size_t index) final {
+    input_set_output_mode(static_cast<OutputMode>(index));
+  }
+
+  const char* get_option_name(size_t index) final {
+    switch (static_cast<OutputMode>(index)) {
+      case OutputMode::mode_dpad:
+        return "DPad";
+
+      case OutputMode::mode_ls:
+        return "Left stick";
+
+      case OutputMode::mode_rs:
+        return "Right stick";
+
+      default:
+        return "unreachable";
+    }
+  }
+};
+
 struct ProfileMenu : public RadioMenu {
   ProfileMenu() : RadioMenu("Profile") {}
 
@@ -241,7 +270,52 @@ struct ProfileMenu : public RadioMenu {
 };
 
 struct SOCDMenu : public Menu {
-  SOCDMenu() : Menu("SOCD cleaning"), x(true), y(false) {}
+  SOCDMenu() : Menu("SOCD"), x(true), y(false) {}
+
+  size_t render_text(span<char> buffer) final {
+    SOCDType x = input_socd_get_x_type();
+    SOCDType y = input_socd_get_y_type();
+    const char* x_str = "";
+    const char* y_str = "";
+
+    switch (x) {
+      case SOCDType::Positive:
+        x_str = "Right";
+        break;
+
+      case SOCDType::Negative:
+        x_str = "Left";
+        break;
+
+      case SOCDType::Neutral:
+        x_str = "Zero";
+        break;
+
+      case SOCDType::Last:
+        x_str = "Last";
+        break;
+    }
+
+    switch (y) {
+      case SOCDType::Positive:
+        y_str = "Down";
+        break;
+
+      case SOCDType::Negative:
+        y_str = "Up";
+        break;
+
+      case SOCDType::Neutral:
+        y_str = "Zero";
+        break;
+
+      case SOCDType::Last:
+        y_str = "Last";
+        break;
+    }
+
+    return snprintf(buffer.data(), buffer.size(), "SOCD: (%s, %s)", x_str, y_str);
+  }
 
   size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = &x;
@@ -251,6 +325,22 @@ struct SOCDMenu : public Menu {
 
   SOCDRadioMenu x;
   SOCDRadioMenu y;
+};
+
+struct OutputMenu : public Menu {
+  OutputMenu() : Menu("Output") {}
+
+  size_t menu_items(span<MenuBase*> buffer) final {
+    // TODO: Implement nonselectable items, so the cursor starts on increase.
+    buffer[0] = &output_mode_;
+    buffer[1] = &profile_;
+    buffer[2] = &socd_;
+    return 3;
+  }
+
+  OutputModeRadioMenu output_mode_;
+  ProfileMenu profile_;
+  SOCDMenu socd_;
 };
 
 size_t usb_delay_print(span<char> buf) {
@@ -297,19 +387,22 @@ struct USBDelayMenu : public Menu {
 };
 
 struct SettingsMenu : public Menu {
-  SettingsMenu() : Menu("Settings"), dfu_("Firmware update", mcuboot_enter) {}
+  SettingsMenu()
+      : Menu("Settings"),
+        remember_("Menu loc: remember", []() { keep_menu_spot = false; }),
+        forget_("Menu loc: forget", []() { keep_menu_spot = true; }),
+        dfu_("Firmware update", mcuboot_enter) {}
 
   size_t menu_items(span<MenuBase*> buffer) final {
-    buffer[0] = &profile_;
-    buffer[1] = &socd_;
-    buffer[2] = &usb_delay_;
-    buffer[3] = &dfu_;
-    return 4;
+    buffer[0] = &usb_delay_;
+    buffer[1] = keep_menu_spot ? &remember_ : &forget_;
+    buffer[2] = &dfu_;
+    return 3;
   }
 
-  ProfileMenu profile_;
-  SOCDMenu socd_;
   USBDelayMenu usb_delay_;
+  ActionItem remember_;
+  ActionItem forget_;
   ActionItem dfu_;
 };
 
@@ -324,32 +417,6 @@ struct AboutMenu : public Menu {
   ExpandedTextMenu version_;
 };
 
-struct OutputModeRadioMenu : public RadioMenu {
-  OutputModeRadioMenu() : RadioMenu("Mode") {}
-
-  size_t get_selected_option() final { return static_cast<size_t>(input_get_output_mode()); }
-  size_t get_option_count() final { return 3; }
-  void on_option_selected(size_t index) final {
-    input_set_output_mode(static_cast<OutputMode>(index));
-  }
-
-  const char* get_option_name(size_t index) final {
-    switch (static_cast<OutputMode>(index)) {
-      case OutputMode::mode_dpad:
-        return "DPad";
-
-      case OutputMode::mode_ls:
-        return "Left stick";
-
-      case OutputMode::mode_rs:
-        return "Right stick";
-
-      default:
-        return "unreachable";
-    }
-  }
-};
-
 struct MainMenu : public Menu {
   MainMenu()
       : Menu("Main menu"),
@@ -358,7 +425,7 @@ struct MainMenu : public Menu {
 
   size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = input_get_lock_tick() ? &unlock_ : &lock_;
-    buffer[1] = &output_mode_;
+    buffer[1] = &output_;
     buffer[2] = &settings_;
     buffer[3] = &about_;
     return 4;
@@ -366,7 +433,7 @@ struct MainMenu : public Menu {
 
   ActionItem lock_;
   ActionItem unlock_;
-  OutputModeRadioMenu output_mode_;
+  OutputMenu output_;
   SettingsMenu settings_;
   AboutMenu about_;
 };
@@ -386,12 +453,7 @@ static size_t menu_scroll_index;
 static size_t menu_selected_index;
 
 static MainMenu root;
-
-void menu_init() {
-  new (&menu_stack) stack<MenuLocation, 8>();
-  new (&menu_items) span<MenuBase*>();
-  new (&root) MainMenu();
-}
+static bool menu_opened = false;
 
 static void menu_fetch_items() {
   if (menu_stack.empty()) {
@@ -442,7 +504,7 @@ static void menu_pop() {
 }
 
 static void menu_draw() {
-  if (menu_stack.empty()) {
+  if (!menu_opened) {
     display_draw_logo();
   } else {
     for (size_t i = 0; i < DISPLAY_ROWS; ++i) {
@@ -472,20 +534,27 @@ static void menu_draw() {
 
 void menu_open() {
   LOG_DBG("menu_open");
-  while (!menu_stack.empty()) {
-    menu_pop();
+  if (!keep_menu_spot) {
+    while (!menu_stack.empty()) {
+      menu_pop();
+    }
+
+    menu_push(&root);
   }
 
-  menu_push(&root);
+  menu_opened = true;
   menu_draw();
 }
 
 void menu_close() {
   LOG_DBG("menu_close");
-  while (!menu_stack.empty()) {
-    menu_pop();
+  if (!keep_menu_spot) {
+    while (!menu_stack.empty()) {
+      menu_pop();
+    }
   }
 
+  menu_opened = false;
   menu_draw();
 }
 
@@ -527,6 +596,13 @@ void menu_input(MenuInput input) {
       menu_draw();
       break;
   }
+}
+
+void menu_init() {
+  new (&menu_stack) stack<MenuLocation, 8>();
+  new (&menu_items) span<MenuBase*>();
+  new (&root) MainMenu();
+  menu_push(&root);
 }
 
 #if defined(CONFIG_SHELL)
