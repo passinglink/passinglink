@@ -34,6 +34,11 @@ struct moving_average {
 
   T get() { return *average_; }
 
+  void reset() {
+    reports_ = 0;
+    average_.reset();
+  }
+
   size_t reports() { return reports_; }
 
   size_t reports_ = 0;
@@ -45,6 +50,12 @@ moving_average<float, 2, 2048> averager;
 #else
 moving_average<uint64_t, 2, 2048> averager;
 #endif
+
+void metrics_reset() {
+  ScopedIRQLock lock;
+  averager.reset();
+  input_tick.reset();
+}
 
 void metrics_record_input_read() {
   if (!input_tick) {

@@ -41,15 +41,15 @@ static struct k_delayed_work delayed_write_work;
 // TODO: Instead of using work queue timing (with ~100us precision), use a timer
 //       interrupt which is far more precise?
 #if defined(STM32)
-constexpr uint32_t HID_REPORT_INTERVAL_US = 700;
-constexpr uint32_t HID_REPORT_INTERVAL_TICKS = k_us_to_ticks_ceil32(HID_REPORT_INTERVAL_US);
+constexpr uint32_t DEFAULT_HID_REPORT_DELAY_TICKS = k_us_to_ticks_ceil32(700);
 #elif defined(NRF52840)
-// ~702 us
-constexpr uint32_t HID_REPORT_INTERVAL_TICKS = 23;
-static_assert(k_ticks_to_us_ceil32(HID_REPORT_INTERVAL_TICKS) == 702);
+constexpr uint32_t DEFAULT_HID_REPORT_DELAY_TICKS = 23;
+static_assert(k_ticks_to_us_ceil32(DEFAULT_HID_REPORT_DELAY_TICKS) == 702);
 #else
-#error HID_REPORT_INTERVAL_US unset
+#error HID_REPORT_DELAY_US unset
 #endif
+
+static uint32_t hid_report_delay_ticks = DEFAULT_HID_REPORT_DELAY_TICKS;
 
 static void write_report(struct k_work* item = nullptr);
 
@@ -64,9 +64,9 @@ static void submit_write() {
     ScopedIRQLock lock;
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED_WORK_QUEUE)
     k_delayed_work_submit_to_queue(&hid_work_q, &delayed_write_work,
-                                   K_TICKS(HID_REPORT_INTERVAL_TICKS));
+                                   K_TICKS(hid_report_delay_ticks));
 #else
-    k_delayed_work_submit(&delayed_write_work, K_TICKS(HID_REPORT_INTERVAL_TICKS));
+    k_delayed_work_submit(&delayed_write_work, K_TICKS(hid_report_delay_ticks));
 #endif
   }
 
@@ -296,6 +296,16 @@ static const struct hid_ops ops = {
     },
 };
 
+#if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
+uint32_t usb_hid_get_report_delay_ticks() {
+  return hid_report_delay_ticks;
+}
+
+void usb_hid_set_report_delay_ticks(uint32_t ticks) {
+  hid_report_delay_ticks = ticks;
+}
+
+#endif
 namespace passinglink {
 
 int usb_hid_init(Hid* hid_impl) {

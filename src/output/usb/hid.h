@@ -31,6 +31,9 @@ class Hid {
   virtual bool ProbeResult() { return false; }
 };
 
+uint32_t usb_hid_get_report_delay_ticks();
+void usb_hid_set_report_delay_ticks(uint32_t ticks);
+
 namespace passinglink {
 int usb_hid_init(Hid* hid_impl);
 void usb_hid_uninit();

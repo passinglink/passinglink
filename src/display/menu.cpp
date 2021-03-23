@@ -1,5 +1,6 @@
 #include "display/menu.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include <shell/shell.h>
@@ -9,6 +10,8 @@
 #include "input/input.h"
 #include "input/profile.h"
 #include "input/socd.h"
+#include "metrics/metrics.h"
+#include "output/usb/hid.h"
 #include "types.h"
 #include "util.h"
 #include "version.h"
@@ -252,18 +255,63 @@ struct SOCDMenu : public Menu {
   SOCDRadioMenu y;
 };
 
+size_t usb_delay_print(span<char> buf) {
+  uint32_t ticks = usb_hid_get_report_delay_ticks();
+  return snprintf(buf.data(), buf.size(), "%" PRIu32 " ticks", ticks);
+}
+
+void usb_delay_increase() {
+  uint32_t ticks = usb_hid_get_report_delay_ticks();
+  if (k_ticks_to_us_ceil32(ticks) > 1000) {
+    return;
+  }
+  usb_hid_set_report_delay_ticks(ticks + 1);
+  metrics_reset();
+}
+
+void usb_delay_decrease() {
+  uint32_t ticks = usb_hid_get_report_delay_ticks();
+  if (ticks == 0) {
+    return;
+  }
+  usb_hid_set_report_delay_ticks(ticks - 1);
+  metrics_reset();
+}
+
+struct USBDelayMenu : public Menu {
+  USBDelayMenu()
+      : Menu("USB timing"),
+        delay_("Delay: ", usb_delay_print),
+        increase_("Increase", usb_delay_increase),
+        decrease_("Decrease", usb_delay_decrease) {}
+
+  size_t menu_items(span<MenuBase*> buffer) final {
+    // TODO: Implement nonselectable items, so the cursor starts on increase.
+    buffer[0] = &delay_;
+    buffer[1] = &increase_;
+    buffer[2] = &decrease_;
+    return 3;
+  }
+
+  DynamicTextItem delay_;
+  ActionItem increase_;
+  ActionItem decrease_;
+};
+
 struct SettingsMenu : public Menu {
   SettingsMenu() : Menu("Settings"), dfu_("Firmware update", mcuboot_enter) {}
 
   size_t menu_items(span<MenuBase*> buffer) final {
     buffer[0] = &profile_;
     buffer[1] = &socd_;
-    buffer[2] = &dfu_;
-    return 3;
+    buffer[2] = &usb_delay_;
+    buffer[3] = &dfu_;
+    return 4;
   }
 
   ProfileMenu profile_;
   SOCDMenu socd_;
+  USBDelayMenu usb_delay_;
   ActionItem dfu_;
 };
 
