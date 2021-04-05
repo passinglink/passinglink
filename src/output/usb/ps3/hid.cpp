@@ -223,26 +223,26 @@ ssize_t PS3Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   }
 }
 
-ssize_t PS3Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
-                            span<uint8_t> buf) {
-  ssize_t rc = Hid::GetReport(report_type, report_id, buf);
-  if (rc >= 0) {
+optional<ssize_t> PS3Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                                      span<uint8_t> buf) {
+  optional<ssize_t> rc = Hid::GetReport(report_type, report_id, buf);
+  if (rc) {
     return rc;
   }
 
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
-    return -1;
+    return {};
   } else if (*report_type == HidReportType::Feature) {
     return GetFeatureReport(report_id, buf);
   } else if (*report_type == HidReportType::Input) {
     return GetInputReport(report_id, buf);
   } else if (*report_type == HidReportType::Output) {
     LOG_ERR("ignoring GetReport on output report %d", static_cast<int>(*report_type));
-    return -1;
+    return {};
   }
-  return -1;
+  return {};
 }
 
 void PS3Hid::InterruptOut(span<uint8_t> buf) {

@@ -14,8 +14,8 @@ class PS3Hid : public Hid {
   virtual span<const uint8_t> ReportDescriptor() const override final;
   ssize_t GetFeatureReport(uint8_t report_id, span<uint8_t> buf);
   ssize_t GetInputReport(uint8_t report_id, span<uint8_t> buf);
-  virtual ssize_t GetReport(optional<HidReportType> report_type, uint8_t report_id,
-                            span<uint8_t> buf) override final;
+  virtual optional<ssize_t> GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                                      span<uint8_t> buf) override final;
 
   virtual void InterruptOut(span<uint8_t> buf) override final;
 

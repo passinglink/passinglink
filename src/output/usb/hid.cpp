@@ -91,10 +91,14 @@ static void write_report(struct k_work* item) {
   ssize_t report_size;
   {
     PROFILE("Hid::GetReport", 128);
-    report_size = hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
-    if (report_size < 0) {
+    optional<ssize_t> rc =
+      hid->GetReport(HidReportType::Input, 1, span(report_buf, sizeof(report_buf)));
+
+    if (!rc || *rc < 0) {
       return;
     }
+
+    report_size = *rc;
   }
 
   size_t bytes_written = 0;
@@ -222,9 +226,9 @@ static const struct hid_ops ops = {
         return -1;
       }
 
-      int result = hid->GetReport(report_type, report_id, span<uint8_t>(*data, *len));
-      if (result != -1) {
-        *len = result;
+      optional<ssize_t> rc = hid->GetReport(report_type, report_id, span<uint8_t>(*data, *len));
+      if (rc && *rc != -1) {
+        *len = *rc;
         return 0;
       }
       return -1;
@@ -247,7 +251,8 @@ static const struct hid_ops ops = {
         return -1;
       }
 
-      bool result = hid->SetReport(report_type, report_id, span<uint8_t>(*data, *len));
+      bool result =
+        hid->SetReport(report_type, report_id, span<uint8_t>(*data, *len)).get_or(false);
       return result ? 0 : -1;
     },
   .set_idle =
@@ -296,12 +301,14 @@ static const struct hid_ops ops = {
     },
 };
 
-ssize_t Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id, span<uint8_t> buf) {
-  return -1;
+optional<ssize_t> Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                                 span<uint8_t> buf) {
+  return {};
 }
 
-bool Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id, span<uint8_t> data) {
-  return false;
+optional<bool> Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                              span<uint8_t> data) {
+  return {};
 }
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
