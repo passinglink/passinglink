@@ -6,6 +6,7 @@
 #include <usb/class/usb_hid.h>
 #include <usb/usb_device.h>
 
+#include "bootloader.h"
 #include "input/touchpad.h"
 #include "metrics/metrics.h"
 #include "output/output.h"
@@ -13,6 +14,8 @@
 #include "output/usb/nx/hid.h"
 #include "output/usb/ps4/hid.h"
 #include "output/usb/usb.h"
+#include "provisioning.h"
+#include "version.h"
 
 #define LOG_LEVEL LOG_LEVEL_DBG
 LOG_MODULE_REGISTER(hid);
@@ -303,11 +306,85 @@ static const struct hid_ops ops = {
 
 optional<ssize_t> Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
                                  span<uint8_t> buf) {
+  if (report_type && *report_type == HidReportType::Feature) {
+    switch (static_cast<PLReportId>(report_id)) {
+      case PLReportId::Version: {
+        size_t len = min(buf.size(), strlen(version_string()));
+        memcpy(buf.data(), version_string(), len);
+        return len;
+      }
+
+      case PLReportId::ProvisioningVersion: {
+#if defined(CONFIG_PASSINGLINK_RUNTIME_PROVISIONING)
+        buf[0] = 1;
+#else
+        buf[0] = 0;
+#endif
+        return 1;
+      }
+
+      default:
+        return {};
+    }
+  }
+
   return {};
 }
 
 optional<bool> Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
                               span<uint8_t> data) {
+  if (report_type && *report_type == HidReportType::Feature) {
+    switch (static_cast<PLReportId>(report_id)) {
+      case PLReportId::Reboot: {
+        if (data.size() != 2) {
+          return false;
+        }
+
+        if (data[1] == 1) {
+          reboot();
+        }
+#if defined(CONFIG_BOOTLOADER_MCUBOOT) && DT_HAS_CHOSEN(mcuboot_sram_warmboot)
+        else if (data[1] == 2) {
+          mcuboot_enter();
+        }
+#endif
+
+        return false;
+      }
+
+#if defined(CONFIG_PASSINGLINK_RUNTIME_PROVISIONING)
+      case PLReportId::WriteProvisioning: {
+        if (data.size() < 2) {
+          return false;
+        }
+
+        size_t offset = data.data()[1];
+        offset *= 62;
+
+        return provisioning_write(data.data() + 2, data.size() - 2, offset);
+      }
+
+      case PLReportId::FlushProvisioning: {
+        uint32_t magic;
+        if (data.size() != 5) {
+          LOG_ERR("FlushProvisioning: invalid data size %zu", data.size());
+          return false;
+        }
+        memcpy(&magic, data.data() + 1, sizeof(magic));
+        if (magic != 0x1209214c) {
+          LOG_ERR("FlushProvisioning: magic mismatch, received 0x%x", magic);
+          return false;
+        }
+
+        return provisioning_flush();
+      }
+#endif
+
+      default:
+        return {};
+    }
+  }
+
   return {};
 }
 
