@@ -201,21 +201,3 @@ ssize_t nx::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_i
   }
   return -1;
 }
-
-bool nx::Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
-                        span<uint8_t> data) {
-  LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
-
-  if (!report_type) {
-    LOG_ERR("ignoring SetReport without a report type");
-    return false;
-  } else if (*report_type != HidReportType::Feature) {
-    LOG_ERR("ignoring SetReport on non-feature report %d", static_cast<int>(*report_type));
-    return false;
-  } else {
-    LOG_ERR("SetReport called for unknown report 0x%02X", report_id);
-    return false;
-  }
-
-  return false;
-}

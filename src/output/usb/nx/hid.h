@@ -19,8 +19,6 @@ class Hid : public ::Hid {
   ssize_t GetInputReport(uint8_t report_id, span<uint8_t> buf);
   virtual ssize_t GetReport(optional<HidReportType> report_type, uint8_t report_id,
                             span<uint8_t> buf) override final;
-  virtual bool SetReport(optional<HidReportType> report_type, uint8_t report_id,
-                         span<uint8_t> data) override final;
 
   virtual void ClearHalt(uint8_t endpoint) override final {
     if (endpoint & 0x80) {
