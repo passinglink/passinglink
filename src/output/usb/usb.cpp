@@ -31,15 +31,15 @@ LOG_MODULE_REGISTER(usb);
 #endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_SWITCH)
-static nx::Hid nx_hid;
+static NXHid nx_hid;
 #endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS3)
-static ps3::Hid ps3_hid;
+static PS3Hid ps3_hid;
 #endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_PS4)
-static ps4::Hid ps4_hid;
+static PS4Hid ps4_hid;
 #endif
 
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_FORCE_PROBE_REBOOT) || defined(CONFIG_USB_DC_STM32)

@@ -7,9 +7,7 @@
 #include "output/usb/hid.h"
 #include "types.h"
 
-namespace ps4 {
-
-class Hid : public ::Hid {
+class PS4Hid : public Hid {
  public:
   virtual const char* Name() const override final { return "PS4"; }
 
@@ -27,5 +25,3 @@ class Hid : public ::Hid {
  private:
   uint8_t last_report_counter_ = 0;
 };
-
-}  // namespace ps4

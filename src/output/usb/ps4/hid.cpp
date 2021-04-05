@@ -171,12 +171,12 @@ static int write_with_crc(span<uint8_t> dst, span<uint8_t> src) {
   return src.size() + 4;
 }
 
-span<const uint8_t> ps4::Hid::ReportDescriptor() const {
+span<const uint8_t> PS4Hid::ReportDescriptor() const {
   return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kPS4ReportDescriptor),
                              sizeof(kPS4ReportDescriptor));
 }
 
-ssize_t ps4::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
+ssize_t PS4Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   buf[0] = report_id;
 
   switch (report_id) {
@@ -262,7 +262,7 @@ ssize_t ps4::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   }
 }
 
-ssize_t ps4::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
+ssize_t PS4Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   switch (report_id) {
     case 0x01: {
       if (buf.size() != 64) {
@@ -349,7 +349,7 @@ ssize_t ps4::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   }
 }
 
-ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+ssize_t PS4Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
                             span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
@@ -366,7 +366,7 @@ ssize_t ps4::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_
   return -1;
 }
 
-bool ps4::Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
+bool PS4Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
                          span<uint8_t> data) {
   LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
 

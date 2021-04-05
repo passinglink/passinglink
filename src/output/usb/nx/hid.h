@@ -7,9 +7,7 @@
 #include "output/usb/hid.h"
 #include "types.h"
 
-namespace nx {
-
-class Hid : public ::Hid {
+class NXHid : public Hid {
  public:
   virtual const char* Name() const override final { return "Switch"; }
   virtual int Init() override final;
@@ -36,5 +34,3 @@ class Hid : public ::Hid {
   bool input_halt_cleared_ = false;
   bool output_halt_cleared_ = false;
 };
-
-}  // namespace nx

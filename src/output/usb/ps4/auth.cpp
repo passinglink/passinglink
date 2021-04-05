@@ -23,8 +23,6 @@ extern "C" void dump_allocator_hwm();
 extern "C" K_THREAD_STACK_DEFINE(z_main_stack, CONFIG_MAIN_STACK_SIZE);
 #endif
 
-namespace ps4 {
-
 static void sign_nonce(struct k_work*);
 
 static atomic_u32<AuthState> auth_state;
@@ -254,7 +252,5 @@ bool get_next_signature_chunk(span<uint8_t> buf) {
   LOG_DBG("get_next_signature_chunk: finished writing chunk");
   return true;
 }
-
-}  // namespace ps4
 
 #endif  // CONFIG_PASSINGLINK_OUTPUT_USB_PS4_AUTH

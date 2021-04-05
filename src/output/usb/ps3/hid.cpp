@@ -121,12 +121,12 @@ struct __attribute__((packed)) OutputReport {
 
 static_assert(sizeof(OutputReport) == 27);
 
-span<const uint8_t> ps3::Hid::ReportDescriptor() const {
+span<const uint8_t> PS3Hid::ReportDescriptor() const {
   return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kPS3ReportDescriptor),
                              sizeof(kPS3ReportDescriptor));
 }
 
-ssize_t ps3::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
+ssize_t PS3Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   buf[0] = report_id;
   if (report_id == 0) {
     if (buf.size() < 8) {
@@ -141,7 +141,7 @@ ssize_t ps3::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   return -1;
 }
 
-ssize_t ps3::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
+ssize_t PS3Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   switch (report_id) {
     case 0x01: {
       if (buf.size() != 64) {
@@ -223,7 +223,7 @@ ssize_t ps3::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   }
 }
 
-ssize_t ps3::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+ssize_t PS3Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
                             span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
@@ -240,7 +240,7 @@ ssize_t ps3::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_
   return -1;
 }
 
-void ps3::Hid::InterruptOut(span<uint8_t> buf) {
+void PS3Hid::InterruptOut(span<uint8_t> buf) {
   if (buf.size() == 8) {
     controller_number_ = buf[2];
 

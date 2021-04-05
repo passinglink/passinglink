@@ -91,24 +91,24 @@ struct __attribute__((packed)) OutputReport {
 
 static_assert(sizeof(OutputReport) == 8);
 
-int nx::Hid::Init() {
+int NXHid::Init() {
   usb_set_vendor_id(0x0f0d);
   usb_set_product_id(0x0092);
   return 0;
 }
 
-span<const uint8_t> nx::Hid::ReportDescriptor() const {
+span<const uint8_t> NXHid::ReportDescriptor() const {
   return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kNXReportDescriptor),
                              sizeof(kNXReportDescriptor));
 }
 
-ssize_t nx::Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
+ssize_t NXHid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
   buf[0] = report_id;
   LOG_ERR("GetFeatureReport called for unknown report 0x%02X", report_id);
   return -1;
 }
 
-ssize_t nx::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
+ssize_t NXHid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   switch (report_id) {
     case 0x01: {
       if (buf.size() != 64) {
@@ -185,7 +185,7 @@ ssize_t nx::Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   }
 }
 
-ssize_t nx::Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+ssize_t NXHid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
                            span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
