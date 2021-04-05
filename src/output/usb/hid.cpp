@@ -296,6 +296,14 @@ static const struct hid_ops ops = {
     },
 };
 
+ssize_t Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id, span<uint8_t> buf) {
+  return -1;
+}
+
+bool Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id, span<uint8_t> data) {
+  return false;
+}
+
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED)
 uint32_t usb_hid_get_report_delay_ticks() {
   return hid_report_delay_ticks;
@@ -307,7 +315,6 @@ void usb_hid_set_report_delay_ticks(uint32_t ticks) {
 
 #endif
 namespace passinglink {
-
 int usb_hid_init(Hid* hid_impl) {
 #if defined(CONFIG_PASSINGLINK_OUTPUT_USB_DEFERRED_WORK_QUEUE)
   static bool hid_work_q_running = false;

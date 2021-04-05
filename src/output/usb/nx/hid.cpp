@@ -187,6 +187,11 @@ ssize_t NXHid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
 
 ssize_t NXHid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
                            span<uint8_t> buf) {
+  ssize_t rc = Hid::GetReport(report_type, report_id, buf);
+  if (rc >= 0) {
+    return rc;
+  }
+
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
