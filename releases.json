@@ -39,9 +39,9 @@
     }
   },
   "nightly": {
-    "version": "v1.1.1-17-g01fa131",
+    "version": "v1.1.1-17-gdfe60a1",
     "date": "2021-04-08",
-    "filename": "nightly-01fa131.bin",
+    "filename": "nightly-dfe60a1.bin",
     "boards": [
       "microdash",
       "pl_e73",
