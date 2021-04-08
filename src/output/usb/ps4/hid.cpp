@@ -85,7 +85,6 @@ const uint8_t kPS4ReportDescriptor[] = {
   0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
   0xC0,              // End Collection
 
-
   0x06, 0xF0, 0xFF,  // Usage Page (Vendor Defined 0xFFF0)
   0x09, 0x40,        // Usage (0x40)
   0xA1, 0x01,        // Collection (Application)
@@ -106,6 +105,8 @@ const uint8_t kPS4ReportDescriptor[] = {
   0x95, 0x07,        //   Report Count (7)
   0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
   0xC0,              // End Collection
+
+  PL_HID_REPORT_DESCRIPTOR
 };
 // clang-format on
 
