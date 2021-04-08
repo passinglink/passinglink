@@ -466,6 +466,8 @@ void usb_hid_uninit() {
   usb_disable();
   usb_hid_unregister_device(usb_hid_device);
   hid->Deinit();
+
+  metrics_reset();
 }
 
 }  // namespace passinglink

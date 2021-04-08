@@ -11,6 +11,7 @@
 LOG_MODULE_REGISTER(metrics);
 
 #if !defined(CONFIG_PASSINGLINK_DISPLAY)
+void metrics_reset() {}
 void metrics_record_input_read() {}
 void metrics_record_usb_write() {}
 #else
