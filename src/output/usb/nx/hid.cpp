@@ -99,6 +99,11 @@ int NXHid::Init() {
   return 0;
 }
 
+void NXHid::Deinit() {
+  usb_set_vendor_id(CONFIG_USB_DEVICE_VID);
+  usb_set_product_id(CONFIG_USB_DEVICE_PID);
+}
+
 span<const uint8_t> NXHid::ReportDescriptor() const {
   return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kNXReportDescriptor),
                              sizeof(kNXReportDescriptor));

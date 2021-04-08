@@ -59,6 +59,7 @@ class Hid {
  public:
   virtual const char* Name() const = 0;
   virtual int Init() { return 0; }
+  virtual void Deinit() {}
 
   virtual span<const uint8_t> ReportDescriptor() const = 0;
   virtual optional<ssize_t> GetReport(optional<HidReportType> report_type, uint8_t report_id,
