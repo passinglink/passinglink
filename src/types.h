@@ -60,7 +60,7 @@ struct atomic_u32 {
 };
 
 template <typename T>
-struct optional {
+struct __attribute__((packed)) optional {
   optional() {}
 
   optional(const optional& copy) {
@@ -132,8 +132,8 @@ struct optional {
   T* ptr() { return reinterpret_cast<T*>(&obj_); }
   const T* ptr() const { return reinterpret_cast<const T*>(&obj_); }
 
-  bool valid_ = false;
   alignas(T) char obj_[sizeof(T)] = {};
+  bool valid_ = false;
 };
 
 template <typename T, size_t N>
