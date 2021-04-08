@@ -60,8 +60,6 @@ const uint8_t kNXReportDescriptor[] = {
   0x95, 0x08,        //   Report Count (8)
   0x91, 0x02,        //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
   0xC0,              // End Collection
-
-  PL_HID_REPORT_DESCRIPTOR
 };
 // clang-format on
 

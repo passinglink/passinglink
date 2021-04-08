@@ -85,6 +85,7 @@ const uint8_t kPS4ReportDescriptor[] = {
   0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
   0xC0,              // End Collection
 
+
   0x06, 0xF0, 0xFF,  // Usage Page (Vendor Defined 0xFFF0)
   0x09, 0x40,        // Usage (0x40)
   0xA1, 0x01,        // Collection (Application)
@@ -105,8 +106,6 @@ const uint8_t kPS4ReportDescriptor[] = {
   0x95, 0x07,        //   Report Count (7)
   0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
   0xC0,              // End Collection
-
-  PL_HID_REPORT_DESCRIPTOR
 };
 // clang-format on
 
@@ -373,13 +372,13 @@ optional<ssize_t> PS4Hid::GetReport(optional<HidReportType> report_type, uint8_t
 }
 
 optional<bool> PS4Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
-                                 span<uint8_t> data) {
-  LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
-
+                                   span<uint8_t> data) {
   optional<bool> rc = Hid::SetReport(report_type, report_id, data);
   if (rc) {
     return rc;
   }
+
+  LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
 
   if (!report_type) {
     LOG_ERR("ignoring SetReport without a report type");

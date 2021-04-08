@@ -85,8 +85,6 @@ const uint8_t kPS3ReportDescriptor[] = {
   0x95, 0x04,        //   Report Count (4)
   0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
   0xC0,              // End Collection
-
-  PL_HID_REPORT_DESCRIPTOR
 };
 // clang-format on
 

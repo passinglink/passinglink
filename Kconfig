@@ -163,12 +163,6 @@ config PASSINGLINK_DISPLAY_SSD1306
 
 endmenu
 
-config PASSINGLINK_RUNTIME_PROVISIONING
-  bool "Support provisioning of device keys over USB"
-  default y
-  depends on FLASH
-  depends on FLASH_MAP
-
 menu "Optional components"
 
 config PASSINGLINK_BT
