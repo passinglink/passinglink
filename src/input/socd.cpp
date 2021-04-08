@@ -112,15 +112,17 @@ StickOutput::Axis input_socd_parse(SOCDType type, span<SOCDInputs> inputs) {
 
   optional<uint64_t> newest_tick;
   optional<int> newest_value;
-
-  for (auto& x : results) {
-    if (!x.tick) continue;
-
-    if (!newest_tick || *newest_tick < *x.tick) {
-      newest_tick = *x.tick;
-      newest_value.reset(x.value);
-    }
+#define X(tick, value)                          \
+  if (tick) {                                   \
+    if (!newest_tick || *newest_tick < *tick) { \
+      newest_tick = *tick;                      \
+      newest_value.reset(value);                \
+    }                                           \
   }
+
+  X(newest_positive, 1);
+  X(newest_neutral, 0);
+  X(newest_negative, -1);
 
   return StickOutput::Axis {
     .value = newest_value.get_or(0),
