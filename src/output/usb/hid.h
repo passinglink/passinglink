@@ -17,10 +17,12 @@ class Hid {
   virtual void Deinit() {}
 
   virtual span<const uint8_t> ReportDescriptor() const = 0;
-  virtual optional<ssize_t> GetReport(optional<HidReportType> report_type, uint8_t report_id,
-                                      span<uint8_t> buf);
-  virtual optional<bool> SetReport(optional<HidReportType> report_type, uint8_t report_id,
-                                   span<uint8_t> data);
+  virtual ssize_t GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) = 0;
+  virtual bool SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                         span<uint8_t> data) {
+    return false;
+  }
 
   virtual void InterruptOut(span<uint8_t> data) {}
 

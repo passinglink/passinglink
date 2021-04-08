@@ -16,8 +16,8 @@ class NXHid : public Hid {
   virtual span<const uint8_t> ReportDescriptor() const override final;
   ssize_t GetFeatureReport(uint8_t report_id, span<uint8_t> buf);
   ssize_t GetInputReport(uint8_t report_id, span<uint8_t> buf);
-  virtual optional<ssize_t> GetReport(optional<HidReportType> report_type, uint8_t report_id,
-                                      span<uint8_t> buf) override final;
+  virtual ssize_t GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) override final;
 
   virtual void ClearHalt(uint8_t endpoint) override final {
     if (endpoint & 0x80) {

@@ -349,43 +349,33 @@ ssize_t PS4Hid::GetInputReport(uint8_t report_id, span<uint8_t> buf) {
   }
 }
 
-optional<ssize_t> PS4Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
-                                      span<uint8_t> buf) {
-  optional<ssize_t> rc = Hid::GetReport(report_type, report_id, buf);
-  if (rc) {
-    return rc;
-  }
-
+ssize_t PS4Hid::GetReport(optional<HidReportType> report_type, uint8_t report_id,
+                            span<uint8_t> buf) {
   LOG_DBG("GetReport(0x%02X)", report_id);
   if (!report_type) {
     LOG_ERR("ignoring GetReport without a report type");
-    return {};
+    return -1;
   } else if (*report_type == HidReportType::Feature) {
     return GetFeatureReport(report_id, buf);
   } else if (*report_type == HidReportType::Input) {
     return GetInputReport(report_id, buf);
   } else if (*report_type == HidReportType::Output) {
     LOG_ERR("ignoring GetReport on output report %d", static_cast<int>(*report_type));
-    return {};
+    return -1;
   }
-  return {};
+  return -1;
 }
 
-optional<bool> PS4Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
-                                   span<uint8_t> data) {
-  optional<bool> rc = Hid::SetReport(report_type, report_id, data);
-  if (rc) {
-    return rc;
-  }
-
+bool PS4Hid::SetReport(optional<HidReportType> report_type, uint8_t report_id,
+                         span<uint8_t> data) {
   LOG_WRN("SetReport(0x%02X): %zu byte%s", report_id, data.size(), data.size() == 1 ? "" : "s");
 
   if (!report_type) {
     LOG_ERR("ignoring SetReport without a report type");
-    return {};
+    return false;
   } else if (*report_type != HidReportType::Feature) {
     LOG_ERR("ignoring SetReport on non-feature report %d", static_cast<int>(*report_type));
-    return {};
+    return false;
   }
 
   switch (report_id) {
@@ -425,8 +415,8 @@ optional<bool> PS4Hid::SetReport(optional<HidReportType> report_type, uint8_t re
 
     default:
       LOG_ERR("SetReport called for unknown report 0x%02X", report_id);
-      return {};
+      return false;
   }
 
-  return {};
+  return false;
 }
