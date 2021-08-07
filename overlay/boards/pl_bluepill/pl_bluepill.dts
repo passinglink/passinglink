@@ -1,5 +1,6 @@
 /dts-v1/;
 #include <st/f1/stm32f103X8.dtsi>
+#include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
 
 #include "pl_bluepill.dtsi"
 

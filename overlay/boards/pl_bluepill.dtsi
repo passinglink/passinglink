@@ -1,3 +1,5 @@
+#include <st/f1/stm32f103c(8-b)tx-pinctrl.dtsi>
+
 / {
   chosen {
     zephyr,console = &usart2;
@@ -17,9 +19,11 @@
 
 &usart2 {
   current-speed = <921600>;
+  pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
   status = "okay";
 };
 
 &usb {
+  pinctrl-0 = <&usb_dm_pa11 &usb_dp_pa12>;
   status = "okay";
 };
