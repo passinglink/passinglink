@@ -39,9 +39,9 @@
     }
   },
   "nightly": {
-    "version": "v1.1.1-27-gd1bc70c",
-    "date": "2021-08-07",
-    "filename": "nightly-d1bc70c.bin",
+    "version": "v1.1.1-28-g77cb962",
+    "date": "2022-08-19",
+    "filename": "nightly-77cb962.bin",
     "boards": [
       "microdash",
       "pl_e73",
