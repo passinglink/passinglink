@@ -10,6 +10,8 @@
 class PS4Hid : public Hid {
  public:
   virtual const char* Name() const override final { return "PS4"; }
+  virtual int Init() override final;
+  virtual void Deinit() override final;
 
   virtual span<const uint8_t> ReportDescriptor() const override final;
   ssize_t GetFeatureReport(uint8_t report_id, span<uint8_t> buf);

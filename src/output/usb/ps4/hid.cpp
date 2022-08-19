@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <usb/usb_device.h>
 #include <zephyr.h>
 
 #include <logging/log.h>
@@ -105,8 +106,6 @@ const uint8_t kPS4ReportDescriptor[] = {
   0x95, 0x07,        //   Report Count (7)
   0xB1, 0x02,        //   Feature (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
   0xC0,              // End Collection
-
-  PL_HID_REPORT_DESCRIPTOR
 };
 // clang-format on
 
@@ -175,6 +174,17 @@ static int write_with_crc(span<uint8_t> dst, span<uint8_t> src) {
 span<const uint8_t> PS4Hid::ReportDescriptor() const {
   return span<const uint8_t>(reinterpret_cast<const uint8_t*>(kPS4ReportDescriptor),
                              sizeof(kPS4ReportDescriptor));
+}
+
+int PS4Hid::Init() {
+  usb_set_vendor_id(0x1532);
+  usb_set_product_id(0x0401);
+  return 0;
+}
+
+void PS4Hid::Deinit() {
+  usb_set_vendor_id(CONFIG_USB_DEVICE_VID);
+  usb_set_product_id(CONFIG_USB_DEVICE_PID);
 }
 
 ssize_t PS4Hid::GetFeatureReport(uint8_t report_id, span<uint8_t> buf) {
