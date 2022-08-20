@@ -35,6 +35,15 @@ elif [[ "$BOARD" == "pl_e73" ]]; then
     -DCONFIG_BOOT_USB_DFU_DETECT_PORT=\"GPIO_0\"
     -DCONFIG_BOOT_USB_DFU_DETECT_PIN=0
   "
+elif [[ "$BOARD" == "pl_stm32" ]]; then
+  PL_PYOCD_TYPE=stm32_f103re
+
+  PL_MCUBOOT_SUPPORTED=0
+# PL_MCUBOOT_OPTS="
+#   -DCONFIG_BOOT_USB_DFU_GPIO=y
+#   -DCONFIG_BOOT_USB_DFU_DETECT_PORT=\"GPIOC\"
+#   -DCONFIG_BOOT_USB_DFU_DETECT_PIN=15
+# "
 elif [[ "$BOARD" == "pl_dongle" ]]; then
   PL_PYOCD_TYPE=nrf52840
 
